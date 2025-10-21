@@ -1,21 +1,9 @@
-
 import { useEffect, useRef, useState } from "react";
-
-
 import math from "../utils/mathSetup";
 import CalculatorInput from "../components/CalculatorInput";
 import PlotArea from "../components/PlotArea";
 import { preprocess } from "../utils/mathEngine";
 import MatrixModal from "../components/MatrixModal";
-
-/*
-Key ideas:
-- use math.evaluate / math.parse for safe evaluation (supports complex, matrices)
-- degree mode: convert inputs for trig functions when needed
-- history persisted to localStorage
-- physical keyboard event listener
-- basic matrix modal and plot area included
-*/
 
 export default function Calculator({ user, onSignOut }) {
   const [input, setInput] = useState("");
@@ -25,26 +13,18 @@ export default function Calculator({ user, onSignOut }) {
   const [lastAnswer, setLastAnswer] = useState("");
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [showPlot, setShowPlot] = useState(false);
-  const [plotConfig, setPlotConfig] = useState(null); // { x, y, layout }
-  const [plotWidth, setPlotWidth] = useState(700); // initial width
-  const [plotHeight, setPlotHeight] = useState(400); // initial height
-  const [angleMode, setAngleMode] = useState("rad"); // 'rad' or 'deg'
+  const [plotConfig, setPlotConfig] = useState(null);
+  const [plotWidth, setPlotWidth] = useState(700);
+  const [plotHeight, setPlotHeight] = useState(400);
+  const [angleMode, setAngleMode] = useState("rad");
   const [showMatrixModal, setShowMatrixModal] = useState(false);
-  const [matrixA, setMatrixA] = useState([[1,0],[0,1]]);
-  const [matrixB, setMatrixB] = useState([[1,2],[3,4]]);
+  const [initialMatrixInput, setInitialMatrixInput] = useState("");
   const inputRef = useRef(null);
 
-
-
-  // Persist history
   useEffect(() => {
     localStorage.setItem("calc_history", JSON.stringify(history));
   }, [history]);
 
-  // keyboard support - physical keyboard
-
-
-  // helpers
   const pushHistory = (expr, result) => {
     const entry = `${expr} = ${result}`;
     setHistory(h => [entry, ...h.slice(0, 99)]);
@@ -57,65 +37,38 @@ export default function Calculator({ user, onSignOut }) {
     setLastAnswer(String(result));
   };
 
+  const openMatrixModal = (show, initInput = "") => {
+    setInitialMatrixInput(initInput);
+    setShowMatrixModal(show);
+  };
 
-
-
-
-
-
-  // handle special buttons
-
-
-  // History reuse: click to insert into input or evaluate
   const handleHistoryClick = (entry) => {
-    // entry like "expr = result"
     const expr = entry.split(" = ")[0];
     setInput(expr);
     inputRef.current?.focus();
   };
 
-  // Matrix modal helpers (simple)
-  const matrixToString = (m) => JSON.stringify(m);
-  const handleMatrixMultiply = () => {
+  const handlePlot = () => {
+    if (!input) return alert("Enter function of x to plot in input, e.g. sin(x)");
     try {
-      const res = math.multiply(math.matrix(matrixA), math.matrix(matrixB));
-      const formatted = math.format(res, { precision: 14 });
-      pushHistory(`MatMul ${matrixToString(matrixA)} * ${matrixToString(matrixB)}`, formatted);
-      setShowMatrixModal(false);
-      setInput(String(formatted));
+      const expr = preprocess(input);
+      const xs = math.range(-10, 10, 0.1).toArray();
+      const ys = xs.map(x => {
+        try { return math.evaluate(expr.replace(/x/g, `(${x})`)); } catch { return NaN; }
+      });
+      setPlotConfig({
+        x: xs,
+        y: ys.map(v => (typeof v === "number" ? v : (v.re !== undefined ? v.re : NaN))),
+        layout: { title: `y = ${input}` }
+      });
+      setShowPlot(true);
     } catch (e) {
-      alert("Matrix multiply failed: " + e.message);
+      alert("Plot failed: " + e.message);
     }
   };
 
-
-
-
-              const handlePlot = () => {
-              // tries to interpret input as function in x, e.g. "sin(x)" or expression with x
-              if (!input) return alert("Enter function of x to plot in input, e.g. sin(x)");
-              try {
-                const expr = preprocess(input);
-                const xs = math.range(-10, 10, 0.1).toArray();
-                const ys = xs.map(x => {
-                  try { return math.evaluate(expr.replace(/x/g, `(${x})`)); } catch { return NaN; }
-                });
-                setPlotConfig({
-                  x: xs,
-                  y: ys.map(v => (typeof v === "number" ? v : (v.re !== undefined ? v.re : NaN))),
-                  layout: { title: `y = ${input}` }
-                });
-                setShowPlot(true);
-              } catch (e) {
-                alert("Plot failed: " + e.message);
-              }
-            };
-
-
-  // Render
   return (
     <div className="h-screen bg-gray-900 relative">
-      {/* Profile top-right */}
       <div className="absolute top-2 right-2">
         <div className="relative">
           <button
@@ -148,13 +101,8 @@ export default function Calculator({ user, onSignOut }) {
         </div>
       </div>
 
-      {/* Main calculator area centered */}
       <div className="flex flex-1 justify-center items-start pt-16 gap-6 px-2">
-        {/* Calculator */}
-          <div className="flex flex-col items-center gap-4">
-          {/* Info box at the top */}
-         
-          {/* Calculator input below info box */}
+        <div className="flex flex-col items-center gap-4">
           <CalculatorInput
             inputRef={inputRef}
             handlePlot={handlePlot}
@@ -165,25 +113,23 @@ export default function Calculator({ user, onSignOut }) {
             setShowPlot={setShowPlot}
             lastAnswer={lastAnswer}
             pushHistory={pushHistory}
-            setShowMatrixModal={setShowMatrixModal} // <-- Add this line
+            setShowMatrixModal={openMatrixModal}
+            showMatrixModal={showMatrixModal} // NEW: Pass to conditionalize listener
           />
         </div>
 
-        {/* Side panel: Plot + History */}
         <div className="flex flex-row gap-4">
-          {/* Plot area */}
           {showPlot && (
             <PlotArea
-           plotWidth={plotWidth}
-           setPlotWidth={setPlotWidth}
-           plotHeight={plotHeight}
-           setPlotHeight={setPlotHeight}
-           setShowPlot={setShowPlot}
-           plotConfig={plotConfig}
+              plotWidth={plotWidth}
+              setPlotWidth={setPlotWidth}
+              plotHeight={plotHeight}
+              setPlotHeight={setPlotHeight}
+              setShowPlot={setShowPlot}
+              plotConfig={plotConfig}
             />
           )}
 
-          {/* History */}
           <div className="bg-gray-800 rounded p-3 shadow-md w-64">
             <h3 className="text-white font-semibold text-sm mb-2">History</h3>
             <div className="flex flex-col gap-1 overflow-y-auto text-sm font-mono text-white max-h-96">
@@ -198,12 +144,12 @@ export default function Calculator({ user, onSignOut }) {
         </div>
       </div>
 
-      {/* Matrix Modal */}
       <MatrixModal
-      show={showMatrixModal}
-      onClose={() => setShowMatrixModal(false)}
-      onResult={handleMatrixResult}
-    />
+        show={showMatrixModal}
+        onClose={() => setShowMatrixModal(false)}
+        onResult={handleMatrixResult}
+        initialInput={initialMatrixInput}
+      />
     </div>
   );
 }
