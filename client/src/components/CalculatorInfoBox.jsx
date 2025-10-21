@@ -66,7 +66,7 @@ const CalculatorInfoBox = ({ show, onClose }) => {
           <li>
             <b>History:</b> Click history item to reuse expression
           </li>
-        </ul>
+        </ul> 
         <div className="mt-2">
           <b>Keyboard Shortcuts:</b>
           <ul className="list-disc ml-5">
