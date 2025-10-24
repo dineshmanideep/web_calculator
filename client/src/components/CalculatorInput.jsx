@@ -1,145 +1,107 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { preprocess, evaluateExpression } from '../utils/mathEngine';
+import { evaluateExpression } from '../utils/mathEngine';
 import math from '../utils/mathSetup';
 import CalculatorInfoBox from './CalculatorInfoBox';
 
-const CalculatorInput = ({ inputRef, handlePlot, input, setInput, setHistory, setLastAnswer, setShowPlot, lastAnswer, pushHistory, setShowMatrixModal, showMatrixModal }) => {
-  const [inverseTrig, setInverseTrig] = useState(false);
+const CalculatorInput = ({
+  inputRef,
+  handlePlot,
+  input,
+  angleMode,
+  setInput,
+  setHistory,
+  setLastAnswer,
+  setShowPlot,
+  lastAnswer,
+  pushHistory,
+  setShowMatrixModal,
+  showMatrixModal,
+  showMLMode: parentShowMLMode,
+  setShowMLMode: parentSetShowMLMode,
+  startParamSequence,
+}) => {
   const [showInfo, setShowInfo] = useState(false);
-  const buttons = [
-    "C", "←", "Ans", "Plot", "=",
-    "7", "8", "9", "/", "sqrt(",
-    "4", "5", "6", "*", "^",
-    "1", "2", "3", "-", "!",
-    "0", ".", "%", "+", "pi",
-    inverseTrig ? "asin(" : "sin(",
-    inverseTrig ? "acos(" : "cos(",
-    inverseTrig ? "atan(" : "tan(",
-    "ln(", "log(",
-    "(", ")", "e", "i", "x",
-    "Perm", "Comb", "MatMul", "Int", "Der"
+  const [matrixMode, setMatrixMode] = useState(false);
+  const [complexMode, setComplexMode] = useState(false);
+  const [mlMode, setMlMode] = useState(!!parentShowMLMode);
+  const [calculusMode, setCalculusMode] = useState(false);
+  const [inverseMode, setInverseMode] = useState(false);
+
+  // sync parent ML mode
+  useEffect(() => {
+    if (typeof parentSetShowMLMode === 'function') parentSetShowMLMode(mlMode);
+  }, [mlMode, parentSetShowMLMode]);
+
+  const baseButtons = [
+    'C', '←', 'Ans', '=', 
+    '7', '8', '9', '/', 
+    '4', '5', '6', '*', 
+    '1', '2', '3', '-', 
+    '0', '.', '+', '^', '%',
+    '(', ')', '!',
   ];
 
-  // FIXED: Define handleEquals BEFORE useEffect (hoisting workaround)
-  // Wrapped in useCallback to stabilize deps and prevent re-renders
+  const matrixButtons = ['MatMul', 'TransA', 'TransB', 'DetA', 'DetB'];
+  const complexButtons = ['i', 're(', 'im(', 'conj('];
+  const mlButtons = ['BestFit', 'Params', 'WOpt', 'RF', 'LR', 'FeatImp'];
+  const calculusButtons = ['Int', 'Der', 'd/dx(', '∫('];
+
   const handleEquals = useCallback(() => {
     try {
-      const result = evaluateExpression(input);
-      const formatted = math.format(result, { precision: 14 });
+      const result = evaluateExpression(input, angleMode);
+      const formatted = math.format(result, { precision: 7 });
       pushHistory(input, formatted);
       setInput(String(formatted));
     } catch (err) {
-      alert("Invalid Expression: " + (err.message || err));
+      alert('Invalid Expression: ' + (err.message || err));
     }
     inputRef.current?.focus();
-  }, [input, pushHistory, setInput, inputRef]);
+  }, [input, angleMode, pushHistory, setInput, inputRef]);
 
-  // NEW: handleClick also useCallback for stability (optional but good practice)
-  const handleClick = useCallback((btn) => {
-    if (btn === "C") { 
-      setInput(""); 
-      inputRef.current?.focus(); 
-      return; 
-    }
-    if (btn === "←") { 
-      setInput(s => s.slice(0, -1)); 
-      inputRef.current?.focus(); 
-      return; 
-    }
-    if (btn === "Ans") { 
-      setInput(s => s + lastAnswer); 
-      inputRef.current?.focus(); 
-      return; 
-    }
-    if (btn === "Plot") { 
-      setShowPlot(s => !s); 
-      return; 
-    }
-    if (btn === "=") { 
-      handleEquals(); 
-      return; 
-    }
-
-    if (btn === "Perm") { 
-      setInput(s => s + " nPr("); 
-      inputRef.current?.focus(); 
-      return; 
-    }
-    if (btn === "Comb") { 
-      setInput(s => s + " nCr("); 
-      inputRef.current?.focus(); 
-      return; 
-    }
-    if (btn === "MatMul") { 
-      console.log('Opening modal with input:', input); // Debug
-      setShowMatrixModal(true, input); 
-      return; 
-    }
-    if (btn === "Int") {
-      try {
-        const [func, lower, upper] = input.split(",");
-        if (!func || lower === undefined || upper === undefined) {
-          alert("Format: f(x),a,b");
-          return;
-        }
-        const f = (x) => math.evaluate(func, { x });
-        const a = Number(lower), b = Number(upper), n = 200;
-        const h = (b - a) / n;
-        let s = f(a) + f(b);
-        for (let i = 1; i < n; i++) {
-          s += (i % 2 === 0 ? 2 : 4) * f(a + i * h);
-        }
-        const result = (s * h) / 3;
-        pushHistory(`∫[${lower},${upper}] ${func} dx`, math.format(result));
-        setInput(String(math.format(result)));
-      } catch (e) {
-        setInput("Error");
+  const handleClick = useCallback(
+    (btn) => {
+      if (btn === 'C') { setInput(''); return; }
+      if (btn === '←') { setInput(s => s.slice(0, -1)); return; }
+      if (btn === 'Ans') {
+        if (!lastAnswer) { alert('No previous answer available.'); return; }
+        setInput(s => s + lastAnswer); return;
       }
-      return;
-    }
+      if (btn === '=') { handleEquals(); return; }
 
-    if (btn === "Der") {
-      try {
-        const derivative = math.derivative(input, "x").toString();
-        pushHistory(`d/dx ${input}`, derivative);
-        setInput(derivative);
-      } catch (e) {
-        setInput("Error");
+      // matrix actions
+      if (btn === 'MatMul') { setShowMatrixModal && setShowMatrixModal(true); return; }
+      if (btn.startsWith('Trans')) { setInput(s => s + btn.toLowerCase() + '('); return; }
+      if (btn.startsWith('Det')) { setInput(s => s + btn.toLowerCase() + '('); return; }
+
+      // calculus actions
+      if (btn === 'Int') { setInput(s => s + 'int('); return; }
+      if (btn === 'Der' || btn === 'd/dx(') { setInput(s => s + 'der('); return; }
+      if (btn === '∫(') { setInput(s => s + 'integral('); return; }
+
+      // ML params
+      if (mlMode && btn === 'Params' && typeof startParamSequence === 'function') {
+        startParamSequence(['H', 'W', 'K'], (vals) => {
+          setInput(String(JSON.stringify(vals)));
+        }, 'Params');
+        return;
       }
-      return;
-    }
 
-    // Normal append
-    setInput(s => s + btn);
-    inputRef.current?.focus();
-  }, [input, lastAnswer, setInput, setShowPlot, handleEquals, pushHistory, setShowMatrixModal, inputRef]);
+      setInput(s => s + btn);
+      inputRef.current?.focus();
+    },
+    [inputRef, lastAnswer, handleEquals, setInput, mlMode, startParamSequence, setShowMatrixModal]
+  );
 
-  // NOW: useEffect after definitions
   useEffect(() => {
     const inputElement = inputRef.current;
-    if (!inputElement) return;
-
-    // Only add listener if modal is closed
-    if (showMatrixModal) return;
+    if (!inputElement || showMatrixModal) return;
 
     const handler = (e) => {
-      console.log(e.key, 'on main input');
-      if (e.ctrlKey || e.metaKey) {
-        e.preventDefault();
-        return;
-      }
-      if (e.key === "Enter") {
-        handleEquals(); // Now defined!
-        e.preventDefault();
-        return;
-      }
-      if (e.key === "Backspace") {
-        setInput(s => s.slice(0, -1));
-        e.preventDefault();
-        return;
-      }
+      if (e.ctrlKey || e.metaKey) { e.preventDefault(); return; }
+      if (e.key === 'Enter') { handleEquals(); e.preventDefault(); return; }
+      if (e.key === 'Backspace') { setInput(s => s.slice(0, -1)); e.preventDefault(); return; }
       if (e.key.length === 1) {
-        const allowed = "0123456789+-*/().%^![], ";
+        const allowed = '0123456789+-*/().%^![], ';
         if (allowed.includes(e.key) || /[a-zA-Z]/.test(e.key)) {
           setInput(s => s + e.key);
           e.preventDefault();
@@ -147,12 +109,30 @@ const CalculatorInput = ({ inputRef, handlePlot, input, setInput, setHistory, se
       }
     };
 
-    inputElement.addEventListener("keydown", handler);
-    return () => inputElement.removeEventListener("keydown", handler);
-  }, [inputRef, handleEquals, showMatrixModal, setInput]); // Updated deps
+    inputElement.addEventListener('keydown', handler);
+    return () => inputElement.removeEventListener('keydown', handler);
+  }, [inputRef, handleEquals, showMatrixModal, setInput]);
 
   return (
     <div className="bg-gray-800 p-4 rounded-lg shadow-md flex flex-col gap-3">
+
+      {/* Toolbar above input */}
+      <div className="flex flex-wrap gap-2 justify-between">
+        <button onClick={() => { setMlMode(m => !m); setCalculusMode(false); setComplexMode(false); setMatrixMode(false); }}
+          className={`px-3 py-1 rounded ${mlMode ? 'bg-indigo-600' : 'bg-gray-700'} text-white`}>ML</button>
+        <button onClick={() => { setCalculusMode(c => !c); setMlMode(false);  setMatrixMode(false); }}
+          className={`px-3 py-1 rounded ${calculusMode ? 'bg-green-600' : 'bg-gray-700'} text-white`}>Calculus</button>
+        <button onClick={() => { setComplexMode(c => !c); setMlMode(false); setMatrixMode(false); }}
+          className={`px-3 py-1 rounded ${complexMode ? 'bg-pink-600' : 'bg-gray-700'} text-white`}>Complex</button>
+        <button onClick={() => { setMatrixMode(m => !m); setMlMode(false); setComplexMode(false); setCalculusMode(false); }}
+          className={`px-3 py-1 rounded ${matrixMode ? 'bg-blue-600' : 'bg-gray-700'} text-white`}>Matrix</button>
+        <button onClick={() => { setInverseMode(i => !i); }}
+          className={`px-3 py-1 rounded ${inverseMode ? 'bg-yellow-600' : 'bg-gray-700'} text-white`}>Inv</button>
+        <button onClick={handlePlot}
+          className={`px-3 py-1 rounded bg-gray-700 text-white`}>Plot</button>
+      </div>
+
+      {/* Input bar */}
       <div className="flex items-center relative">
         <input
           ref={inputRef}
@@ -171,26 +151,57 @@ const CalculatorInput = ({ inputRef, handlePlot, input, setInput, setHistory, se
         </button>
         <CalculatorInfoBox show={showInfo} onClose={() => setShowInfo(false)} />
       </div>
-      <div className="flex justify-end mb-2">
-        <button
-          onClick={() => setInverseTrig(s => !s)}
-          className="bg-yellow-700 text-white px-3 py-1 rounded"
-        >
-          {inverseTrig ? "Show Trig Functions" : "Show Inverse Trig Functions"}
-        </button>
-      </div>
-      <div className="grid grid-cols-5 gap-2">
-        {buttons.map((btn) => (
+
+      {/* Mode-specific buttons between input and base keypad */}
+      {matrixMode && (
+        <div className="grid grid-cols-3 gap-2">
+          {matrixButtons.map(b => (
+            <button key={b} onClick={() => handleClick(b)}
+              className="p-2 bg-blue-700 hover:bg-blue-600 rounded text-white">{b}</button>
+          ))}
+        </div>
+      )}
+
+      {complexMode && (
+        <div className="grid grid-cols-4 gap-2">
+          {complexButtons.map(b => (
+            <button key={b} onClick={() => handleClick(b)}
+              className="p-2 bg-pink-700 hover:bg-pink-600 rounded text-white">{b}</button>
+          ))}
+        </div>
+      )}
+
+      {mlMode && (
+        <div className="grid grid-cols-3 gap-2">
+          {mlButtons.map(b => (
+            <button key={b} onClick={() => handleClick(b)}
+              className="p-2 bg-indigo-700 hover:bg-indigo-600 rounded text-white">{b}</button>
+          ))}
+        </div>
+      )}
+
+      {calculusMode && (
+        <div className="grid grid-cols-3 gap-2">
+          {calculusButtons.map(b => (
+            <button key={b} onClick={() => handleClick(b)}
+              className="p-2 bg-green-700 hover:bg-green-600 rounded text-white">{b}</button>
+          ))}
+        </div>
+      )}
+
+      {/* Base keypad at bottom */}
+      <div className="grid grid-cols-4 gap-2 mt-4">
+        {baseButtons.map((btn) => (
           <button
             key={btn}
             onClick={() => handleClick(btn)}
             className={`p-3 rounded font-medium text-white text-sm transition-all duration-150
               ${
-                ["C", "←", "Ans", "Plot", "="].includes(btn)
-                  ? "bg-teal-500 hover:bg-teal-400"
-                  : ["+", "-", "*", "/", "^", "%", "!"].includes(btn)
-                  ? "bg-blue-700 hover:bg-blue-600"
-                  : "bg-purple-700 hover:bg-purple-600"
+                ['C', '←', 'Ans', '='].includes(btn)
+                  ? 'bg-teal-500 hover:bg-teal-400'
+                  : ['+', '-', '*', '/', '^', '%', '!' ,'(' ,')'].includes(btn)
+                  ? 'bg-blue-700 hover:bg-blue-600'
+                  : 'bg-purple-700 hover:bg-purple-600'
               }`}
           >
             {btn}
@@ -198,18 +209,16 @@ const CalculatorInput = ({ inputRef, handlePlot, input, setInput, setHistory, se
         ))}
       </div>
 
+      {/* Bottom actions */}
       <div className="flex gap-2 mt-2">
-        <button onClick={handlePlot} className="flex-1 p-2 bg-indigo-600 rounded text-white">
-          Plot Input
-        </button>
         <button
           onClick={() => {
-            setInput("");
+            setInput('');
             setHistory([]);
-            setLastAnswer("");
-            localStorage.removeItem("calc_history");
+            setLastAnswer('');
+            localStorage.removeItem('calc_history');
           }}
-          className="p-2 bg-red-600 rounded text-white"
+          className="flex-1 p-2 bg-red-600 rounded text-white hover:bg-red-500"
         >
           Clear History
         </button>

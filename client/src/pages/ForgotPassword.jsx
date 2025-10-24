@@ -4,17 +4,22 @@ import { useNavigate } from "react-router-dom";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
+  const [sendingOtp, setSendingOtp] = useState(false);
   const navigate = useNavigate();
   const API = import.meta.env.VITE_API_URL;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
     try {
+      setSendingOtp(true);
       const res = await axios.post(`${API}/forgot-password`, { email });
       alert("OTP sent to your email");
       navigate(`/reset-password?userId=${res.data.userId}`);
     } catch (err) {
       alert(err.response?.data?.message || "Failed to send OTP");
+    } finally {
+      setSendingOtp(false);
     }
   };
 
@@ -29,9 +34,14 @@ export default function ForgotPassword() {
           onChange={(e) => setEmail(e.target.value)}
           className="p-2 rounded bg-gray-700 text-white"
           required
+          disabled={sendingOtp}
         />
-        <button type="submit" className="p-2 bg-green-500 rounded text-white">
-          Send OTP
+        <button
+          type="submit"
+          className="p-2 bg-green-500 rounded text-white disabled:opacity-50"
+          disabled={sendingOtp}
+        >
+          {sendingOtp ? "Sending..." : "Send OTP"}
         </button>
       </form>
     </div>
