@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import math from "../utils/mathSetup";
+import math from "../utils/index.js";
 import { toast } from 'react-toastify';
 
 const MatrixModal = ({ show, onClose, onResult, initialInput = "", operation: propOperation }) => {
@@ -161,7 +161,7 @@ const MatrixModal = ({ show, onClose, onResult, initialInput = "", operation: pr
           return;
         }
         const res = math.det(math.matrix(parsedA));
-        result = String(math.format(res, { precision: 14 }));
+        result = String(math.format(res, { notation: 'fixed', precision: 6 }));
         expr = `Determinant A: ${JSON.stringify(parsedA)}`;
         toast.success('Determinant calculated');
       } 
@@ -171,7 +171,7 @@ const MatrixModal = ({ show, onClose, onResult, initialInput = "", operation: pr
           return;
         }
         const res = math.det(math.matrix(parsedB));
-        result = String(math.format(res, { precision: 14 }));
+        result = String(math.format(res, { notation: 'fixed', precision: 6 }));
         expr = `Determinant B: ${JSON.stringify(parsedB)}`;
         toast.success('Determinant calculated');
       }
@@ -212,8 +212,8 @@ const MatrixModal = ({ show, onClose, onResult, initialInput = "", operation: pr
         }
         const res = math.eigs(math.matrix(parsedA));
         result = JSON.stringify({ 
-          values: res.values.map(v => math.format(v, { precision: 14 })),
-          vectors: res.vectors.map(vec => vec.map(v => math.format(v, { precision: 14 })))
+          values: res.values.map(v => math.format(v, { notation: 'fixed', precision: 6 })),
+          vectors: res.vectors.map(vec => vec.map(v => math.format(v, { notation: 'fixed', precision: 6 })))
         });
         expr = `Eigenvalues A: ${JSON.stringify(parsedA)}`;
         toast.success('Eigenvalues calculated');
@@ -225,8 +225,8 @@ const MatrixModal = ({ show, onClose, onResult, initialInput = "", operation: pr
         }
         const res = math.eigs(math.matrix(parsedB));
         result = JSON.stringify({ 
-          values: res.values.map(v => math.format(v, { precision: 14 })),
-          vectors: res.vectors.map(vec => vec.map(v => math.format(v, { precision: 14 })))
+          values: res.values.map(v => math.format(v, { notation: 'fixed', precision: 6 })),
+          vectors: res.vectors.map(vec => vec.map(v => math.format(v, { notation: 'fixed', precision: 6 })))
         });
         expr = `Eigenvalues B: ${JSON.stringify(parsedB)}`;
         toast.success('Eigenvalues calculated');

@@ -2,7 +2,7 @@ import React from 'react';
 import { toast } from 'react-toastify';
 import {
   optimalPaddingStride, convOutputShape, receptiveField, paramCount, flopsCount, bestFit, optimalThreshold, estimateLearningRate, optimizeWeights, featureImportance,
-} from '../utils/mathEngine';
+} from '../utils/dlHelperFunctions';
 
 export default function MLCompactColumns({
   startParamSequence, pushHistory, setInput, mlSize = 'md',

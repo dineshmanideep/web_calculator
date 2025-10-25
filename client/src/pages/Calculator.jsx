@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
-import math from '../utils/mathSetup';
+import math from '../utils/index.js';
 import CalculatorInput from '../components/CalculatorInput';
 import PlotArea from '../components/PlotArea';
 import MatrixModal from '../components/MatrixModal';
@@ -107,7 +107,7 @@ export default function Calculator({ user, onSignOut }) {
   const handleMatrixMultiply = () => {
     try {
       const res = math.multiply(math.matrix(matrixA), math.matrix(matrixB));
-      const formatted = math.format(res, { precision: 14 });
+      const formatted = math.format(res, { notation: 'fixed', precision: 6 });
       pushHistory(`MatMul ${matrixToString(matrixA)} * ${matrixToString(matrixB)}`, formatted);
       setShowMatrixModal(false);
       setInput(String(formatted));
@@ -263,28 +263,9 @@ export default function Calculator({ user, onSignOut }) {
                 ))}
               </div>
 
-              <div className="mt-2 flex justify-center">
-                <button 
-                  type="button" 
-                  onClick={() => {
-                    setShowMLMode((s) => !s);
-                    toast.info(showMLMode ? 'ML Mode hidden' : 'ML Mode shown');
-                  }} 
-                  className="bg-gray-700 text-white px-3 py-1 rounded hover:bg-gray-600"
-                >
-                  ML Mode
-                </button>
-              </div>
+              
 
-              {showMLMode && (
-                <div className="mt-3 flex justify-center">
-                  <MLCompactColumns 
-                    startParamSequence={startParamSequence} 
-                    pushHistory={pushHistory} 
-                    setInput={setInput} 
-                  />
-                </div>
-              )}
+             
             </div>
           </div>
         </div>

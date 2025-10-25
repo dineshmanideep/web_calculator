@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { evaluateExpression } from '../utils/mathEngine';
-import math from '../utils/mathSetup';
+import math from '../utils/index.js';
 import CalculatorInfoBox from './CalculatorInfoBox';
 import { toast } from 'react-toastify';
 
@@ -53,17 +53,16 @@ const CalculatorInput = ({
 
   const complexButtons = [
     'i', 're(', 'im(', 'conj(',
-    'abs(', 'arg(', 'sqrt(',
-    '+i', '-i', '*i', '/i'
+    'abs(', 'arg('
   ];
 
   const mlButtons = ['BestFit', 'Params', 'WOpt', 'RF', 'LR', 'FeatImp'];
-  
-  const calculusButtons = ['Int', 'Der', 'd/dx(', '∫('];
+  const constantButtons = ['π', 'e'];
+  const calculusButtons = [ 'd/dx(', '∫(' ,'x',','];
 
-  const trigButtons = inverseMode 
-    ? ['asin(', 'acos(', 'atan(', 'asinh(', 'acosh(', 'atanh(']
-    : ['sin(', 'cos(', 'tan(', 'sinh(', 'cosh(', 'tanh('];
+  const AdvFxnButtons = inverseMode 
+    ? ['asin(', 'acos(', 'atan(', 'asinh(', 'acosh(', 'atanh(','10^(', 'e^(']
+    : ['sin(', 'cos(', 'tan(', 'sinh(', 'cosh(', 'tanh(','log(', 'ln('];
 
   const handleEquals = useCallback(() => {
     if (!input || input.trim() === '') {
@@ -74,7 +73,7 @@ const CalculatorInput = ({
 
     try {
       const result = evaluateExpression(input, angleMode);
-      const formatted = math.format(result, { precision: 15 });
+      const formatted = math.format(result, { notation:'fixed', precision: 6 });
       pushHistory(input, formatted);
       setInput(String(formatted));
       toast.success('Calculation complete!');
@@ -166,26 +165,17 @@ const CalculatorInput = ({
         return; 
       }
 
-      // Complex number operations
-      if (btn === '+i') { setInput(s => `(${s}) + i`); return; }
-      if (btn === '-i') { setInput(s => `(${s}) - i`); return; }
-      if (btn === '*i') { setInput(s => `(${s}) * i`); return; }
-      if (btn === '/i') { setInput(s => `(${s}) / i`); return; }
+      
 
-      // Calculus operations
-      if (btn === 'Int') { 
-        setInput(s => s + 'int('); 
-        toast.info('Integration: int(function, lower, upper)');
-        return; 
-      }
-      if (btn === 'Der' || btn === 'd/dx(') { 
-        setInput(s => s + 'derivative('); 
-        toast.info('Derivative: derivative(function, variable)');
+      
+      if (btn === 'd/dx(') { 
+        setInput(s => s + 'd/dx('); 
+        toast.info('Derivative: d/dx(function)');
         return; 
       }
       if (btn === '∫(') { 
-        setInput(s => s + 'integral('); 
-        toast.info('Integral function');
+        setInput(s => s + '∫('); 
+        toast.info('Integral function format: ∫(function, lowerLimit, upperLimit)');
         return; 
       }
 
@@ -294,7 +284,7 @@ const CalculatorInput = ({
           toast.info(inverseMode ? 'Inverse OFF (normal trig)' : 'Inverse ON (arc trig)');
         }}
           className={`px-3 py-1 rounded ${inverseMode ? 'bg-yellow-600' : 'bg-gray-700'} text-white`}>
-          {inverseMode ? 'Arc' : 'Inv'}
+          Inverse
         </button>
         
         <button onClick={() => {
@@ -329,7 +319,7 @@ const CalculatorInput = ({
 
       {/* Trig buttons - always show */}
       <div className="grid grid-cols-6 gap-2">
-        {trigButtons.map(b => (
+        {AdvFxnButtons.map(b => (
           <button key={b} onClick={() => handleClick(b)}
             className="p-2 bg-orange-600 hover:bg-orange-500 rounded text-white text-sm">{b}</button>
         ))}
@@ -371,6 +361,13 @@ const CalculatorInput = ({
           ))}
         </div>
       )}
+      {/* constant buttons */}
+      <div className="grid grid-cols-2 gap-2">
+        {constantButtons.map(b => (
+          <button key={b} onClick={() => handleClick(b)}
+            className="p-2 bg-yellow-700 hover:bg-yellow-600 rounded text-white text-sm">{b}</button>
+        ))}
+      </div>
 
       {/* Base keypad */}
       <div className="grid grid-cols-4 gap-2 mt-2">
