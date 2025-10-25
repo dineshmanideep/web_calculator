@@ -6,26 +6,27 @@ import PlotArea from '../components/PlotArea';
 import MatrixModal from '../components/MatrixModal';
 import MLCompactColumns from '../components/MLCompactColumns';
 import { preprocess } from '../utils/mathEngine';
+import { toast } from 'react-toastify';
 
 // Main Calculator page component managing UI state and interactions
 export default function Calculator({ user, onSignOut }) {
   const [input, setInput] = useState('');
- const [history, setHistory] = useState(() => {
-  try {
-    return JSON.parse(localStorage.getItem('calc_history')) || [];
-  } catch {
-    return [];
-  }
-});
+  const [history, setHistory] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('calc_history')) || [];
+    } catch {
+      return [];
+    }
+  });
 
-const [lastAnswer, setLastAnswer] = useState(() => {
-  if (Array.isArray(history) && history.length > 0) {
-    const entry=String(history[0]);
-    const parts=entry.split('=');
-    return parts.length>1 ? parts[1] : ''
-  }
-  return '';
-});
+  const [lastAnswer, setLastAnswer] = useState(() => {
+    if (Array.isArray(history) && history.length > 0) {
+      const entry = String(history[0]);
+      const parts = entry.split('=');
+      return parts.length > 1 ? parts[1] : ''
+    }
+    return '';
+  });
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [showPlot, setShowPlot] = useState(false);
   const [plotConfig, setPlotConfig] = useState(null); // { x, y, layout }
@@ -44,38 +45,61 @@ const [lastAnswer, setLastAnswer] = useState(() => {
     localStorage.setItem('calc_history', JSON.stringify(history));
   }, [history]);
 
-  // keyboard support - physical keyboard
-
   // helpers
   const pushHistory = (expr, result) => {
-    const entry = `${expr} = ${result}`;
-    setHistory((h) => [entry, ...h.slice(0, 99)]);
-    setLastAnswer(String(result));
+    try {
+      const entry = `${expr} = ${result}`;
+      setHistory((h) => [entry, ...h.slice(0, 99)]);
+      setLastAnswer(String(result));
+    } catch (error) {
+      toast.error('Failed to save to history');
+      console.error('History push error:', error);
+    }
   };
 
   // Start a ML parameter collection sequence: params is array of names, onComplete(values)
   const startParamSequence = (params, onComplete, label) => {
-    setMlParamMode({
-      params, values: [], onComplete, label,
-    });
-    // set input to first prompt
-    if (params && params.length > 0) setInput(`${params[0]}=`);
+    try {
+      if (!params || params.length === 0) {
+        toast.error('No parameters specified for ML operation');
+        return;
+      }
+      setMlParamMode({
+        params, values: [], onComplete, label,
+      });
+      // set input to first prompt
+      if (params && params.length > 0) setInput(`${params[0]}=`);
+      toast.info(`Enter ${params[0]} and press =`);
+    } catch (error) {
+      toast.error('Failed to start parameter sequence');
+      console.error('Param sequence error:', error);
+    }
   };
 
   const handleMatrixResult = (expr, result) => {
-    setInput(String(result));
-    setHistory((h) => [`${expr} = ${result}`, ...h.slice(0, 99)]);
-    setLastAnswer(String(result));
+    try {
+      setInput(String(result));
+      setHistory((h) => [`${expr} = ${result}`, ...h.slice(0, 99)]);
+      setLastAnswer(String(result));
+      toast.success('Matrix operation completed successfully');
+    } catch (error) {
+      toast.error('Failed to process matrix result');
+      console.error('Matrix result error:', error);
+    }
   };
-
-  // handle special buttons
 
   // History reuse: click to insert into input or evaluate
   const handleHistoryClick = (entry) => {
-    // entry like "expr = result"
-    const expr = entry.split(' = ')[0];
-    setInput(expr);
-    inputRef.current?.focus();
+    try {
+      // entry like "expr = result"
+      const expr = entry.split(' = ')[0];
+      setInput(expr);
+      inputRef.current?.focus();
+      toast.info('Expression loaded from history');
+    } catch (error) {
+      toast.error('Failed to load from history');
+      console.error('History click error:', error);
+    }
   };
 
   // Matrix modal helpers (simple)
@@ -87,31 +111,52 @@ const [lastAnswer, setLastAnswer] = useState(() => {
       pushHistory(`MatMul ${matrixToString(matrixA)} * ${matrixToString(matrixB)}`, formatted);
       setShowMatrixModal(false);
       setInput(String(formatted));
+      toast.success('Matrix multiplication completed');
     } catch (e) {
-      alert(`Matrix multiply failed: ${e.message}`);
+      toast.error(`Matrix multiply failed: ${e.message}`);
     }
   };
 
   const handlePlot = () => {
     // tries to interpret input as function in x, e.g. "sin(x)" or expression with x
     if (!input) {
-      console.warn('Enter function of x to plot in input, e.g. sin(x)');
+      toast.warn('Enter function of x to plot in input, e.g. sin(x)');
       return null;
     }
+
+    if (!input.includes('x')) {
+      toast.warn('Function must contain variable "x" to plot');
+      return null;
+    }
+
     try {
-      const expr = preprocess(input);
+      const expr = preprocess(input, angleMode);
       const xs = math.range(-10, 10, 0.1).toArray();
       const ys = xs.map((x) => {
-        try { return math.evaluate(expr.replace(/x/g, `(${x})`)); } catch { return NaN; }
+        try { 
+          return math.evaluate(expr.replace(/x/g, `(${x})`)); 
+        } catch { 
+          return NaN; 
+        }
       });
+
+      // Check if we have valid data points
+      const validPoints = ys.filter(y => !isNaN(y) && isFinite(y));
+      if (validPoints.length === 0) {
+        toast.error('No valid data points to plot. Check your function.');
+        return null;
+      }
+
       setPlotConfig({
         x: xs,
         y: ys.map((v) => (typeof v === 'number' ? v : (v.re !== undefined ? v.re : NaN))),
         layout: { title: `y = ${input}` },
       });
       setShowPlot(true);
+      toast.success('Plot generated successfully');
     } catch (e) {
-      alert(`Plot failed: ${e.message}`);
+      toast.error(`Plot failed: ${e.message}`);
+      console.error('Plot error:', e);
     }
   };
 
@@ -136,14 +181,24 @@ const [lastAnswer, setLastAnswer] = useState(() => {
             <div className="absolute right-0 mt-2 w-40 bg-gray-700 rounded shadow-md flex flex-col z-50">
               <div className="text-white p-2 border-b border-gray-600">{user?.fullName}</div>
               <button
-                onClick={onSignOut}
+                onClick={() => {
+                  onSignOut();
+                  toast.info('Signed out successfully');
+                }}
                 className="text-white p-2 hover:bg-red-600 rounded"
               >
                 Sign Out
               </button>
               <div className="flex gap-2 p-2">
                 <label className="text-white text-sm">Mode:</label>
-                <select value={angleMode} onChange={(e) => setAngleMode(e.target.value)} className="bg-gray-600 text-white p-1 rounded">
+                <select 
+                  value={angleMode} 
+                  onChange={(e) => {
+                    setAngleMode(e.target.value);
+                    toast.info(`Angle mode set to ${e.target.value === 'rad' ? 'Radians' : 'Degrees'}`);
+                  }} 
+                  className="bg-gray-600 text-white p-1 rounded"
+                >
                   <option value="rad">Radians</option>
                   <option value="deg">Degrees</option>
                 </select>
@@ -174,6 +229,7 @@ const [lastAnswer, setLastAnswer] = useState(() => {
             showMLMode={showMLMode}
             startParamSequence={startParamSequence}
             setShowMLMode={setShowMLMode}
+            history={history}
           />
         </div>
 
@@ -195,21 +251,39 @@ const [lastAnswer, setLastAnswer] = useState(() => {
               <h3 className="text-white font-semibold text-sm mb-2">History</h3>
               <div className="flex flex-col gap-1 overflow-y-auto text-sm font-mono text-white max-h-96">
                 {history.length === 0 && <div className="text-gray-400">No history</div>}
-                {history.map((item,i) => (
-                  <div key={i+item} onClick={() => handleHistoryClick(item)} className="cursor-pointer hover:bg-gray-700 p-1 rounded">
+                {history.map((item, i) => (
+                  <div 
+                    key={i + item} 
+                    onClick={() => handleHistoryClick(item)} 
+                    className="cursor-pointer hover:bg-gray-700 p-1 rounded"
+                    title="Click to load this expression"
+                  >
                     {item}
                   </div>
                 ))}
               </div>
 
               <div className="mt-2 flex justify-center">
-                <button type="button" onClick={() => setShowMLMode((s) => !s)} className="bg-gray-700 text-white px-3 py-1 rounded">ML Mode</button>
+                <button 
+                  type="button" 
+                  onClick={() => {
+                    setShowMLMode((s) => !s);
+                    toast.info(showMLMode ? 'ML Mode hidden' : 'ML Mode shown');
+                  }} 
+                  className="bg-gray-700 text-white px-3 py-1 rounded hover:bg-gray-600"
+                >
+                  ML Mode
+                </button>
               </div>
 
               {showMLMode && (
-              <div className="mt-3 flex justify-center">
-                <MLCompactColumns startParamSequence={startParamSequence} pushHistory={pushHistory} setInput={setInput} />
-              </div>
+                <div className="mt-3 flex justify-center">
+                  <MLCompactColumns 
+                    startParamSequence={startParamSequence} 
+                    pushHistory={pushHistory} 
+                    setInput={setInput} 
+                  />
+                </div>
               )}
             </div>
           </div>
@@ -219,8 +293,12 @@ const [lastAnswer, setLastAnswer] = useState(() => {
       {/* Matrix Modal */}
       <MatrixModal
         show={showMatrixModal}
-        onClose={() => setShowMatrixModal(false)}
+        onClose={() => {
+          setShowMatrixModal(false);
+          toast.info('Matrix modal closed');
+        }}
         onResult={handleMatrixResult}
+        initialInput={input}
       />
     </div>
   );

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify"; // ADDED
 
 export default function Login({ setAuthenticated, setUser }) {
   const [emailOrUsername, setEmailOrUsername] = useState("");
@@ -15,9 +16,10 @@ export default function Login({ setAuthenticated, setUser }) {
       // console.log(res.data.user);
       setUser(res.data.user);
       setAuthenticated(true);
+      toast.success("Login successful!"); // ADDED
       navigate("/calculator");
     } catch (err) {
-      alert(err.response?.data?.message || "Login failed");
+      toast.error(err.response?.data?.message || "Login failed"); // REPLACED alert
     }
   };
 

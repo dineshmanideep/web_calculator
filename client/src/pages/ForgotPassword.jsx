@@ -1,6 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify"; // ADDED
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -14,10 +15,10 @@ export default function ForgotPassword() {
     try {
       setSendingOtp(true);
       const res = await axios.post(`${API}/forgot-password`, { email });
-      alert("OTP sent to your email");
+      toast.success("OTP sent to your email"); // REPLACED alert
       navigate(`/reset-password?userId=${res.data.userId}`);
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to send OTP");
+      toast.error(err.response?.data?.message || "Failed to send OTP"); // REPLACED alert
     } finally {
       setSendingOtp(false);
     }

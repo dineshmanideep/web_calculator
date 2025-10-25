@@ -6,6 +6,7 @@ import Calculator from "./pages/Calculator";
 import OtpVerification from "./pages/OtpVerification";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import { ToastContainer } from "react-toastify"; // NEW
 
 function App() {
   const [authenticated, setAuthenticated] = useState(true);
@@ -17,26 +18,40 @@ function App() {
   };
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route
-          path="/"
-          element={
-            authenticated ? <Navigate to="/calculator" /> : <Login setAuthenticated={setAuthenticated} setUser={setUser} />
-          }
-        />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/verify-otp" element={<OtpVerification />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
-        <Route
-          path="/calculator"
-          element={
-            authenticated ? <Calculator user={user} onSignOut={handleSignOut} /> : <Navigate to="/" />
-          }
-        />
-      </Routes>
-    </BrowserRouter>
+    <>
+      <ToastContainer 
+        position="top-center" 
+        autoClose={3000} 
+        hideProgressBar={false} 
+        newestOnTop={false} 
+        closeOnClick 
+        rtl={false} 
+        pauseOnFocusLoss 
+        draggable 
+        pauseOnHover 
+        theme="dark" 
+      />
+      <BrowserRouter>
+        <Routes>
+          <Route
+            path="/"
+            element={
+              authenticated ? <Navigate to="/calculator" /> : <Login setAuthenticated={setAuthenticated} setUser={setUser} />
+            }
+          />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/verify-otp" element={<OtpVerification />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route
+            path="/calculator"
+            element={
+              authenticated ? <Calculator user={user} onSignOut={handleSignOut} /> : <Navigate to="/" />
+            }
+          />
+        </Routes>
+      </BrowserRouter>
+    </>
   );
 }
 

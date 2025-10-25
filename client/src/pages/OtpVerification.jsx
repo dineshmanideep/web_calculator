@@ -1,6 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify"; // ADDED
 
 export default function OtpVerification() {
   const [otp, setOtp] = useState("");
@@ -13,10 +14,10 @@ export default function OtpVerification() {
     e.preventDefault();
     try {
       await axios.post(`${API}/verify-signup`, { userId, otp });
-      alert("Account verified. Please login now.");
+      toast.success("Account verified. Please login now."); // REPLACED alert
       navigate("/");
     } catch (err) {
-      alert(err.response?.data?.message || "OTP verification failed");
+      toast.error(err.response?.data?.message || "OTP verification failed"); // REPLACED alert
     }
   };
 

@@ -1,7 +1,7 @@
-
 import { useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify"; // ADDED
 
 export default function Signup() {
   const [step, setStep] = useState(1); // 1: email, 2: otp, 3: details
@@ -20,14 +20,14 @@ export default function Signup() {
   // Step 1: send OTP
   const handleSendOtp = async (e) => {
     e.preventDefault();
-    if (!email) return alert("Enter email");
+    if (!email) return toast.error("Enter email"); // REPLACED alert
     try {
       setSendingOtp(true);
       await axios.post(`${API}/signup-send-otp`, { email });
-      alert("OTP sent to your email");
+      toast.success("OTP sent to your email"); // REPLACED alert
       setStep(2);
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to send OTP");
+      toast.error(err.response?.data?.message || "Failed to send OTP"); // REPLACED alert
     } finally {
       setSendingOtp(false);
     }
@@ -36,14 +36,14 @@ export default function Signup() {
   // Step 2: verify OTP
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
-    if (!otp) return alert("Enter OTP");
+    if (!otp) return toast.error("Enter OTP"); // REPLACED alert
     try {
       setVerifyingOtp(true);
       await axios.post(`${API}/signup-verify-otp`, { email, otp });
-      alert("Email verified. Please complete your profile.");
+      toast.success("Email verified. Please complete your profile."); // REPLACED alert
       setStep(3);
     } catch (err) {
-      alert(err.response?.data?.message || "OTP verification failed");
+      toast.error(err.response?.data?.message || "OTP verification failed"); // REPLACED alert
     } finally {
       setVerifyingOtp(false);
     }
@@ -52,7 +52,7 @@ export default function Signup() {
   // Step 3: complete signup
   const handleCompleteSignup = async (e) => {
     e.preventDefault();
-    if (password !== confirmPassword) return alert("Passwords do not match");
+    if (password !== confirmPassword) return toast.error("Passwords do not match"); // REPLACED alert
     try {
       setCompletingSignup(true);
       await axios.post(`${API}/signup-complete`, {
@@ -61,10 +61,10 @@ export default function Signup() {
         fullName,
         password,
       });
-      alert("Signup successful. Please login.");
+      toast.success("Signup successful. Please login."); // REPLACED alert
       navigate("/");
     } catch (err) {
-      alert(err.response?.data?.message || "Signup failed");
+      toast.error(err.response?.data?.message || "Signup failed"); // REPLACED alert
     } finally {
       setCompletingSignup(false);
     }

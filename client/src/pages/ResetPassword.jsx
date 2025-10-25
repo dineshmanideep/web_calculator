@@ -1,6 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify"; // ADDED
 
 export default function ResetPassword() {
   const [otp, setOtp] = useState("");
@@ -13,14 +14,14 @@ export default function ResetPassword() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (newPassword !== confirm) return alert("Passwords do not match");
+    if (newPassword !== confirm) return toast.error("Passwords do not match"); // REPLACED alert
 
     try {
       await axios.post(`${API}/reset-password`, { userId, otp, newPassword });
-      alert("Password reset successful. Please login.");
+      toast.success("Password reset successful. Please login."); // REPLACED alert
       navigate("/");
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to reset password");
+      toast.error(err.response?.data?.message || "Failed to reset password"); // REPLACED alert
     }
   };
 
