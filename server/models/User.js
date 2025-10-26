@@ -1,20 +1,28 @@
 import mongoose from 'mongoose';
 
-const { Schema } = mongoose;
-
-const otpSchema = new Schema({
-  code: String,
-  expiresAt: Date,
+const historySchema = new mongoose.Schema({
+  expr: { type: String, required: true },
+  result: { type: String, required: true },
+  createdAt: { type: Date, default: Date.now },
 });
 
-const userSchema = new Schema({
-  username: { type: String, required: true, unique: true }, 
-  email: { type: String, required: true, unique: true },
-  fullName: String,
-  passwordHash: String,
-  signupOtp: otpSchema, // OTP for signup verification
-  resetOtp: otpSchema, // OTP for password reset
-  refreshToken: String, // current refresh token (optional)
+const userSchema = new mongoose.Schema({
+  email: { type: String, required: true, unique: true, trim: true },
+  username: { type: String, required: true, unique: true, trim: true },
+  fullName: { type: String },
+  passwordHash: { type: String, required: true },
+  isVerified: { type: Boolean, default: false },
+  signupOtp: {
+    code: String,
+    expiresAt: Date,
+  },
+  resetOtp: {
+    code: String,
+    expiresAt: Date,
+  },
+  history: [historySchema], // Add this line
 }, { timestamps: true });
 
-export default mongoose.model('User', userSchema);
+const User = mongoose.model('User', userSchema);
+
+export default User;

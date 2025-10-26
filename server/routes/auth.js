@@ -1,9 +1,8 @@
 import express from 'express';
 import bcrypt from 'bcrypt';
-import crypto from 'crypto';
 import User from '../models/User.js';
 import { sendMail } from '../utils/mailer.js';
-import { generateAccessToken, generateRefreshToken ,verifyAccessToken } from '../middleware/auth.js';
+import { isAuthenticated } from '../middleware/auth.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -29,75 +28,51 @@ router.post('/login', async (req, res) => {
   if (!emailOrUsername || !password) {
     return res.status(400).json({ message: 'Missing fields' });
   }
-
+try {
   const user = await User.findOne({ $or: [{ email: emailOrUsername }, { username: emailOrUsername }] });
   if (!user) return res.status(400).json({ message: 'Invalid credentials' });
   const ok = await bcrypt.compare(password, user.passwordHash || '');
   if (!ok) return res.status(400).json({ message: 'Invalid credentials' }); 
+  req.session.user = { id: user._id, email: user.email ,name:user.fullName};
 
-  const payload = { id: user._id, email: user.email };
-  const accessToken = generateAccessToken(payload);
-  const refreshToken = generateRefreshToken(payload);
-
-  // store refreshToken in DB (optional: maintain allowlist)
-  user.refreshToken = refreshToken;
-  await user.save();
-
-  // set httpOnly cookie for refresh token
-  res.cookie('refreshToken', refreshToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: 7 * 24 * 60 * 60 * 1000, // match refresh expiry
-  });
-
-  return res.json({
-    accessToken,
+return res.status(200).json({
+    message: 'Login successful',
     user: { id: user._id, email: user.email, username: user.username, fullName: user.fullName },
   });
+  
+} catch (error) {
+  console.error(error);
+  return res.status(500).json({ message: 'Internal server error' });
+}
 });
 
-// REFRESH token endpoint: reads refresh cookie, issues new access
-router.post('/refresh', async (req, res) => {
-  const token = req.cookies?.refreshToken;
-  if (!token) return res.status(401).json({ message: 'No refresh token' });
-
-  // verify
-  try {
-    const jwt = await import('jsonwebtoken');
-    const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
-    const user = await User.findById(decoded.id);
-    if (!user || user.refreshToken !== token) {
-      return res.status(403).json({ message: 'Invalid refresh token' });
+// POST /api/auth/logout
+router.post("/logout", (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      return res.status(500).json({ message: "Could not log out." });
     }
+    res.clearCookie("connect.sid"); // Clears the session cookie
+    return res.status(200).json({ message: "Logged out successfully" });
+  });
+});
 
-    const payload = { id: user._id, email: user.email };
-    const accessToken = generateAccessToken(payload);
-    return res.json({ accessToken });
-  } catch (err) {
-    return res.status(403).json({ message: 'Invalid or expired refresh token' });
+// GET /api/auth/check-session
+router.get("/check-session", (req, res) => {
+  if (req.session.user) {
+    res.status(200).json({
+      authenticated: true,
+      user: req.session.user,
+    });
+  } else {
+    res.status(200).json({
+      authenticated: false,
+      user: null,
+    });
   }
 });
 
-// LOGOUT: clear cookie and remove refresh token
-router.post('/logout', async (req, res) => {
-  const token = req.cookies?.refreshToken;
-  if (token) {
-    try {
-      const jwt = await import('jsonwebtoken');
-      const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
-      const user = await User.findById(decoded.id);
-      if (user) {
-        user.refreshToken = undefined;
-        await user.save();
-      }
-    } catch (err) {
-      // ignore
-    }
-  }
-  res.clearCookie('refreshToken');
-  return res.json({ message: 'Logged out' });
-});
+
 
 // FORGOT PASSWORD: create reset OTP and email it
 router.post('/forgot-password', async (req, res) => {
@@ -253,13 +228,10 @@ router.post('/signup-complete', async (req, res) => {
   }
 });
 
-
-// ...existing code...
-
-// Get current user's history
-router.get('/history', verifyAccessToken, async (req, res) => {
+router.get('/history', isAuthenticated, async (req, res) => {
   try {
-    const user = await User.findById(req.userId, 'history');
+    // Use req.session.user.id instead of req.userId
+    const user = await User.findById(req.session.user.id, 'history');
     if (!user) return res.status(404).json({ message: 'User not found' });
     // return history in reverse chronological order
     const history = (user.history || []).slice().reverse();
@@ -271,22 +243,31 @@ router.get('/history', verifyAccessToken, async (req, res) => {
 });
 
 // Add one history entry (expr, result)
-router.post('/history', verifyAccessToken, async (req, res) => {
+router.post('/history', isAuthenticated, async (req, res) => {
   try {
     const { expr, result } = req.body;
     if (!expr || result === undefined) return res.status(400).json({ message: 'Missing expr or result' });
 
-    const user = await User.findById(req.userId);
-    if (!user) return res.status(404).json({ message: 'User not found' });
+    const newEntry = { expr, result: String(result), createdAt: new Date() };
 
-    // push new entry and keep latest 100
-    user.history = user.history || [];
-    user.history.push({ expr, result: String(result), createdAt: new Date() });
-    if (user.history.length > 100) user.history = user.history.slice(user.history.length - 100);
+    // Find user and push new entry, keeping only the last 25 entries.
+    const updatedUser = await User.findByIdAndUpdate(
+      req.session.user.id,
+      {
+        $push: {
+          history: {
+            $each: [newEntry],
+            $slice: -25, // Keeps the last 25 elements of the array
+          },
+        },
+      },
+      { new: true, select: 'history' }
+    );
 
-    await user.save();
+    if (!updatedUser) return res.status(404).json({ message: 'User not found' });
+
     // return fresh history reversed
-    return res.json({ history: user.history.slice().reverse() });
+    return res.json({ history: updatedUser.history.slice().reverse() });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: 'Server error' });
@@ -294,12 +275,14 @@ router.post('/history', verifyAccessToken, async (req, res) => {
 });
 
 // Clear history
-router.delete('/history', verifyAccessToken, async (req, res) => {
+router.delete('/history', isAuthenticated, async (req, res) => {
   try {
-    const user = await User.findById(req.userId);
+    const user = await User.findByIdAndUpdate(
+        req.session.user.id,
+        { $set: { history: [] } },
+        { new: true }
+    );
     if (!user) return res.status(404).json({ message: 'User not found' });
-    user.history = [];
-    await user.save();
     return res.json({ message: 'History cleared' });
   } catch (err) {
     console.error(err);

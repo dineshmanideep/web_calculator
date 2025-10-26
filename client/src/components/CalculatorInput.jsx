@@ -1,8 +1,10 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import axios from 'axios';
 import { evaluateExpression } from '../utils/mathEngine';
 import math from '../utils/index.js';
 import CalculatorInfoBox from './CalculatorInfoBox';
 import { toast } from 'react-toastify';
+const API_URL = import.meta.env.VITE_API_URL;
 
 const CalculatorInput = ({
   inputRef,
@@ -25,7 +27,13 @@ const CalculatorInput = ({
   showPlot,
   onPlotGraph,
   complexMode: parentComplexMode,
-  setComplexMode: parentSetComplexMode
+  setComplexMode: parentSetComplexMode,
+  matrixMode,
+  setMatrixMode,
+  onMatrixOperation,
+  matrixOperation,
+  firstMatrix,
+  onMatrixClear
 }) => {
   const [showInfo, setShowInfo] = useState(false);
   const [complexMode, setComplexMode] = useState(false);
@@ -48,7 +56,7 @@ const CalculatorInput = ({
     '4', '5', '6', '*', 
     '1', '2', '3', '-', 
     '0', '.', '+', '^', '%',
-    '(', ')', '!', '[', ']', ','
+    '(', ')', '!', ','
   ];
 
   const complexButtons = [
@@ -59,6 +67,7 @@ const CalculatorInput = ({
   const mlButtons = ['BestFit', 'Params', 'WOpt', 'RF', 'LR', 'FeatImp'];
   const constantButtons = ['π', 'e'];
   const calculusButtons = [ 'd/dx(', '∫(' ,'x',','];
+  const matrixButtons = ['MatMul', 'MatAdd', 'MatSub', 'Det', 'Transpose'];
 
   const AdvFxnButtons = inverseMode 
     ? ['asin(', 'acos(', 'atan(', 'asinh(', 'acosh(', 'atanh(','10^(', 'e^(']
@@ -85,8 +94,18 @@ const CalculatorInput = ({
 
   const handleClick = useCallback(
     (btn) => {
+      // Handle matrix operation buttons
+      if (matrixButtons.includes(btn)) {
+        onMatrixOperation(btn);
+        return;
+      }
+
       if (btn === 'C') { 
-        setInput(''); 
+        setInput('');
+        // Clear matrix operation if in matrix mode
+        if (matrixMode && onMatrixClear) {
+          onMatrixClear();
+        }
         toast.info('Input cleared');
         return; 
       }
@@ -209,11 +228,13 @@ const CalculatorInput = ({
           className={`px-3 py-1 rounded ${complexMode ? 'bg-pink-600' : 'bg-gray-700'} text-white`}>Complex</button>
         
         <button onClick={() => { 
-          setMatrixOperation && setMatrixOperation('multiply');
-          setShowMatrixModal && setShowMatrixModal(true); 
-          toast.info('Matrix mode - Select operation');
+          setMatrixMode(m => !m);
+          setMlMode(false);
+          setComplexMode(false);
+          setCalculusMode(false);
+          toast.info(matrixMode ? 'Matrix OFF' : 'Matrix ON');
         }}
-          className="px-3 py-1 rounded bg-gray-700 text-white hover:bg-blue-600">Matrix</button>
+          className={`px-3 py-1 rounded ${matrixMode ? 'bg-blue-600' : 'bg-gray-700'} text-white`}>Matrix</button>
         
         <button onClick={() => { 
           setInverseMode(i => !i); 
@@ -228,6 +249,17 @@ const CalculatorInput = ({
         }}
           className={`px-3 py-1 rounded bg-gray-700 text-white hover:bg-purple-600`}>Plot</button>
       </div>
+
+      {/* Matrix operation display - shows when in matrix mode and has first matrix */}
+      {matrixMode && firstMatrix && (
+        <div className="bg-blue-900 p-2 rounded">
+          <div className="text-white text-xs mb-1">First Matrix:</div>
+          <div className="text-yellow-300 text-sm font-mono">{firstMatrix.input}</div>
+          {matrixOperation && (
+            <div className="text-white text-xs mt-1">Operation: <span className="text-green-400">{matrixOperation}</span></div>
+          )}
+        </div>
+      )}
 
       {/* Input bar */}
       <div className="flex items-center relative">
@@ -284,6 +316,32 @@ const CalculatorInput = ({
           ))}
         </div>
       )}
+
+      {matrixMode && (
+        <>
+          {/* First Matrix Display Box */}
+          {firstMatrix && (
+            <div className="p-3 bg-blue-900 rounded border border-blue-700 text-white text-sm">
+              <div className="font-semibold mb-1">First Matrix {matrixOperation ? `(${matrixOperation})` : ''}</div>
+              <div className="font-mono text-xs">{firstMatrix.input}</div>
+              <button
+                onClick={onMatrixClear}
+                className="mt-2 px-3 py-1 bg-red-600 hover:bg-red-500 rounded text-xs"
+              >
+                Clear
+              </button>
+            </div>
+          )}
+          
+          {/* Matrix Operation Buttons */}
+          <div className="grid grid-cols-3 gap-2">
+            {matrixButtons.map(b => (
+              <button key={b} onClick={() => handleClick(b)}
+                className="p-2 bg-blue-700 hover:bg-blue-600 rounded text-white text-sm">{b}</button>
+            ))}
+          </div>
+        </>
+      )}
       
       {/* constant buttons */}
       <div className="grid grid-cols-2 gap-2">
@@ -327,22 +385,27 @@ const CalculatorInput = ({
             }}
             className="flex-1 p-2 bg-purple-600 rounded text-white hover:bg-purple-500 font-semibold"
           >
-            📊 Plot Graph
+            Plot Graph
           </button>
         )}
         <button
-          onClick={() => {
+          onClick={async () => {
             if (history.length === 0) {
               toast.info('History is already empty');
               return;
             }
-            setInput('');
-            setHistory([]);
-            setLastAnswer('');
-            localStorage.removeItem('calc_history');
-            toast.success('History cleared');
+            try {
+              await axios.delete(`${API_URL}/history`,{ withCredentials: true });
+              setInput('');
+              setHistory([]);
+              setLastAnswer('');
+              toast.success('History cleared');
+            } catch (error) {
+              toast.error('Failed to clear history.');
+              console.error('Clear history error:', error);
+            }
           }}
-          className={`${showPlot ? 'flex-1' : 'flex-1'} p-2 bg-red-600 rounded text-white hover:bg-red-500`}
+          className="flex-1 p-2 bg-red-600 rounded text-white hover:bg-red-500"
         >
           Clear History
         </button>
