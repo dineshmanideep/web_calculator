@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt';
 import User from '../models/User.js';
 import { sendMail } from '../utils/mailer.js';
 import { isAuthenticated } from '../middleware/auth.js';
+import { logAction } from '../middleware/auditLogger.js';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -30,28 +31,96 @@ router.post('/login', async (req, res) => {
   }
 try {
   const user = await User.findOne({ $or: [{ email: emailOrUsername }, { username: emailOrUsername }] });
-  if (!user) return res.status(400).json({ message: 'Invalid credentials' });
+  if (!user) {
+    // Log failed login attempt
+    await logAction('LOGIN_FAILED', req, {
+      email: emailOrUsername,
+      username: emailOrUsername,
+      details: 'User not found',
+      status: 'FAILED',
+      errorMessage: 'Invalid credentials'
+    });
+    return res.status(400).json({ message: 'Invalid credentials' });
+  }
+  
   const ok = await bcrypt.compare(password, user.passwordHash || '');
-  if (!ok) return res.status(400).json({ message: 'Invalid credentials' }); 
-  req.session.user = { id: user._id, email: user.email ,name:user.fullName};
+  if (!ok) {
+    // Log failed login attempt
+    await logAction('LOGIN_FAILED', req, {
+      email: user.email,
+      username: user.username,
+      details: 'Incorrect password',
+      status: 'FAILED',
+      errorMessage: 'Invalid credentials'
+    });
+    return res.status(400).json({ message: 'Invalid credentials' });
+  }
+  
+  req.session.user = { 
+    id: user._id, 
+    email: user.email,
+    name: user.fullName,
+    username: user.username,
+    isAdmin: user.isAdmin 
+  };
 
-return res.status(200).json({
+  // Log successful login
+  await logAction('LOGIN_SUCCESS', req, {
+    email: user.email,
+    username: user.username,
+    details: 'User logged in successfully',
+    status: 'SUCCESS'
+  });
+
+  return res.status(200).json({
     message: 'Login successful',
-    user: { id: user._id, email: user.email, username: user.username, fullName: user.fullName },
+    user: { 
+      id: user._id, 
+      email: user.email, 
+      username: user.username, 
+      fullName: user.fullName,
+      isAdmin: user.isAdmin 
+    },
   });
   
 } catch (error) {
   console.error(error);
+  await logAction('LOGIN_FAILED', req, {
+    email: emailOrUsername,
+    details: 'Login error',
+    status: 'ERROR',
+    errorMessage: error.message
+  });
   return res.status(500).json({ message: 'Internal server error' });
 }
 });
 
 // POST /api/auth/logout
-router.post("/logout", (req, res) => {
-  req.session.destroy((err) => {
+router.post("/logout", async (req, res) => {
+  const userId = req.session?.user?.id;
+  const userEmail = req.session?.user?.email;
+  const username = req.session?.user?.username;
+  
+  req.session.destroy(async (err) => {
     if (err) {
+      await logAction('LOGOUT', req, {
+        email: userEmail,
+        username: username,
+        details: 'Logout failed',
+        status: 'ERROR',
+        errorMessage: err.message
+      });
       return res.status(500).json({ message: "Could not log out." });
     }
+    
+    // Log successful logout
+    await logAction('LOGOUT', req, {
+      email: userEmail,
+      username: username,
+      details: 'User logged out successfully',
+      status: 'SUCCESS'
+    });
+    
     res.clearCookie("connect.sid"); // Clears the session cookie
     return res.status(200).json({ message: "Logged out successfully" });
   });

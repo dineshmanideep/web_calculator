@@ -1,67 +1,101 @@
 import { useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
-import { toast } from "react-toastify"; // ADDED
+import { toast } from "react-toastify";
+import { Calculator, ArrowLeft } from "lucide-react";
 
 export default function Login({ setAuthenticated, setUser }) {
   const [emailOrUsername, setEmailOrUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const API = import.meta.env.VITE_API_URL;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
-      const res = await axios.post(`${API}/login`, { emailOrUsername, password }, { withCredentials: true });
-      // console.log(res.data.user);
+      const res = await axios.post(`${API}/auth/login`, { emailOrUsername, password }, { withCredentials: true });
       setUser(res.data.user);
       setAuthenticated(true);
-      toast.success("Login successful!"); // ADDED
+      toast.success("Login successful!");
       navigate("/calculator");
     } catch (err) {
-      toast.error(err.response?.data?.message || "Login failed"); // REPLACED alert
+      toast.error(err.response?.data?.message || "Login failed");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-gray-900">
-      <form onSubmit={handleSubmit} className="bg-gray-800 p-8 rounded-lg shadow-md w-80">
-        <h1 className="text-white text-xl mb-4 text-center">Login</h1>
+    <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center px-4">
+      {/* Back to Home */}
+      <Link 
+        to="/" 
+        className="absolute top-4 left-4 flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+      >
+        <ArrowLeft className="w-5 h-5" />
+        Back to Home
+      </Link>
 
-        <input
-          type="text"
-          placeholder="Email or Username"
-          value={emailOrUsername}
-          onChange={(e) => setEmailOrUsername(e.target.value)}
-          className="w-full p-2 mb-4 rounded bg-gray-700 text-white"
-          required
-        />
+      {/* Logo */}
+      <div className="flex items-center gap-3 mb-8">
+        <Calculator className="w-10 h-10 text-purple-500" />
+        <h1 className="text-3xl font-bold text-white">Web Calculator</h1>
+      </div>
 
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full p-2 mb-4 rounded bg-gray-700 text-white"
-          required
-        />
+      {/* Login Form */}
+      <form onSubmit={handleSubmit} className="bg-gray-800 p-8 rounded-lg shadow-xl w-full max-w-md border border-gray-700">
+        <h2 className="text-white text-2xl mb-6 text-center font-semibold">Sign In</h2>
 
-        <button type="submit" className="w-full p-2 bg-green-500 rounded text-white">
-          Login
+        <div className="mb-4">
+          <label className="block text-gray-400 text-sm mb-2">Email or Username</label>
+          <input
+            type="text"
+            placeholder="Enter your email or username"
+            value={emailOrUsername}
+            onChange={(e) => setEmailOrUsername(e.target.value)}
+            className="w-full p-3 rounded bg-gray-700 text-white border border-gray-600 focus:border-purple-500 focus:outline-none transition-colors"
+            required
+          />
+        </div>
+
+        <div className="mb-6">
+          <label className="block text-gray-400 text-sm mb-2">Password</label>
+          <input
+            type="password"
+            placeholder="Enter your password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full p-3 rounded bg-gray-700 text-white border border-gray-600 focus:border-purple-500 focus:outline-none transition-colors"
+            required
+          />
+        </div>
+
+        <button 
+          type="submit" 
+          disabled={loading}
+          className="w-full p-3 bg-purple-600 hover:bg-purple-500 rounded text-white font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {loading ? 'Signing in...' : 'Sign In'}
         </button>
 
-        <p
-          className="text-green-400 underline text-sm mt-3 cursor-pointer text-center"
-          onClick={() => navigate("/forgot-password")}
-        >
-          Forgot Password?
-        </p>
+        <div className="text-center mt-4">
+          <button
+            type="button"
+            onClick={() => navigate("/forgot-password")}
+            className="text-purple-400 hover:text-purple-300 text-sm transition-colors"
+          >
+            Forgot Password?
+          </button>
+        </div>
       </form>
 
-      <p className="text-white mt-2 text-center">
-        Don’t have an account?{" "}
-        <Link to="/signup" className="text-green-400 underline">
-          Signup
+      {/* Signup Link */}
+      <p className="text-gray-400 mt-6 text-center">
+        Don't have an account?{" "}
+        <Link to="/signup" className="text-purple-400 hover:text-purple-300 font-semibold transition-colors">
+          Sign Up
         </Link>
       </p>
     </div>

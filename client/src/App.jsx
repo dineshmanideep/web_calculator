@@ -1,9 +1,11 @@
 import { useState ,useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import axios from "axios";
+import Landing from "./pages/Landing.jsx";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Calculator from "./pages/Calculator";
+import Admin from "./pages/Admin";
 import OtpVerification from "./pages/OtpVerification";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
@@ -19,7 +21,7 @@ function App() {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const { data } = await axios.get(`${API_URL}/check-session`,{ withCredentials: true });
+        const { data } = await axios.get(`${API_URL}/auth/check-session`,{ withCredentials: true });
         if (data.authenticated) {
           setAuthenticated(true);
           setUser(data.user);
@@ -38,7 +40,7 @@ function App() {
 
   const handleSignOut = async () => {
     try {
-      await axios.post(`${API_URL}/logout`,{ withCredentials: true });
+      await axios.post(`${API_URL}/auth/logout`,{ withCredentials: true });
       setAuthenticated(false);
       setUser(null);
     } catch (error) {
@@ -66,22 +68,49 @@ function App() {
       />
       <BrowserRouter>
         <Routes>
+          {/* Landing Page */}
           <Route
             path="/"
-            element={
-              authenticated ? <Navigate to="/calculator" /> : <Login setAuthenticated={setAuthenticated} setUser={setUser} />
-            }
+            element={authenticated ? <Navigate to="/calculator" /> : <Landing />}
           />
-          <Route path="/signup" element={<Signup />} />
+          
+          {/* Auth Routes */}
+          <Route 
+            path="/login" 
+            element={authenticated ? <Navigate to="/calculator" /> : <Login setAuthenticated={setAuthenticated} setUser={setUser} />} 
+          />
+          <Route 
+            path="/signup" 
+            element={authenticated ? <Navigate to="/calculator" /> : <Signup />} 
+          />
           <Route path="/verify-otp" element={<OtpVerification />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          
+          {/* Protected Routes */}
           <Route
             path="/calculator"
             element={
-              authenticated ? <Calculator user={user} onSignOut={handleSignOut} /> : <Navigate to="/" />
+              authenticated ? <Calculator user={user} onSignOut={handleSignOut} /> : <Navigate to="/login" />
             }
           />
+          
+          {/* Admin Route */}
+          <Route
+            path="/admin"
+            element={
+              authenticated && user?.isAdmin ? (
+                <Admin user={user} onSignOut={handleSignOut} />
+              ) : authenticated ? (
+                <Navigate to="/calculator" />
+              ) : (
+                <Navigate to="/login" />
+              )
+            }
+          />
+
+          {/* Catch all - redirect to home */}
+          <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </BrowserRouter>
     </>

@@ -11,7 +11,7 @@ const userSchema = new mongoose.Schema({
   username: { type: String, required: true, unique: true, trim: true },
   fullName: { type: String },
   passwordHash: { type: String, required: true },
-  isVerified: { type: Boolean, default: false },
+  isAdmin: { type: Boolean, default: false }, // Admin role flag
   signupOtp: {
     code: String,
     expiresAt: Date,

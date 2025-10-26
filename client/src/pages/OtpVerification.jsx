@@ -13,7 +13,7 @@ export default function OtpVerification() {
   const handleVerify = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`${API}/verify-signup`, { userId, otp });
+      await axios.post(`${API}/auth/verify-signup`, { userId, otp });
       toast.success("Account verified. Please login now."); // REPLACED alert
       navigate("/");
     } catch (err) {

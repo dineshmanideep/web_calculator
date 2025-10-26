@@ -8,6 +8,7 @@ import MLCompactColumns from '../components/MLCompactColumns';
 import { preprocess } from '../utils/mathEngine';
 import { toast } from 'react-toastify';
 import { parseMatrix, performMatrixOperation, formatMatrix } from '../utils/matrixOperations';
+import { useNavigate } from 'react-router-dom';
 const API_URL = import.meta.env.VITE_API_URL;
 
 // Main Calculator page component managing UI state and interactions
@@ -33,11 +34,14 @@ export default function Calculator({ user, onSignOut }) {
   const [firstMatrix, setFirstMatrix] = useState(null); // First matrix in operation
   const [plotTrigger, setPlotTrigger] = useState(0);
   const inputRef = useRef(null);
+  //define navigate
+
+  const navigate = useNavigate();
 
 useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const { data } = await axios.get(`${API_URL}/history`,{withCredentials: true});
+        const { data } = await axios.get(`${API_URL}/auth/history`,{withCredentials: true});
         // The backend now returns objects, let's format them for display
         const formattedHistory = data.history.map(item => `${item.expr} = ${item.result}`);
         setHistory(formattedHistory);
@@ -53,13 +57,14 @@ useEffect(() => {
 
     if (user) {
       fetchHistory();
+      console.log('User logged in, history fetched.', user);
     }
   }, [user]);
 
   // helpers
   const pushHistory = async (expr, result) => {
     try {
-      const { data } = await axios.post(`${API_URL}/history`, { expr, result }, { withCredentials: true });
+      const { data } = await axios.post(`${API_URL}/auth/history`, { expr, result }, { withCredentials: true });
       // The backend returns the updated history array
       const formattedHistory = data.history.map(item => `${item.expr} = ${item.result}`);
       setHistory(formattedHistory);
@@ -246,6 +251,20 @@ useEffect(() => {
           {showProfileDropdown && (
             <div className="absolute right-0 mt-2 w-40 bg-gray-700 rounded shadow-md flex flex-col z-50">
               <div className="text-white p-2 border-b border-gray-600">{user?.fullName}</div>
+              
+              {/* Admin Dashboard Link - Only for admin users */}
+              {user?.isAdmin && (
+                <button
+                  onClick={() => {
+                    // Navigate to admin dashboard using react router
+                    navigate('/admin');
+                  }}
+                  className="text-white p-2 hover:bg-purple-600 rounded text-left"
+                >
+                   Admin Dashboard
+                </button>
+              )}
+              
               <button
                 onClick={() => {
                   onSignOut();

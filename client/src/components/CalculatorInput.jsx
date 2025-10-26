@@ -395,7 +395,7 @@ const CalculatorInput = ({
               return;
             }
             try {
-              await axios.delete(`${API_URL}/history`,{ withCredentials: true });
+              await axios.delete(`${API_URL}/auth/history`,{ withCredentials: true });
               setInput('');
               setHistory([]);
               setLastAnswer('');

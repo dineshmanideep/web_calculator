@@ -17,7 +17,7 @@ export default function ResetPassword() {
     if (newPassword !== confirm) return toast.error("Passwords do not match"); // REPLACED alert
 
     try {
-      await axios.post(`${API}/reset-password`, { userId, otp, newPassword });
+      await axios.post(`${API}/auth/reset-password`, { userId, otp, newPassword });
       toast.success("Password reset successful. Please login."); // REPLACED alert
       navigate("/");
     } catch (err) {
