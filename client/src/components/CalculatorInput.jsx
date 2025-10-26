@@ -82,6 +82,13 @@ const CalculatorInput = ({
     }
 
     try {
+      // If in matrix mode and there's a pending operation, execute it
+      if (matrixMode && firstMatrix && matrixOperation) {
+        // Trigger the matrix operation to complete with the current input as second matrix
+        onMatrixOperation('=');
+        return;
+      }
+
       const result = evaluateExpression(input, angleMode);
       const formatted = math.format(result, { notation:'fixed', precision: 6 });
       pushHistory(input, formatted);
@@ -91,7 +98,7 @@ const CalculatorInput = ({
       console.error('Evaluation error:', err);
     }
     inputRef.current?.focus();
-  }, [input, angleMode, pushHistory, setInput, inputRef]);
+  }, [input, angleMode, pushHistory, setInput, inputRef, matrixMode, firstMatrix, matrixOperation, onMatrixOperation]);
 
   const handleClick = useCallback(
     (btn) => {
@@ -326,25 +333,13 @@ const CalculatorInput = ({
 
       {matrixMode && (
         <>
-          {/* First Matrix Display Box */}
-          {firstMatrix && (
-            <div className="p-3 bg-blue-900 rounded border border-blue-700 text-white text-sm">
-              <div className="font-semibold mb-1">First Matrix {matrixOperation ? `(${matrixOperation})` : ''}</div>
-              <div className="font-mono text-xs">{firstMatrix.input}</div>
-              <button
-                onClick={onMatrixClear}
-                className="mt-2 px-3 py-1 bg-red-600 hover:bg-red-500 rounded text-xs"
-              >
-                Clear
-              </button>
-            </div>
-          )}
+          
           
           {/* Matrix Operation Buttons */}
           <div className="grid grid-cols-3 gap-2">
             {matrixButtons.map(b => (
               <button key={b} onClick={() => handleClick(b)}
-                className="p-2 bg-blue-700 hover:bg-blue-600 rounded text-white text-sm">{b}</button>
+                className="p-2 bg-indigo-700 hover:bg-indigo-600 rounded text-white text-sm font-medium transition-colors shadow-md">{b}</button>
             ))}
           </div>
         </>

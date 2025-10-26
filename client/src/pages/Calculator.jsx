@@ -191,16 +191,69 @@ useEffect(() => {
     try {
       const currentInput = input.trim();
       
-      // Parse current input as matrix
-      if (!currentInput) {
-        toast.warn('Please enter a matrix first');
+      // Handle equals (=) - complete pending operation
+      if (operation === '=') {
+        if (!firstMatrix || !matrixOperation) {
+          toast.warn('No pending matrix operation to complete');
+          return;
+        }
+        
+        if (!currentInput) {
+          toast.warn('Please enter the second matrix');
+          return;
+        }
+        
+        const secondMatrix = parseMatrix(currentInput);
+        
+        // Validate dimensions for the operation
+        const size1 = firstMatrix.matrix.size();
+        const size2 = secondMatrix.size();
+        
+        if (matrixOperation === 'MatMul') {
+          if (size1[1] !== size2[0]) {
+            toast.error(`Matrix multiplication error: First matrix columns (${size1[1]}) must equal second matrix rows (${size2[0]})`);
+            return;
+          }
+        } else if (matrixOperation === 'MatAdd' || matrixOperation === 'MatSub') {
+          if (size1[0] !== size2[0] || size1[1] !== size2[1]) {
+            toast.error(`Matrix ${matrixOperation === 'MatAdd' ? 'addition' : 'subtraction'} error: Matrices must have same dimensions (${size1[0]}x${size1[1]} vs ${size2[0]}x${size2[1]})`);
+            return;
+          }
+        }
+        
+        // Perform the operation
+        const result = performMatrixOperation(matrixOperation, firstMatrix.matrix, secondMatrix);
+        const formatted = formatMatrix(result);
+        
+        setInput(formatted);
+        pushHistory(`${firstMatrix.input} ${matrixOperation} ${currentInput}`, formatted);
+        
+        // Clear the operation state
+        setFirstMatrix(null);
+        setMatrixOperation(null);
+        
+        toast.success(`${matrixOperation} completed successfully!`);
         return;
       }
       
-      const matrix = parseMatrix(currentInput);
-      
       // If it's a unary operation (Det, Transpose), execute immediately
       if (operation === 'Det' || operation === 'Transpose') {
+        if (!currentInput) {
+          toast.warn('Please enter a matrix first');
+          return;
+        }
+        
+        const matrix = parseMatrix(currentInput);
+        
+        // Additional validation for determinant (must be square matrix)
+        if (operation === 'Det') {
+          const size = matrix.size();
+          if (size[0] !== size[1]) {
+            toast.error('Determinant requires a square matrix');
+            return;
+          }
+        }
+        
         const result = performMatrixOperation(operation, matrix);
         const formatted = formatMatrix(result);
         setInput(formatted);
@@ -209,26 +262,60 @@ useEffect(() => {
         return;
       }
       
-      // For binary operations, check if we have a first matrix
+      // For binary operations (MatMul, MatAdd, MatSub)
       if (!firstMatrix) {
-        // Store first matrix and operation
+        // First step: Store the first matrix
+        if (!currentInput) {
+          toast.warn('Please enter the first matrix');
+          return;
+        }
+        
+        const matrix = parseMatrix(currentInput);
         setFirstMatrix({ matrix, input: currentInput });
         setMatrixOperation(operation);
         setInput(''); // Clear input for second matrix
-        toast.info(`${operation} - Enter second matrix`);
+        toast.info(`${operation} - Now enter the second matrix and press "="`);
       } else {
-        // We have both matrices, perform operation
-        const result = performMatrixOperation(operation, firstMatrix.matrix, matrix);
-        const formatted = formatMatrix(result);
-        setInput(formatted);
-        pushHistory(`${firstMatrix.input} ${operation} ${currentInput}`, formatted);
+        // Second step: User clicked another operation, complete the pending operation first
+        if (!currentInput) {
+          toast.warn('Please enter the second matrix');
+          return;
+        }
         
-        // Update first matrix to be the result for chaining
+        const secondMatrix = parseMatrix(currentInput);
+        
+        // Validate dimensions for the operation
+        const size1 = firstMatrix.matrix.size();
+        const size2 = secondMatrix.size();
+        
+        if (matrixOperation === 'MatMul') {
+          // For multiplication: columns of first must equal rows of second
+          if (size1[1] !== size2[0]) {
+            toast.error(`Matrix multiplication error: First matrix columns (${size1[1]}) must equal second matrix rows (${size2[0]})`);
+            return;
+          }
+        } else if (matrixOperation === 'MatAdd' || matrixOperation === 'MatSub') {
+          // For addition/subtraction: dimensions must match exactly
+          if (size1[0] !== size2[0] || size1[1] !== size2[1]) {
+            toast.error(`Matrix ${matrixOperation === 'MatAdd' ? 'addition' : 'subtraction'} error: Matrices must have same dimensions (${size1[0]}x${size1[1]} vs ${size2[0]}x${size2[1]})`);
+            return;
+          }
+        }
+        
+        // Perform the pending operation
+        const result = performMatrixOperation(matrixOperation, firstMatrix.matrix, secondMatrix);
+        const formatted = formatMatrix(result);
+        
+        pushHistory(`${firstMatrix.input} ${matrixOperation} ${currentInput}`, formatted);
+        
+        // Start new operation chain with result as first matrix
+        setInput('');
         setFirstMatrix({ matrix: result, input: formatted });
-        toast.success(`${operation} completed successfully`);
+        setMatrixOperation(operation);
+        toast.success(`${matrixOperation} completed! ${operation} started - Enter second matrix and press "="`);
       }
     } catch (error) {
-      toast.error(error.message);
+      toast.error(error.message || 'Matrix operation failed');
       console.error('Matrix operation error:', error);
     }
   };
