@@ -57,14 +57,13 @@ const CalculatorInfoBox = ({ show, onClose }) => {
         <h2 className="font-bold text-base mb-2 text-yellow-300">Matrix Operations</h2>
         <ul className="list-disc ml-5 mb-3 text-sm">
           <li><b>Format:</b> <code>[[1,2],[3,4]]</code></li>
-          <li><b>Multiply:</b> Click MatMul button</li>
-          <li><b>Add/Subtract:</b> MatAdd, MatSub buttons</li>
-          <li><b>Transpose:</b> TransA, TransB buttons</li>
-          <li><b>Determinant:</b> DetA, DetB buttons</li>
-          <li><b>Inverse:</b> InvA, InvB buttons</li>
-          <li><b>Eigenvalues:</b> EigenA button</li>
-          <li><b>Rank:</b> RankA button</li>
-          <li className="text-yellow-300">Enable Matrix mode to access all operations</li>
+          <li><b>Multiply:</b> Click Matrix button, select Multiply operation</li>
+          <li><b>Add/Subtract:</b> Support for multiple matrices (A+B+C...)</li>
+          <li><b>Transpose:</b> Available in Matrix operations</li>
+          <li><b>Determinant:</b> Calculate determinant of square matrix</li>
+          <li><b>Inverse:</b> Invert square non-singular matrix</li>
+          <li className="text-yellow-300">You can add multiple matrices for operations</li>
+          <li className="text-yellow-300">Use keypad on left, view input on right</li>
         </ul>
 
         <h2 className="font-bold text-base mb-2 text-yellow-300">Logarithms</h2>
@@ -87,11 +86,15 @@ const CalculatorInfoBox = ({ show, onClose }) => {
           <li className="text-yellow-300">Enable Calculus mode for quick access</li>
         </ul>
 
-        <h2 className="font-bold text-base mb-2 text-yellow-300">Plotting</h2>
+        <h2 className="font-bold text-base mb-2 text-yellow-300">Plotting (Interactive)</h2>
         <ul className="list-disc ml-5 mb-3 text-sm">
-          <li>Enter function with variable <code>x</code></li>
-          <li>Example: <code>sin(x)</code>, <code>x^2+2x+1</code></li>
-          <li>Click <b>Plot</b> button to visualize</li>
+          <li><b>Click Plot button</b> to open the plot area</li>
+          <li><b>Enter function</b> with variable <code>x</code> in the input field</li>
+          <li><b>Example:</b> <code>sin(x)</code>, <code>x^2+2x+1</code>, <code>1/x</code></li>
+          <li><b>Click Plot button</b> in plot area to visualize</li>
+          <li className="text-green-300"><b>Zoom out/in:</b> Graph extends infinitely - no range limits!</li>
+          <li className="text-green-300"><b>Pan:</b> Drag the plot to explore different regions</li>
+          <li className="text-green-300"><b>Auto-regenerate:</b> More data points generated when zooming</li>
           <li>Supports real and complex functions (plots real part)</li>
         </ul>
 
@@ -108,6 +111,7 @@ const CalculatorInfoBox = ({ show, onClose }) => {
           <li><b>Enter:</b> Evaluate expression</li>
           <li><b>Backspace:</b> Delete last character</li>
           <li>Type numbers, operators, and functions directly</li>
+          <li><b>In Plot Area:</b> Press Enter to plot function</li>
         </ul>
 
         <div className="mt-3 p-2 bg-gray-800 rounded text-xs">
@@ -117,6 +121,7 @@ const CalculatorInfoBox = ({ show, onClose }) => {
             <li>Complex numbers: <code>sqrt(-1)</code> returns <code>i</code></li>
             <li>Matrix dimensions must match for operations</li>
             <li>Angle mode affects trig functions globally</li>
+            <li className="text-green-300">Plot area: Zoom/pan freely - infinite range!</li>
           </ul>
         </div>
       </div>

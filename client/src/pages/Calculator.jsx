@@ -29,9 +29,8 @@ export default function Calculator({ user, onSignOut }) {
   });
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [showPlot, setShowPlot] = useState(false);
-  const [plotConfig, setPlotConfig] = useState(null); // { x, y, layout }
-  const [plotWidth, setPlotWidth] = useState(700); // initial width
-  const [plotHeight, setPlotHeight] = useState(400); // initial height
+  const [plotWidth, setPlotWidth] = useState(700);
+  const [plotHeight, setPlotHeight] = useState(400);
   const [showMLMode, setShowMLMode] = useState(false);
   const [mlParamMode, setMlParamMode] = useState(null);
   const [angleMode, setAngleMode] = useState('rad'); // 'rad' or 'deg'
@@ -118,46 +117,9 @@ export default function Calculator({ user, onSignOut }) {
   };
 
   const handlePlot = () => {
-    // tries to interpret input as function in x, e.g. "sin(x)" or expression with x
-    if (!input) {
-      toast.warn('Enter function of x to plot in input, e.g. sin(x)');
-      return null;
-    }
-
-    if (!input.includes('x')) {
-      toast.warn('Function must contain variable "x" to plot');
-      return null;
-    }
-
-    try {
-      const expr = preprocess(input, angleMode);
-      const xs = math.range(-10, 10, 0.1).toArray();
-      const ys = xs.map((x) => {
-        try { 
-          return math.evaluate(expr.replace(/x/g, `(${x})`)); 
-        } catch { 
-          return NaN; 
-        }
-      });
-
-      // Check if we have valid data points
-      const validPoints = ys.filter(y => !isNaN(y) && isFinite(y));
-      if (validPoints.length === 0) {
-        toast.error('No valid data points to plot. Check your function.');
-        return null;
-      }
-
-      setPlotConfig({
-        x: xs,
-        y: ys.map((v) => (typeof v === 'number' ? v : (v.re !== undefined ? v.re : NaN))),
-        layout: { title: `y = ${input}` },
-      });
-      setShowPlot(true);
-      toast.success('Plot generated successfully');
-    } catch (e) {
-      toast.error(`Plot failed: ${e.message}`);
-      console.error('Plot error:', e);
-    }
+    // Just open the plot area - user will input function there
+    setShowPlot(true);
+    toast.info('Plot area opened - enter function to plot');
   };
 
   // Render
@@ -243,7 +205,7 @@ export default function Calculator({ user, onSignOut }) {
                 plotHeight={plotHeight}
                 setPlotHeight={setPlotHeight}
                 setShowPlot={setShowPlot}
-                plotConfig={plotConfig}
+                angleMode={angleMode}
               />
             )}
 

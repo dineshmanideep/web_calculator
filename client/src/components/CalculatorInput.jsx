@@ -24,7 +24,6 @@ const CalculatorInput = ({
   history
 }) => {
   const [showInfo, setShowInfo] = useState(false);
-  const [matrixMode, setMatrixMode] = useState(false);
   const [complexMode, setComplexMode] = useState(false);
   const [mlMode, setMlMode] = useState(!!parentShowMLMode);
   const [calculusMode, setCalculusMode] = useState(false);
@@ -40,15 +39,7 @@ const CalculatorInput = ({
     '4', '5', '6', '*', 
     '1', '2', '3', '-', 
     '0', '.', '+', '^', '%',
-    '(', ')', '!',
-  ];
-
-  const matrixButtons = [
-    'MatMul', 'MatAdd', 'MatSub', 
-    'TransA', 'TransB', 
-    'DetA', 'DetB',
-    'InvA', 'InvB',
-    'EigenA', 'RankA'
+    '(', ')', '!', '[', ']', ','
   ];
 
   const complexButtons = [
@@ -109,65 +100,6 @@ const CalculatorInput = ({
       }
       if (btn === '=') { handleEquals(); return; }
 
-      // Matrix operations - open modal with specific operation
-      if (btn === 'MatMul') { 
-        setMatrixOperation && setMatrixOperation('multiply');
-        setShowMatrixModal && setShowMatrixModal(true); 
-        toast.info('Matrix multiplication mode');
-        return; 
-      }
-      if (btn === 'MatAdd') { 
-        setMatrixOperation && setMatrixOperation('add');
-        setShowMatrixModal && setShowMatrixModal(true); 
-        toast.info('Matrix addition mode');
-        return; 
-      }
-      if (btn === 'MatSub') { 
-        setMatrixOperation && setMatrixOperation('subtract');
-        setShowMatrixModal && setShowMatrixModal(true); 
-        toast.info('Matrix subtraction mode');
-        return; 
-      }
-      if (btn === 'TransA') { 
-        setMatrixOperation && setMatrixOperation('transposeA');
-        setShowMatrixModal && setShowMatrixModal(true); 
-        toast.info('Transpose A mode');
-        return; 
-      }
-      if (btn === 'TransB') { 
-        setMatrixOperation && setMatrixOperation('transposeB');
-        setShowMatrixModal && setShowMatrixModal(true); 
-        toast.info('Transpose B mode');
-        return; 
-      }
-      if (btn === 'DetA') { 
-        setMatrixOperation && setMatrixOperation('detA');
-        setShowMatrixModal && setShowMatrixModal(true); 
-        toast.info('Determinant A mode');
-        return; 
-      }
-      if (btn === 'DetB') { 
-        setMatrixOperation && setMatrixOperation('detB');
-        setShowMatrixModal && setShowMatrixModal(true); 
-        toast.info('Determinant B mode');
-        return; 
-      }
-      if (btn === 'InvA') { 
-        setMatrixOperation && setMatrixOperation('inverseA');
-        setShowMatrixModal && setShowMatrixModal(true); 
-        toast.info('Inverse A mode');
-        return; 
-      }
-      if (btn === 'InvB') { 
-        setMatrixOperation && setMatrixOperation('inverseB');
-        setShowMatrixModal && setShowMatrixModal(true); 
-        toast.info('Inverse B mode');
-        return; 
-      }
-
-      
-
-      
       if (btn === 'd/dx(') { 
         setInput(s => s + 'd/dx('); 
         toast.info('Derivative: d/dx(function)');
@@ -206,7 +138,7 @@ const CalculatorInput = ({
       inputRef.current?.focus();
     },
     [inputRef, lastAnswer, handleEquals, setInput, mlMode, startParamSequence, 
-     setShowMatrixModal, input, complexMode, setMatrixOperation]
+     input, complexMode]
   );
 
   useEffect(() => {
@@ -249,7 +181,6 @@ const CalculatorInput = ({
           setMlMode(m => !m); 
           setCalculusMode(false); 
           setComplexMode(false); 
-          setMatrixMode(false); 
           toast.info(mlMode ? 'ML Mode OFF' : 'ML Mode ON');
         }}
           className={`px-3 py-1 rounded ${mlMode ? 'bg-indigo-600' : 'bg-gray-700'} text-white`}>ML</button>
@@ -257,7 +188,6 @@ const CalculatorInput = ({
         <button onClick={() => { 
           setCalculusMode(c => !c); 
           setMlMode(false);  
-          setMatrixMode(false); 
           toast.info(calculusMode ? 'Calculus OFF' : 'Calculus ON');
         }}
           className={`px-3 py-1 rounded ${calculusMode ? 'bg-green-600' : 'bg-gray-700'} text-white`}>Calculus</button>
@@ -265,19 +195,16 @@ const CalculatorInput = ({
         <button onClick={() => { 
           setComplexMode(c => !c); 
           setMlMode(false); 
-          setMatrixMode(false); 
           toast.info(complexMode ? 'Complex OFF' : 'Complex ON');
         }}
           className={`px-3 py-1 rounded ${complexMode ? 'bg-pink-600' : 'bg-gray-700'} text-white`}>Complex</button>
         
         <button onClick={() => { 
-          setMatrixMode(m => !m); 
-          setMlMode(false); 
-          setComplexMode(false); 
-          setCalculusMode(false); 
-          toast.info(matrixMode ? 'Matrix OFF' : 'Matrix ON');
+          setMatrixOperation && setMatrixOperation('multiply');
+          setShowMatrixModal && setShowMatrixModal(true); 
+          toast.info('Matrix mode - Select operation');
         }}
-          className={`px-3 py-1 rounded ${matrixMode ? 'bg-blue-600' : 'bg-gray-700'} text-white`}>Matrix</button>
+          className="px-3 py-1 rounded bg-gray-700 text-white hover:bg-blue-600">Matrix</button>
         
         <button onClick={() => { 
           setInverseMode(i => !i); 
@@ -288,13 +215,9 @@ const CalculatorInput = ({
         </button>
         
         <button onClick={() => {
-          if (!input || input.trim() === '') {
-            toast.warn('Enter function of x to plot (e.g., sin(x))');
-            return;
-          }
           handlePlot();
         }}
-          className={`px-3 py-1 rounded bg-gray-700 text-white`}>Plot</button>
+          className={`px-3 py-1 rounded bg-gray-700 text-white hover:bg-purple-600`}>Plot</button>
       </div>
 
       {/* Input bar */}
@@ -326,15 +249,6 @@ const CalculatorInput = ({
       </div>
 
       {/* Mode-specific buttons */}
-      {matrixMode && (
-        <div className="grid grid-cols-3 gap-2">
-          {matrixButtons.map(b => (
-            <button key={b} onClick={() => handleClick(b)}
-              className="p-2 bg-blue-700 hover:bg-blue-600 rounded text-white text-sm">{b}</button>
-          ))}
-        </div>
-      )}
-
       {complexMode && (
         <div className="grid grid-cols-4 gap-2">
           {complexButtons.map(b => (
@@ -361,6 +275,7 @@ const CalculatorInput = ({
           ))}
         </div>
       )}
+      
       {/* constant buttons */}
       <div className="grid grid-cols-2 gap-2">
         {constantButtons.map(b => (
@@ -379,7 +294,7 @@ const CalculatorInput = ({
               ${
                 ['C', '←', 'Ans', '='].includes(btn)
                   ? 'bg-teal-500 hover:bg-teal-400'
-                  : ['+', '-', '*', '/', '^', '%', '!' ,'(' ,')'].includes(btn)
+                  : ['+', '-', '*', '/', '^', '%', '!' ,'(' ,')', '[', ']', ','].includes(btn)
                   ? 'bg-blue-700 hover:bg-blue-600'
                   : 'bg-purple-700 hover:bg-purple-600'
               }`}

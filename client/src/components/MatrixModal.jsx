@@ -4,8 +4,10 @@ import { toast } from 'react-toastify';
 
 const MatrixModal = ({ show, onClose, onResult, initialInput = "", operation: propOperation }) => {
   const [operation, setOperation] = useState(propOperation || "multiply");
-  const [matrixAText, setMatrixAText] = useState("[[1,0],[0,1]]");
-  const [matrixBText, setMatrixBText] = useState("[[1,2],[3,4]]");
+  const [step, setStep] = useState(0); // 0: operation select, 1+: matrix input steps
+  const [matrices, setMatrices] = useState([]); // store collected matrices
+  const [currentMatrixText, setCurrentMatrixText] = useState("");
+  const [matrixNames, setMatrixNames] = useState([]); // names like 'A', 'B', 'C'...
 
   useEffect(() => {
     if (propOperation) {
@@ -14,44 +16,31 @@ const MatrixModal = ({ show, onClose, onResult, initialInput = "", operation: pr
   }, [propOperation]);
 
   useEffect(() => {
-    if (!show) return;
+    if (!show) {
+      // Reset state when modal closes
+      setStep(0);
+      setMatrices([]);
+      setCurrentMatrixText("");
+      setMatrixNames([]);
+      return;
+    }
 
-    setMatrixAText("[[1,0],[0,1]]");
-    setMatrixBText("[[1,2],[3,4]]");
-
-    if (!initialInput) return;
-
-    try {
-      const parsedA = JSON.parse(initialInput);
-      if (Array.isArray(parsedA) && Array.isArray(parsedA[0])) {
-        math.matrix(parsedA);
-        setMatrixAText(initialInput);
-        toast.success('Matrix A loaded from input');
-        return;
-      }
-    } catch {}
-
-    const parts = initialInput.split('*').map(p => p.trim());
-    if (parts.length === 2) {
+    // When modal opens, try to parse initialInput
+    if (initialInput) {
       try {
-        const parsedA = JSON.parse(parts[0]);
-        const parsedB = JSON.parse(parts[1]);
-        if (Array.isArray(parsedA) && Array.isArray(parsedA[0]) &&
-            Array.isArray(parsedB) && Array.isArray(parsedB[0])) {
+        const parsedA = JSON.parse(initialInput);
+        if (Array.isArray(parsedA) && Array.isArray(parsedA[0])) {
           math.matrix(parsedA);
-          math.matrix(parsedB);
-          setMatrixAText(JSON.stringify(parsedA));
-          setMatrixBText(JSON.stringify(parsedB));
-          toast.success('Matrices loaded from input');
-          return;
+          setCurrentMatrixText(initialInput);
+          toast.success('Matrix loaded from input');
         }
       } catch {}
     }
-
-    toast.warn(`Could not parse "${initialInput}" as matrix(es). Using defaults.`);
   }, [show, initialInput]);
 
   if (!show) return null;
+
+  const needsMultipleMatrices = ['multiply', 'add', 'subtract'].includes(operation);
 
   const validateMatrix = (text, name) => {
     if (!text || text.trim() === '') {
@@ -94,169 +83,193 @@ const MatrixModal = ({ show, onClose, onResult, initialInput = "", operation: pr
     }
   };
 
-  const handleOperation = () => {
+  const handleAddMatrix = () => {
     try {
-      let parsedA, parsedB;
-      let expr = "";
-      let result = "";
+      const matrixName = String.fromCharCode(65 + matrices.length);
+      const parsed = validateMatrix(currentMatrixText, `Matrix ${matrixName}`);
+      
+      setMatrices([...matrices, parsed]);
+      setMatrixNames([...matrixNames, matrixName]);
+      setCurrentMatrixText("");
+      
+      toast.success(`Matrix ${matrixName} added successfully`);
+    } catch (e) {
+      toast.error(e.message);
+    }
+  };
 
-      if (['multiply', 'add', 'subtract', 'transposeA', 'detA', 'inverseA'].includes(operation)) {
-        parsedA = validateMatrix(matrixAText, "Matrix A");
+  const handleCompute = () => {
+    try {
+      if (matrices.length < 2 && needsMultipleMatrices) {
+        toast.error('Need at least 2 matrices for this operation');
+        return;
       }
-      if (['multiply', 'add', 'subtract', 'transposeB', 'detB', 'inverseB'].includes(operation)) {
-        parsedB = validateMatrix(matrixBText, "Matrix B");
+
+      if (matrices.length < 1) {
+        toast.error('Need at least 1 matrix for this operation');
+        return;
       }
+
+      let result = "";
+      let expr = "";
 
       if (operation === "multiply") {
-        const aRows = parsedA.length;
-        const aCols = parsedA[0].length;
-        const bRows = parsedB.length;
-        const bCols = parsedB[0].length;
+        // Multiply all matrices sequentially
+        let resultMatrix = math.matrix(matrices[0]);
+        expr = `MatMul ${JSON.stringify(matrices[0])}`;
         
-        if (aCols !== bRows) {
-          toast.error(`Cannot multiply: Matrix A columns (${aCols}) must equal Matrix B rows (${bRows})`);
-          return;
+        for (let i = 1; i < matrices.length; i++) {
+          const nextMatrix = math.matrix(matrices[i]);
+          const prevShape = resultMatrix.size();
+          const nextShape = nextMatrix.size();
+          
+          if (prevShape[1] !== nextShape[0]) {
+            toast.error(`Cannot multiply: Matrix ${matrixNames[i-1]} columns (${prevShape[1]}) must equal Matrix ${matrixNames[i]} rows (${nextShape[0]})`);
+            return;
+          }
+          
+          resultMatrix = math.multiply(resultMatrix, nextMatrix);
+          expr += ` × ${JSON.stringify(matrices[i])}`;
         }
         
-        const res = math.multiply(math.matrix(parsedA), math.matrix(parsedB));
-        result = JSON.stringify(res.toArray());
-        expr = `MatMul ${JSON.stringify(parsedA)} * ${JSON.stringify(parsedB)}`;
-        toast.success(`Multiplication: ${aRows}×${aCols} × ${bRows}×${bCols} = ${aRows}×${bCols}`);
+        result = JSON.stringify(resultMatrix.toArray());
+        toast.success(`Multiplication completed: ${matrices.length} matrices`);
       } 
       else if (operation === "add") {
-        if (parsedA.length !== parsedB.length || parsedA[0].length !== parsedB[0].length) {
-          toast.error('Matrices must have same dimensions for addition');
-          return;
+        // Add all matrices
+        let resultMatrix = math.matrix(matrices[0]);
+        const firstShape = resultMatrix.size();
+        expr = `Add ${JSON.stringify(matrices[0])}`;
+        
+        for (let i = 1; i < matrices.length; i++) {
+          const nextMatrix = math.matrix(matrices[i]);
+          const nextShape = nextMatrix.size();
+          
+          if (firstShape[0] !== nextShape[0] || firstShape[1] !== nextShape[1]) {
+            toast.error(`Matrices must have same dimensions. Matrix A: ${firstShape[0]}×${firstShape[1]}, Matrix ${matrixNames[i]}: ${nextShape[0]}×${nextShape[1]}`);
+            return;
+          }
+          
+          resultMatrix = math.add(resultMatrix, nextMatrix);
+          expr += ` + ${JSON.stringify(matrices[i])}`;
         }
-        const res = math.add(math.matrix(parsedA), math.matrix(parsedB));
-        result = JSON.stringify(res.toArray());
-        expr = `Add ${JSON.stringify(parsedA)} + ${JSON.stringify(parsedB)}`;
-        toast.success('Matrix addition successful');
+        
+        result = JSON.stringify(resultMatrix.toArray());
+        toast.success(`Addition completed: ${matrices.length} matrices`);
       }
       else if (operation === "subtract") {
-        if (parsedA.length !== parsedB.length || parsedA[0].length !== parsedB[0].length) {
-          toast.error('Matrices must have same dimensions for subtraction');
-          return;
+        // Subtract all matrices sequentially
+        let resultMatrix = math.matrix(matrices[0]);
+        const firstShape = resultMatrix.size();
+        expr = `Subtract ${JSON.stringify(matrices[0])}`;
+        
+        for (let i = 1; i < matrices.length; i++) {
+          const nextMatrix = math.matrix(matrices[i]);
+          const nextShape = nextMatrix.size();
+          
+          if (firstShape[0] !== nextShape[0] || firstShape[1] !== nextShape[1]) {
+            toast.error(`Matrices must have same dimensions. Matrix A: ${firstShape[0]}×${firstShape[1]}, Matrix ${matrixNames[i]}: ${nextShape[0]}×${nextShape[1]}`);
+            return;
+          }
+          
+          resultMatrix = math.subtract(resultMatrix, nextMatrix);
+          expr += ` - ${JSON.stringify(matrices[i])}`;
         }
-        const res = math.subtract(math.matrix(parsedA), math.matrix(parsedB));
-        result = JSON.stringify(res.toArray());
-        expr = `Subtract ${JSON.stringify(parsedA)} - ${JSON.stringify(parsedB)}`;
-        toast.success('Matrix subtraction successful');
+        
+        result = JSON.stringify(resultMatrix.toArray());
+        toast.success(`Subtraction completed: ${matrices.length} matrices`);
       }
-      else if (operation === "transposeA") {
-        const res = math.transpose(math.matrix(parsedA));
+      else if (operation === "transpose") {
+        const mat = matrices[0];
+        const res = math.transpose(math.matrix(mat));
         result = JSON.stringify(res.toArray());
-        expr = `Transpose A: ${JSON.stringify(parsedA)}`;
-        toast.success('Matrix A transposed');
+        expr = `Transpose: ${JSON.stringify(mat)}`;
+        toast.success('Matrix transposed');
       } 
-      else if (operation === "transposeB") {
-        const res = math.transpose(math.matrix(parsedB));
-        result = JSON.stringify(res.toArray());
-        expr = `Transpose B: ${JSON.stringify(parsedB)}`;
-        toast.success('Matrix B transposed');
-      } 
-      else if (operation === "detA") {
-        if (parsedA.length !== parsedA[0].length) {
-          toast.error(`Determinant requires square matrix. Matrix A is ${parsedA.length}×${parsedA[0].length}`);
+      else if (operation === "det") {
+        const mat = matrices[0];
+        if (mat.length !== mat[0].length) {
+          toast.error(`Determinant requires square matrix. Matrix is ${mat.length}×${mat[0].length}`);
           return;
         }
-        const res = math.det(math.matrix(parsedA));
+        const res = math.det(math.matrix(mat));
         result = String(math.format(res, { notation: 'fixed', precision: 6 }));
-        expr = `Determinant A: ${JSON.stringify(parsedA)}`;
-        toast.success('Determinant calculated');
-      } 
-      else if (operation === "detB") {
-        if (parsedB.length !== parsedB[0].length) {
-          toast.error(`Determinant requires square matrix. Matrix B is ${parsedB.length}×${parsedB[0].length}`);
-          return;
-        }
-        const res = math.det(math.matrix(parsedB));
-        result = String(math.format(res, { notation: 'fixed', precision: 6 }));
-        expr = `Determinant B: ${JSON.stringify(parsedB)}`;
+        expr = `Determinant: ${JSON.stringify(mat)}`;
         toast.success('Determinant calculated');
       }
-      else if (operation === "inverseA") {
-        if (parsedA.length !== parsedA[0].length) {
-          toast.error(`Inverse requires square matrix. Matrix A is ${parsedA.length}×${parsedA[0].length}`);
+      else if (operation === "inverse") {
+        const mat = matrices[0];
+        if (mat.length !== mat[0].length) {
+          toast.error(`Inverse requires square matrix. Matrix is ${mat.length}×${mat[0].length}`);
           return;
         }
-        const det = math.det(math.matrix(parsedA));
+        const det = math.det(math.matrix(mat));
         if (Math.abs(det) < 1e-10) {
           toast.error('Matrix is singular (determinant ≈ 0), cannot invert');
           return;
         }
-        const res = math.inv(math.matrix(parsedA));
+        const res = math.inv(math.matrix(mat));
         result = JSON.stringify(res.toArray());
-        expr = `Inverse A: ${JSON.stringify(parsedA)}`;
+        expr = `Inverse: ${JSON.stringify(mat)}`;
         toast.success('Matrix inverse calculated');
-      }
-      else if (operation === "inverseB") {
-        if (parsedB.length !== parsedB[0].length) {
-          toast.error(`Inverse requires square matrix. Matrix B is ${parsedB.length}×${parsedB[0].length}`);
-          return;
-        }
-        const det = math.det(math.matrix(parsedB));
-        if (Math.abs(det) < 1e-10) {
-          toast.error('Matrix is singular (determinant ≈ 0), cannot invert');
-          return;
-        }
-        const res = math.inv(math.matrix(parsedB));
-        result = JSON.stringify(res.toArray());
-        expr = `Inverse B: ${JSON.stringify(parsedB)}`;
-        toast.success('Matrix inverse calculated');
-      }
-      else if (operation === "eigenA") {
-        if (parsedA.length !== parsedA[0].length) {
-          toast.error(`Eigenvalues require square matrix. Matrix A is ${parsedA.length}×${parsedA[0].length}`);
-          return;
-        }
-        const res = math.eigs(math.matrix(parsedA));
-        result = JSON.stringify({ 
-          values: res.values.map(v => math.format(v, { notation: 'fixed', precision: 6 })),
-          vectors: res.vectors.map(vec => vec.map(v => math.format(v, { notation: 'fixed', precision: 6 })))
-        });
-        expr = `Eigenvalues A: ${JSON.stringify(parsedA)}`;
-        toast.success('Eigenvalues calculated');
-      }
-      else if (operation === "eigenB") {
-        if (parsedB.length !== parsedB[0].length) {
-          toast.error(`Eigenvalues require square matrix. Matrix B is ${parsedB.length}×${parsedB[0].length}`);
-          return;
-        }
-        const res = math.eigs(math.matrix(parsedB));
-        result = JSON.stringify({ 
-          values: res.values.map(v => math.format(v, { notation: 'fixed', precision: 6 })),
-          vectors: res.vectors.map(vec => vec.map(v => math.format(v, { notation: 'fixed', precision: 6 })))
-        });
-        expr = `Eigenvalues B: ${JSON.stringify(parsedB)}`;
-        toast.success('Eigenvalues calculated');
-      }
-      else if (operation === "rankA") {
-        const res = math.rank(math.matrix(parsedA));
-        result = String(res);
-        expr = `Rank A: ${JSON.stringify(parsedA)}`;
-        toast.success('Rank calculated');
-      }
-      else if (operation === "rankB") {
-        const res = math.rank(math.matrix(parsedB));
-        result = String(res);
-        expr = `Rank B: ${JSON.stringify(parsedB)}`;
-        toast.success('Rank calculated');
       }
 
       onResult(expr, result);
       onClose();
+      
+      // Reset for next use
+      setStep(0);
+      setMatrices([]);
+      setMatrixNames([]);
+      setCurrentMatrixText("");
     } catch (e) {
       toast.error("Matrix operation failed: " + e.message);
       console.error('Matrix operation error:', e);
     }
   };
 
-  const needsBothMatrices = ['multiply', 'add', 'subtract'].includes(operation);
+  const handleBack = () => {
+    if (matrices.length > 0) {
+      // Remove last matrix
+      const lastMatrix = matrices[matrices.length - 1];
+      setMatrices(matrices.slice(0, -1));
+      setMatrixNames(matrixNames.slice(0, -1));
+      toast.info(`Matrix ${matrixNames[matrixNames.length - 1]} removed`);
+    } else if (step > 0) {
+      // Go back to operation selection
+      setStep(0);
+      setCurrentMatrixText("");
+      toast.info('Back to operation selection');
+    }
+  };
+
+  const getCurrentMatrixName = () => {
+    return String.fromCharCode(65 + matrices.length);
+  };
+
+  const handleButtonClick = (value) => {
+    setCurrentMatrixText(prev => prev + value);
+  };
+
+  const handleClear = () => {
+    setCurrentMatrixText("");
+    toast.info('Input cleared');
+  };
+
+  const handleBackspace = () => {
+    setCurrentMatrixText(prev => prev.slice(0, -1));
+  };
+
+  const canProceed = () => {
+    return currentMatrixText.trim() !== '';
+  };
+
+  const numberButtons = ['7', '8', '9', '4', '5', '6', '1', '2', '3', '0', '.', '-'];
+  const specialButtons = ['[', ']', ','];
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-gray-800 p-4 rounded w-[500px] max-h-[90vh] overflow-y-auto relative">
+      <div className="bg-gray-800 p-4 rounded w-[700px] max-h-[90vh] overflow-y-auto relative">
         <button
           onClick={onClose}
           className="absolute top-2 right-2 text-yellow-400 font-bold text-xl px-2 hover:text-yellow-300"
@@ -267,74 +280,152 @@ const MatrixModal = ({ show, onClose, onResult, initialInput = "", operation: pr
 
         <h3 className="text-white mb-3 text-lg font-semibold">Matrix Operations</h3>
 
-        <div className="mb-3">
-          <label className="text-white mr-2 block mb-1">Operation:</label>
-          <select
-            value={operation}
-            onChange={(e) => {
-              setOperation(e.target.value);
-              toast.info(`Operation: ${e.target.value}`);
-            }}
-            className="w-full bg-gray-700 text-white p-2 rounded"
-          >
-            <option value="multiply">Multiply (A × B)</option>
-            <option value="add">Add (A + B)</option>
-            <option value="subtract">Subtract (A - B)</option>
-            <option value="transposeA">Transpose A</option>
-            <option value="transposeB">Transpose B</option>
-            <option value="detA">Determinant of A</option>
-            <option value="detB">Determinant of B</option>
-            <option value="inverseA">Inverse of A</option>
-            <option value="inverseB">Inverse of B</option>
-            <option value="eigenA">Eigenvalues of A</option>
-            <option value="eigenB">Eigenvalues of B</option>
-            <option value="rankA">Rank of A</option>
-            <option value="rankB">Rank of B</option>
-          </select>
-        </div>
+        {step === 0 && (
+          <>
+            <div className="mb-4">
+              <label className="text-white mr-2 block mb-1">Select Operation:</label>
+              <select
+                value={operation}
+                onChange={(e) => {
+                  setOperation(e.target.value);
+                  toast.info(`Operation: ${e.target.value}`);
+                }}
+                className="w-full bg-gray-700 text-white p-2 rounded"
+              >
+                <option value="multiply">Multiply (A × B × C...)</option>
+                <option value="add">Add (A + B + C...)</option>
+                <option value="subtract">Subtract (A - B - C...)</option>
+                <option value="transpose">Transpose</option>
+                <option value="det">Determinant</option>
+                <option value="inverse">Inverse</option>
+              </select>
+            </div>
 
-        <div className="mb-3">
-          <p className="text-white text-sm mb-1 font-semibold">
-            Matrix A: 
-            <span className="text-gray-400 ml-2 text-xs font-normal">Format: [[1,2],[3,4]]</span>
-          </p>
-          <textarea
-            className="w-full h-24 p-2 bg-gray-700 text-white rounded font-mono text-sm"
-            value={matrixAText}
-            onChange={(e) => setMatrixAText(e.target.value)}
-            placeholder="e.g. [[1,2],[3,4]]"
-          />
-        </div>
-
-        {needsBothMatrices && (
-          <div className="mb-3">
-            <p className="text-white text-sm mb-1 font-semibold">
-              Matrix B:
-              <span className="text-gray-400 ml-2 text-xs font-normal">Format: [[5,6],[7,8]]</span>
-            </p>
-            <textarea
-              className="w-full h-24 p-2 bg-gray-700 text-white rounded font-mono text-sm"
-              value={matrixBText}
-              onChange={(e) => setMatrixBText(e.target.value)}
-              placeholder="e.g. [[5,6],[7,8]]"
-            />
-          </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  setStep(1);
+                  toast.info(`Enter Matrix ${getCurrentMatrixName()}`);
+                }}
+                className="flex-1 bg-green-600 hover:bg-green-500 p-2 rounded text-white font-semibold"
+              >
+                Start
+              </button>
+              <button
+                onClick={onClose}
+                className="flex-1 bg-red-600 hover:bg-red-500 p-2 rounded text-white font-semibold"
+              >
+                Cancel
+              </button>
+            </div>
+          </>
         )}
 
-        <div className="flex gap-2 mt-4">
-          <button
-            onClick={handleOperation}
-            className="bg-green-600 hover:bg-green-500 p-2 rounded text-white flex-1 font-semibold"
-          >
-            Compute
-          </button>
-          <button
-            onClick={onClose}
-            className="bg-red-600 hover:bg-red-500 p-2 rounded text-white flex-1 font-semibold"
-          >
-            Cancel
-          </button>
-        </div>
+        {step > 0 && (
+          <>
+            <div className="mb-3">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-white text-sm font-semibold">
+                  Matrix {getCurrentMatrixName()}:
+                </p>
+                <span className="text-gray-400 text-xs">
+                  {matrices.length} matrices added
+                </span>
+              </div>
+              <p className="text-gray-400 text-xs mb-2">Format: [[1,2],[3,4]]</p>
+              
+              {/* Layout: Keypad on left, Input on right */}
+              <div className="flex gap-3">
+                {/* Button pad - LEFT SIDE */}
+                <div className="flex-shrink-0">
+                  <div className="grid grid-cols-3 gap-2 mb-2">
+                    {numberButtons.map(btn => (
+                      <button
+                        key={btn}
+                        onClick={() => handleButtonClick(btn)}
+                        className="p-3 bg-purple-700 hover:bg-purple-600 rounded text-white font-semibold w-16 h-12"
+                      >
+                        {btn}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    {specialButtons.map(btn => (
+                      <button
+                        key={btn}
+                        onClick={() => handleButtonClick(btn)}
+                        className="p-3 bg-blue-700 hover:bg-blue-600 rounded text-white font-semibold w-16 h-12"
+                      >
+                        {btn}
+                      </button>
+                    ))}
+                    <button
+                      onClick={handleBackspace}
+                      className="p-3 bg-orange-700 hover:bg-orange-600 rounded text-white font-semibold w-16 h-12"
+                    >
+                      ←
+                    </button>
+                    <button
+                      onClick={handleClear}
+                      className="p-3 bg-red-700 hover:bg-red-600 rounded text-white font-semibold col-span-2 h-12"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                </div>
+
+                {/* Display input - RIGHT SIDE */}
+                <div className="flex-1 min-h-[280px] p-3 bg-gray-700 text-white rounded font-mono text-base break-all overflow-auto">
+                  {currentMatrixText || <span className="text-gray-500">Enter matrix using keypad...</span>}
+                </div>
+              </div>
+            </div>
+
+            {/* Show previously entered matrices */}
+            {matrices.length > 0 && (
+              <div className="mb-3 p-2 bg-gray-700 rounded max-h-32 overflow-y-auto">
+                <p className="text-white text-xs font-semibold mb-1">Previously entered matrices:</p>
+                {matrices.map((mat, idx) => (
+                  <div key={idx} className="text-gray-300 text-xs font-mono mb-1">
+                    <span className="text-green-400">Matrix {matrixNames[idx]}:</span> {JSON.stringify(mat)}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="flex gap-2">
+              <button
+                onClick={handleBack}
+                className="bg-gray-600 hover:bg-gray-500 p-2 rounded text-white font-semibold px-4"
+              >
+                Back
+              </button>
+              
+              <button
+                onClick={handleAddMatrix}
+                disabled={!canProceed()}
+                className="flex-1 bg-blue-600 hover:bg-blue-500 p-2 rounded text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Add Matrix {getCurrentMatrixName()}
+              </button>
+              
+              <button
+                onClick={handleCompute}
+                disabled={matrices.length < 1}
+                className="flex-1 bg-green-600 hover:bg-green-500 p-2 rounded text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Compute
+              </button>
+              
+              <button
+                onClick={onClose}
+                className="bg-red-600 hover:bg-red-500 p-2 rounded text-white font-semibold px-4"
+              >
+                Cancel
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
