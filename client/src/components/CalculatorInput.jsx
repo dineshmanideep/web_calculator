@@ -25,6 +25,7 @@ const CalculatorInput = ({
   setMatrixOperation,
   history,
   showPlot,
+  plotMode,
   onPlotGraph,
   complexMode: parentComplexMode,
   setComplexMode: parentSetComplexMode,
@@ -208,21 +209,26 @@ const CalculatorInput = ({
         <button onClick={() => { 
           setMlMode(m => !m); 
           setCalculusMode(false); 
-          setComplexMode(false); 
+          setComplexMode(false);
+          setMatrixMode(false);
           toast.info(mlMode ? 'ML Mode OFF' : 'ML Mode ON');
         }}
           className={`px-3 py-1 rounded ${mlMode ? 'bg-indigo-600' : 'bg-gray-700'} text-white`}>ML</button>
         
         <button onClick={() => { 
           setCalculusMode(c => !c); 
-          setMlMode(false);  
+          setMlMode(false);
+          setComplexMode(false);
+          setMatrixMode(false);
           toast.info(calculusMode ? 'Calculus OFF' : 'Calculus ON');
         }}
           className={`px-3 py-1 rounded ${calculusMode ? 'bg-green-600' : 'bg-gray-700'} text-white`}>Calculus</button>
         
         <button onClick={() => { 
           setComplexMode(c => !c); 
-          setMlMode(false); 
+          setMlMode(false);
+          setCalculusMode(false);
+          setMatrixMode(false);
           toast.info(complexMode ? 'Complex OFF' : 'Complex ON');
         }}
           className={`px-3 py-1 rounded ${complexMode ? 'bg-pink-600' : 'bg-gray-700'} text-white`}>Complex</button>
@@ -245,9 +251,10 @@ const CalculatorInput = ({
         </button>
         
         <button onClick={() => {
+          setComplexMode(false);
           handlePlot();
         }}
-          className={`px-3 py-1 rounded bg-gray-700 text-white hover:bg-purple-600`}>Plot</button>
+          className={`px-3 py-1 rounded ${plotMode ? 'bg-purple-600' : 'bg-gray-700'} text-white hover:bg-purple-600`}>Plot</button>
       </div>
 
       {/* Matrix operation display - shows when in matrix mode and has first matrix */}

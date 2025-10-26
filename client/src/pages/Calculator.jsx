@@ -141,10 +141,15 @@ useEffect(() => {
     setPlotMode(newPlotMode);
     setShowPlot(newPlotMode); // Show/hide function plot box
     
+    // When enabling plot mode, turn off complex mode and close complex plot
     if (newPlotMode) {
-      toast.info('Plot mode enabled - enter function to plot');
+      setComplexMode(false);
+      setShowComplexPlot(false);
+      // Clear input when switching to plot mode
+      setInput('');
+      toast.info('Graph plot mode enabled - enter function to plot');
     } else {
-      toast.info('Plot mode disabled');
+      toast.info('Graph plot mode disabled');
     }
   };
 
@@ -169,8 +174,12 @@ useEffect(() => {
   // Watch complex mode changes
   useEffect(() => {
     if (complexMode) {
-      // When complex mode is enabled, show complex plot
+      // When complex mode is enabled, disable plot mode and show complex plot
+      setPlotMode(false);
+      setShowPlot(false);
       setShowComplexPlot(true);
+      // Clear input when switching to complex mode
+      setInput('');
     } else {
       // When complex mode is disabled, hide complex plot
       setShowComplexPlot(false);
@@ -316,6 +325,7 @@ useEffect(() => {
             setShowMLMode={setShowMLMode}
             history={history}
             showPlot={plotMode || complexMode}
+            plotMode={plotMode}
             onPlotGraph={handlePlotGraph}
             complexMode={complexMode}
             setComplexMode={setComplexMode}
@@ -338,7 +348,10 @@ useEffect(() => {
                 setPlotWidth={setPlotWidth}
                 plotHeight={plotHeight}
                 setPlotHeight={setPlotHeight}
-                setShowPlot={setShowPlot}
+                setShowPlot={(show) => {
+                  setShowPlot(show);
+                  if (!show) setPlotMode(false); // Also disable plot mode when closing
+                }}
                 angleMode={angleMode}
                 calculatorInput={input}
                 complexMode={false}
@@ -353,7 +366,10 @@ useEffect(() => {
                 setPlotWidth={setPlotWidth}
                 plotHeight={plotHeight}
                 setPlotHeight={setPlotHeight}
-                setShowPlot={setShowComplexPlot}
+                setShowPlot={(show) => {
+                  setShowComplexPlot(show);
+                  if (!show) setComplexMode(false); // Also disable complex mode when closing
+                }}
                 angleMode={angleMode}
                 calculatorInput={input}
                 complexMode={true}

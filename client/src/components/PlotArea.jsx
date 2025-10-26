@@ -28,7 +28,7 @@ const PlotArea = ({ plotWidth, setPlotWidth, plotHeight, setPlotHeight, setShowP
         toast.info(`Switched to ${newMode === 'complex' ? 'Complex' : 'Function'} mode`);
       }
     }
-  }, [complexMode, plotMode]);
+  }, [complexMode]);
 
   // Listen for plot trigger from parent
   React.useEffect(() => {
