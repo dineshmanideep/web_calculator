@@ -21,7 +21,11 @@ const CalculatorInput = ({
   setShowMLMode: parentSetShowMLMode,
   startParamSequence,
   setMatrixOperation,
-  history
+  history,
+  showPlot,
+  onPlotGraph,
+  complexMode: parentComplexMode,
+  setComplexMode: parentSetComplexMode
 }) => {
   const [showInfo, setShowInfo] = useState(false);
   const [complexMode, setComplexMode] = useState(false);
@@ -32,6 +36,11 @@ const CalculatorInput = ({
   useEffect(() => {
     if (typeof parentSetShowMLMode === 'function') parentSetShowMLMode(mlMode);
   }, [mlMode, parentSetShowMLMode]);
+
+  // Sync complex mode with parent
+  useEffect(() => {
+    if (typeof parentSetComplexMode === 'function') parentSetComplexMode(complexMode);
+  }, [complexMode, parentSetComplexMode]);
 
   const baseButtons = [
     'C', '←', 'Ans', '=', 
@@ -306,6 +315,21 @@ const CalculatorInput = ({
 
       {/* Bottom actions */}
       <div className="flex gap-2 mt-2">
+        {showPlot && (
+          <button
+            onClick={() => {
+              if (input && input.trim() !== '') {
+                onPlotGraph(input, complexMode);
+                toast.success('Plotting graph...');
+              } else {
+                toast.warn('Enter a function or expression first');
+              }
+            }}
+            className="flex-1 p-2 bg-purple-600 rounded text-white hover:bg-purple-500 font-semibold"
+          >
+            📊 Plot Graph
+          </button>
+        )}
         <button
           onClick={() => {
             if (history.length === 0) {
@@ -318,7 +342,7 @@ const CalculatorInput = ({
             localStorage.removeItem('calc_history');
             toast.success('History cleared');
           }}
-          className="flex-1 p-2 bg-red-600 rounded text-white hover:bg-red-500"
+          className={`${showPlot ? 'flex-1' : 'flex-1'} p-2 bg-red-600 rounded text-white hover:bg-red-500`}
         >
           Clear History
         </button>

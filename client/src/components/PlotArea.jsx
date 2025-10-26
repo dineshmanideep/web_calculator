@@ -9,14 +9,33 @@ const MAX_WIDTH = 900;
 const MIN_HEIGHT = 300;
 const MAX_HEIGHT = 700;
 
-const PlotArea = ({ plotWidth, setPlotWidth, plotHeight, setPlotHeight, setShowPlot, angleMode }) => {
-  const [functionInput, setFunctionInput] = useState('');
+const PlotArea = ({ plotWidth, setPlotWidth, plotHeight, setPlotHeight, setShowPlot, angleMode, calculatorInput, complexMode, onPlotTrigger }) => {
   const [plotData, setPlotData] = useState(null);
   const [xRange, setXRange] = useState([-10, 10]);
   const [isPlotting, setIsPlotting] = useState(false);
   const [plotMode, setPlotMode] = useState('function'); // 'function' or 'complex'
   
   const resizing = useRef({ type: null });
+
+  // Update plot mode based on complex mode from calculator
+  React.useEffect(() => {
+    if (complexMode !== undefined) {
+      const newMode = complexMode ? 'complex' : 'function';
+      if (newMode !== plotMode) {
+        setPlotMode(newMode);
+        // Clear the plot when switching modes
+        setPlotData(null);
+        toast.info(`Switched to ${newMode === 'complex' ? 'Complex' : 'Function'} mode`);
+      }
+    }
+  }, [complexMode, plotMode]);
+
+  // Listen for plot trigger from parent
+  React.useEffect(() => {
+    if (onPlotTrigger && calculatorInput) {
+      handlePlotFunction(calculatorInput);
+    }
+  }, [onPlotTrigger]);
 
   // Generate plot data based on current x-range for real functions
   const generatePlotData = useCallback((func, xMin, xMax) => {
@@ -91,8 +110,10 @@ const PlotArea = ({ plotWidth, setPlotWidth, plotHeight, setPlotHeight, setShowP
     }
   }, []);
 
-  const handlePlotFunction = useCallback(() => {
-    if (!functionInput || functionInput.trim() === '') {
+  const handlePlotFunction = useCallback((inputExpression = null) => {
+    const expressionToPlot = inputExpression || calculatorInput;
+    
+    if (!expressionToPlot || expressionToPlot.trim() === '') {
       toast.warn('Please enter a function to plot');
       return;
     }
@@ -102,22 +123,22 @@ const PlotArea = ({ plotWidth, setPlotWidth, plotHeight, setPlotHeight, setShowP
     try {
       if (plotMode === 'complex') {
         // Complex number mode - no need for 'x'
-        const data = generateComplexPlot(functionInput);
+        const data = generateComplexPlot(expressionToPlot);
         if (data) {
           setPlotData({ mode: 'complex', ...data });
           toast.success(`Complex number plotted: ${data.real.toFixed(3)} + ${data.imag.toFixed(3)}i`);
         }
       } else {
         // Function mode - needs 'x'
-        if (!functionInput.includes('x')) {
+        if (!expressionToPlot.includes('x')) {
           toast.warn('Function must contain variable "x"');
           setIsPlotting(false);
           return;
         }
         
-        const data = generatePlotData(functionInput, xRange[0], xRange[1]);
+        const data = generatePlotData(expressionToPlot, xRange[0], xRange[1]);
         if (data) {
-          setPlotData({ mode: 'function', func: functionInput, ...data });
+          setPlotData({ mode: 'function', func: expressionToPlot, ...data });
           toast.success('Plot generated successfully');
         }
       }
@@ -126,7 +147,7 @@ const PlotArea = ({ plotWidth, setPlotWidth, plotHeight, setPlotHeight, setShowP
     } finally {
       setIsPlotting(false);
     }
-  }, [functionInput, xRange, generatePlotData, generateComplexPlot, plotMode]);
+  }, [calculatorInput, xRange, generatePlotData, generateComplexPlot, plotMode]);
 
   // Handle zoom/pan events from Plotly (only for function mode)
   const handleRelayout = useCallback((event) => {
@@ -195,7 +216,6 @@ const PlotArea = ({ plotWidth, setPlotWidth, plotHeight, setPlotHeight, setShowP
   };
 
   const headerHeight = 36;
-  const inputHeight = 80;
 
   return (
     <div
@@ -213,78 +233,15 @@ const PlotArea = ({ plotWidth, setPlotWidth, plotHeight, setPlotHeight, setShowP
     >
       {/* Header */}
       <div className="flex justify-between items-center mb-2" style={{ height: `${headerHeight}px` }}>
-        <h2 className="text-white font-semibold text-sm">Plot Area</h2>
+        <h2 className="text-white font-semibold text-sm">
+          Plot Area {plotMode === 'complex' ? '(Complex Mode)' : '(Function Mode)'}
+        </h2>
         <button 
           onClick={() => setShowPlot(false)} 
           className="text-white bg-gray-700 px-2 rounded hover:bg-gray-600"
         >
           X
         </button>
-      </div>
-
-      {/* Mode Toggle and Function Input */}
-      <div className="mb-2" style={{ height: `${inputHeight}px` }}>
-        <div className="flex gap-2 mb-1">
-          <button
-            onClick={() => {
-              setPlotMode('function');
-              setPlotData(null);
-              toast.info('Function mode - plot y=f(x)');
-            }}
-            className={`px-3 py-1 rounded text-sm font-semibold ${
-              plotMode === 'function' 
-                ? 'bg-blue-600 text-white' 
-                : 'bg-gray-700 text-gray-300'
-            }`}
-          >
-            Function
-          </button>
-          <button
-            onClick={() => {
-              setPlotMode('complex');
-              setPlotData(null);
-              toast.info('Complex mode - plot complex numbers as vectors');
-            }}
-            className={`px-3 py-1 rounded text-sm font-semibold ${
-              plotMode === 'complex' 
-                ? 'bg-pink-600 text-white' 
-                : 'bg-gray-700 text-gray-300'
-            }`}
-          >
-            Complex
-          </button>
-        </div>
-        
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={functionInput}
-            onChange={(e) => setFunctionInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                handlePlotFunction();
-              }
-            }}
-            placeholder={
-              plotMode === 'complex' 
-                ? "Enter complex expression (e.g., 3+4i, 2*e^(i*pi/4))" 
-                : "Enter function of x (e.g., sin(x), x^2)"
-            }
-            className="flex-1 bg-gray-700 text-white p-2 rounded text-sm font-mono"
-          />
-          <button
-            onClick={handlePlotFunction}
-            disabled={isPlotting}
-            className="bg-green-600 hover:bg-green-500 text-white px-4 rounded text-sm font-semibold disabled:opacity-50"
-          >
-            {isPlotting ? 'Plotting...' : 'Plot'}
-          </button>
-        </div>
-        <p className="text-gray-400 text-xs mt-1">
-          {plotMode === 'complex' 
-            ? 'Complex mode: Plots numbers as vectors (Real vs Imaginary)'
-            : 'Function mode: Zoom/pan to explore. Graph extends infinitely.'}
-        </p>
       </div>
 
       {/* Plot Container */}
@@ -294,7 +251,7 @@ const PlotArea = ({ plotWidth, setPlotWidth, plotHeight, setPlotHeight, setShowP
           minHeight: 0,
           minWidth: 0,
           margin: 0,
-          height: `calc(100% - ${headerHeight + inputHeight}px)`
+          height: `calc(100% - ${headerHeight}px)`
         }}
       >
         {plotData ? (
@@ -439,12 +396,17 @@ const PlotArea = ({ plotWidth, setPlotWidth, plotHeight, setPlotHeight, setShowP
             />
           )
         ) : (
-          <div className="text-center">
-            <p className="text-gray-400 text-sm mb-2">No plot yet</p>
-            <p className="text-gray-500 text-xs">
+          <div className="text-center p-4">
+            <p className="text-gray-400 text-lg mb-2">
+              {plotMode === 'complex' ? '🔢 Complex Mode' : '📈 Function Mode'}
+            </p>
+            <p className="text-gray-500 text-sm mb-1">
               {plotMode === 'complex' 
-                ? 'Enter a complex number or expression'
-                : 'Enter a function and click Plot'}
+                ? 'Enter a complex expression (e.g., 3+4i, 2*e^(i*π/4))'
+                : 'Enter a function of x (e.g., sin(x), x^2, tan(x))'}
+            </p>
+            <p className="text-gray-600 text-xs">
+              Type in calculator input and click "📊 Plot Graph"
             </p>
           </div>
         )}

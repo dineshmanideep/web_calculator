@@ -37,6 +37,8 @@ export default function Calculator({ user, onSignOut }) {
   const [showMatrixModal, setShowMatrixModal] = useState(false);
   const [matrixA, setMatrixA] = useState([[1, 0], [0, 1]]);
   const [matrixB, setMatrixB] = useState([[1, 2], [3, 4]]);
+  const [complexMode, setComplexMode] = useState(false);
+  const [plotTrigger, setPlotTrigger] = useState(0);
   const inputRef = useRef(null);
 
   // Persist history
@@ -122,6 +124,19 @@ export default function Calculator({ user, onSignOut }) {
     toast.info('Plot area opened - enter function to plot');
   };
 
+  const handlePlotGraph = (expression, isComplex) => {
+    // This function will be called when user clicks "Plot Graph" button
+    // It triggers the plot in PlotArea component
+    if (!expression || expression.trim() === '') {
+      toast.warn('Please enter an expression to plot');
+      return;
+    }
+    
+    // Increment trigger to notify PlotArea to plot
+    setPlotTrigger(prev => prev + 1);
+    setShowPlot(true);
+  };
+
   // Render
   return (
     <div className="h-screen bg-gray-900 relative">
@@ -192,6 +207,10 @@ export default function Calculator({ user, onSignOut }) {
             startParamSequence={startParamSequence}
             setShowMLMode={setShowMLMode}
             history={history}
+            showPlot={showPlot}
+            onPlotGraph={handlePlotGraph}
+            complexMode={complexMode}
+            setComplexMode={setComplexMode}
           />
         </div>
 
@@ -206,6 +225,9 @@ export default function Calculator({ user, onSignOut }) {
                 setPlotHeight={setPlotHeight}
                 setShowPlot={setShowPlot}
                 angleMode={angleMode}
+                calculatorInput={input}
+                complexMode={complexMode}
+                onPlotTrigger={plotTrigger}
               />
             )}
 
