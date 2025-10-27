@@ -1,8 +1,7 @@
-
-import { toast } from "react-toastify";
+import { toast } from 'react-toastify';
 
 export const angleConversions = {
- // Angle conversions
+  // Angle conversions
   deg2rad: (deg) => {
     try {
       if (typeof deg !== 'number' && isNaN(Number(deg))) {
@@ -15,7 +14,7 @@ export const angleConversions = {
       throw error;
     }
   },
-  
+
   rad2deg: (rad) => {
     try {
       if (typeof rad !== 'number' && isNaN(Number(rad))) {
@@ -27,5 +26,5 @@ export const angleConversions = {
       toast.error('Radian to degree conversion failed');
       throw error;
     }
-  }
+  },
 };

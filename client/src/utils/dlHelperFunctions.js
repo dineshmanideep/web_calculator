@@ -39,7 +39,7 @@ function solveLinearSystem(aIn, bIn) {
       toast.error('Cannot solve empty linear system');
       throw new Error('Empty system');
     }
-    
+
     if (aIn.length !== bIn.length) {
       toast.error('Linear system dimensions mismatch');
       throw new Error('Dimension mismatch');
@@ -48,27 +48,27 @@ function solveLinearSystem(aIn, bIn) {
     const n = aIn.length;
     const A = aIn.map((r) => r.slice());
     const b = bIn.slice();
-    
+
     for (let i = 0; i < n; i += 1) {
       // pivot
       let maxRow = i; let maxVal = Math.abs(A[i][i]);
-      for (let r = i + 1; r < n; r += 1) { 
-        if (Math.abs(A[r][i]) > maxVal) { 
-          maxVal = Math.abs(A[r][i]); 
-          maxRow = r; 
-        } 
+      for (let r = i + 1; r < n; r += 1) {
+        if (Math.abs(A[r][i]) > maxVal) {
+          maxVal = Math.abs(A[r][i]);
+          maxRow = r;
+        }
       }
-      if (maxRow !== i) { 
-        [A[i], A[maxRow]] = [A[maxRow], A[i]]; 
-        [b[i], b[maxRow]] = [b[maxRow], b[i]]; 
+      if (maxRow !== i) {
+        [A[i], A[maxRow]] = [A[maxRow], A[i]];
+        [b[i], b[maxRow]] = [b[maxRow], b[i]];
       }
-      
+
       const pivot = A[i][i];
       if (Math.abs(pivot) < 1e-12) {
         toast.error('Linear system is singular or near-singular (no unique solution)');
         throw new Error('Singular matrix');
       }
-      
+
       if (Math.abs(pivot) >= 1e-12) {
         for (let r = i + 1; r < n; r += 1) {
           const factor = A[r][i] / pivot;
@@ -77,13 +77,13 @@ function solveLinearSystem(aIn, bIn) {
         }
       }
     }
-    
+
     const x = new Array(n).fill(0);
     for (let i = n - 1; i >= 0; i--) {
       let s = b[i];
       for (let j = i + 1; j < n; j += 1) s -= A[i][j] * x[j];
       x[i] = Math.abs(A[i][i]) < 1e-12 ? 0 : s / A[i][i];
-      
+
       if (!isFinite(x[i])) {
         toast.error('Linear system solution resulted in infinite values');
         throw new Error('Infinite solution');
@@ -119,13 +119,13 @@ export function optimalPaddingStride(hIn, wIn, k, opts = {}) {
     const maxP = opts.maxP != null ? opts.maxP : Math.max(0, Math.floor(k / 2) + 1);
     const maxS = opts.maxS != null ? opts.maxS : Math.max(1, k);
     const best = { score: -Infinity };
-    
+
     for (let p = 0; p <= maxP; p += 1) {
       for (let s = 1; s <= maxS; s += 1) {
         const hOut = Math.floor((hIn + 2 * p - k) / s) + 1;
         const wOut = Math.floor((wIn + 2 * p - k) / s) + 1;
         if (hOut <= 0 || wOut <= 0) continue;
-        
+
         const retention = (hOut * wOut) / (hIn * wIn);
         const sizeDiff = Math.abs(hOut - hIn) + Math.abs(wOut - wIn);
         const sizeMatch = 1 - sizeDiff / (hIn + wIn);
@@ -150,12 +150,12 @@ export function optimalPaddingStride(hIn, wIn, k, opts = {}) {
         }
       }
     }
-    
+
     if (best.score === -Infinity) {
       toast.error('Could not find valid padding/stride combination');
       throw new Error('No valid solution');
     }
-    
+
     return {
       best_padding: best.p ?? 0,
       best_stride: best.s ?? 1,
@@ -194,13 +194,13 @@ export function receptiveField(options = {}) {
     const k = kernelSize;
     const L = numLayers;
     const sArr = Array.isArray(stride) ? stride.slice(0, L) : Array(L).fill(stride);
-    
+
     // Validate strides
-    if (sArr.some(s => s <= 0 || !Number.isFinite(s))) {
+    if (sArr.some((s) => s <= 0 || !Number.isFinite(s))) {
       toast.error('All strides must be positive finite numbers');
       throw new Error('Invalid stride values');
     }
-    
+
     let sum = 0;
     for (let i = 0; i < L; i += 1) {
       let prod = 1;
@@ -208,12 +208,12 @@ export function receptiveField(options = {}) {
       sum += prod;
     }
     const RF = 1 + (k - 1) * sum;
-    
+
     if (!isFinite(RF) || RF <= 0) {
       toast.error('Receptive field calculation resulted in invalid value');
       throw new Error('Invalid RF value');
     }
-    
+
     return RF;
   } catch (error) {
     if (!error.message.includes('Kernel size') && !error.message.includes('stride')) {
@@ -241,12 +241,12 @@ export function paramCount({ in_channels = 1, out_channels = 1, kernel_size = 1 
     const kernelSize = kernel_size;
     const k2 = kernelSize * kernelSize;
     const params = inChannels * outChannels * k2 + outChannels;
-    
+
     if (!isFinite(params) || params < 0) {
       toast.error('Parameter count calculation resulted in invalid value');
       throw new Error('Invalid parameter count');
     }
-    
+
     return params;
   } catch (error) {
     if (!error.message.includes('Channels') && !error.message.includes('kernel')) {
@@ -311,20 +311,20 @@ export function flopsCount(options = {}) {
       throw new Error('Invalid parameters');
     }
 
-    if (!Number.isInteger(inChannels) || !Number.isInteger(outChannels) || 
-        !Number.isInteger(kernelSize) || !Number.isInteger(hOut) || !Number.isInteger(wOut)) {
+    if (!Number.isInteger(inChannels) || !Number.isInteger(outChannels)
+        || !Number.isInteger(kernelSize) || !Number.isInteger(hOut) || !Number.isInteger(wOut)) {
       toast.error('All FLOPS parameters must be integers');
       throw new Error('Non-integer parameters');
     }
 
     const k2 = kernelSize * kernelSize;
     const flops = 2 * hOut * wOut * (inChannels * outChannels * k2);
-    
+
     if (!isFinite(flops) || flops < 0) {
       toast.error('FLOPS calculation resulted in invalid value');
       throw new Error('Invalid FLOPS value');
     }
-    
+
     return flops;
   } catch (error) {
     if (!error.message.includes('FLOPS')) {
@@ -350,7 +350,7 @@ function _polyFit(x, y, degree) {
     const n = x.length;
     const m = degree + 1;
     const X = new Array(n).fill(0).map(() => new Array(m).fill(0));
-    
+
     for (let i = 0; i < n; i += 1) {
       for (let j = 0; j < m; j += 1) {
         const val = x[i] ** j;
@@ -361,17 +361,17 @@ function _polyFit(x, y, degree) {
         X[i][j] = val;
       }
     }
-    
+
     const Xt = transpose(X);
     const XtX = Xt.map((r) => r.map((_, c) => dot(r, X.map((row) => row[c]))));
     const Xty = Xt.map((r) => dot(r, y));
     const coeffs = solveLinearSystem(XtX, Xty);
-    
-    if (coeffs.some(c => !isFinite(c))) {
+
+    if (coeffs.some((c) => !isFinite(c))) {
       toast.error('Curve fitting produced invalid coefficients');
       throw new Error('Invalid coefficients');
     }
-    
+
     return coeffs;
   } catch (error) {
     if (!error.message.includes('Curve fitting') && !error.message.includes('data points')) {
@@ -397,16 +397,16 @@ function _r2(yArr, yPred) {
     if (yArr.length !== yPred.length) {
       throw new Error('Array length mismatch in R² calculation');
     }
-    
+
     const ym = mean(yArr);
     const ssRes = yArr.reduce((s, v, i) => s + (v - yPred[i]) ** 2, 0);
     const ssTot = yArr.reduce((s, v) => s + (v - ym) ** 2, 0);
-    
+
     if (!isFinite(ssRes) || !isFinite(ssTot)) {
       toast.error('R² calculation resulted in numerical issues');
       throw new Error('R² calculation error');
     }
-    
+
     return ssTot === 0 ? 1 : 1 - ssRes / ssTot;
   } catch (error) {
     toast.error('R² calculation failed');
@@ -427,7 +427,7 @@ export function bestFit(xArr, yArr) {
       throw new Error('Insufficient data points');
     }
 
-    if (xArr.some(x => !isFinite(x)) || yArr.some(y => !isFinite(y))) {
+    if (xArr.some((x) => !isFinite(x)) || yArr.some((y) => !isFinite(y))) {
       toast.error('All data points must be finite numbers');
       throw new Error('Non-finite data points');
     }
@@ -436,11 +436,11 @@ export function bestFit(xArr, yArr) {
     const linCoeffs = _polyFit(xArr, yArr, 1);
     const linPred = _predictPoly(linCoeffs, xArr);
     const r2Lin = _r2(yArr, linPred);
-    
+
     const quadCoeffs = _polyFit(xArr, yArr, 2);
     const quadPred = _predictPoly(quadCoeffs, xArr);
     const r2Quad = _r2(yArr, quadPred);
-    
+
     let r2Exp = -Infinity; let expA = 0; let expB = 0;
     if (yArr.every((v) => v > 0)) {
       try {
@@ -454,7 +454,7 @@ export function bestFit(xArr, yArr) {
         // Exponential fit failed, skip it
       }
     }
-    
+
     let r2Log = -Infinity; let logA = 0; let logB = 0;
     if (xArr.every((v) => v > 0)) {
       try {
@@ -467,7 +467,7 @@ export function bestFit(xArr, yArr) {
         // Logarithmic fit failed, skip it
       }
     }
-    
+
     const results = [
       { name: 'linear', r2: r2Lin, info: { coeffs: linCoeffs } },
       { name: 'quadratic', r2: r2Quad, info: { coeffs: quadCoeffs } },
@@ -478,15 +478,15 @@ export function bestFit(xArr, yArr) {
     if (r2Log !== -Infinity && isFinite(r2Log)) {
       results.push({ name: 'logarithmic', r2: r2Log, info: { a: logA, b: logB } });
     }
-    
+
     results.sort((a, b) => b.r2 - a.r2);
     const best = results[0];
-    
+
     if (!best || !isFinite(best.r2)) {
       toast.error('Could not find valid curve fit');
       throw new Error('No valid fit found');
     }
-    
+
     return { best_fit: best.name, r2: Number((best.r2 || 0).toFixed(4)), info: best.info };
   } catch (error) {
     if (!error.message.includes('X and Y') && !error.message.includes('data points')) {
@@ -509,12 +509,12 @@ export function optimalThreshold(scores, labels, metric = 'f1') {
       throw new Error('Empty arrays');
     }
 
-    if (scores.some(s => !isFinite(s)) || labels.some(l => !isFinite(l))) {
+    if (scores.some((s) => !isFinite(s)) || labels.some((l) => !isFinite(l))) {
       toast.error('All scores and labels must be finite numbers');
       throw new Error('Non-finite values');
     }
 
-    if (!labels.every(l => l === 0 || l === 1)) {
+    if (!labels.every((l) => l === 0 || l === 1)) {
       toast.error('Labels must be binary (0 or 1)');
       throw new Error('Non-binary labels');
     }
@@ -524,7 +524,7 @@ export function optimalThreshold(scores, labels, metric = 'f1') {
     let best = {
       thr: thresholds[0], metric: -Infinity, precision: 0, recall: 0, f1: 0, acc: 0,
     };
-    
+
     for (const t of thresholds) {
       let tp = 0; let fp = 0; let tn = 0; let fn = 0;
       for (let i = 0; i < pairs.length; i += 1) {
@@ -546,12 +546,12 @@ export function optimalThreshold(scores, labels, metric = 'f1') {
         };
       }
     }
-    
+
     if (best.metric === -Infinity) {
       toast.error('Could not find optimal threshold');
       throw new Error('No valid threshold');
     }
-    
+
     return {
       best_threshold: Number(best.thr), metric, value: Number((best.metric || 0).toFixed(4)), details: best,
     };
@@ -576,7 +576,7 @@ export function estimateLearningRate(losses, steps) {
       throw new Error('Empty arrays');
     }
 
-    if (losses.some(l => !isFinite(l)) || steps.some(s => !isFinite(s))) {
+    if (losses.some((l) => !isFinite(l)) || steps.some((s) => !isFinite(s))) {
       toast.error('All losses and steps must be finite numbers');
       throw new Error('Non-finite values');
     }
@@ -588,15 +588,15 @@ export function estimateLearningRate(losses, steps) {
     }
 
     const x = steps.map((s) => Math.log(s));
-    if (x.some(v => !isFinite(v))) {
+    if (x.some((v) => !isFinite(v))) {
       toast.error('Learning rate steps resulted in numerical issues');
       throw new Error('Numerical issues with steps');
     }
-    
+
     const coeffs = _polyFit(x, losses, 2);
     const a = coeffs[2] || 0; const b = coeffs[1] || 0;
     let optimal_lr = null;
-    
+
     if (Math.abs(a) > 1e-12) {
       const x_min = -b / (2 * a);
       optimal_lr = Math.exp(x_min);
@@ -608,7 +608,7 @@ export function estimateLearningRate(losses, steps) {
       const idx = losses.indexOf(Math.min(...losses));
       optimal_lr = steps[idx];
     }
-    
+
     return { optimal_lr: Number(optimal_lr), coeffs: coeffs.map((c) => Number(c)), note: 'quadratic fit on log(steps)' };
   } catch (error) {
     if (!error.message.includes('Losses and steps') && !error.message.includes('learning rate')) {
@@ -633,7 +633,7 @@ export function optimizeWeights(Xs, Y) {
 
     // Validate all Xs arrays have same length
     const n = Xs[0].length;
-    if (Xs.some(col => col.length !== n)) {
+    if (Xs.some((col) => col.length !== n)) {
       toast.error('All feature columns must have same length');
       throw new Error('Column length mismatch');
     }
@@ -643,7 +643,7 @@ export function optimizeWeights(Xs, Y) {
       throw new Error('Length mismatch');
     }
 
-    if (Xs.some(col => col.some(v => !isFinite(v))) || Y.some(v => !isFinite(v))) {
+    if (Xs.some((col) => col.some((v) => !isFinite(v))) || Y.some((v) => !isFinite(v))) {
       toast.error('All values must be finite numbers');
       throw new Error('Non-finite values');
     }
@@ -654,12 +654,12 @@ export function optimizeWeights(Xs, Y) {
     const XtX = Xt.map((r) => r.map((_, c) => dot(r, X.map((row) => row[c]))));
     const Xty = Xt.map((r) => dot(r, Y));
     const weights = solveLinearSystem(XtX, Xty);
-    
-    if (weights.some(w => !isFinite(w))) {
+
+    if (weights.some((w) => !isFinite(w))) {
       toast.error('Weight optimization resulted in invalid values');
       throw new Error('Invalid weights');
     }
-    
+
     return weights;
   } catch (error) {
     if (!error.message.includes('Xs and Y') && !error.message.includes('feature')) {
@@ -688,7 +688,7 @@ export function featureImportance(features, target) {
       throw new Error('Length mismatch');
     }
 
-    if (features.some(row => row.some(v => !isFinite(v))) || target.some(v => !isFinite(v))) {
+    if (features.some((row) => row.some((v) => !isFinite(v))) || target.some((v) => !isFinite(v))) {
       toast.error('All values must be finite numbers');
       throw new Error('Non-finite values');
     }
@@ -697,36 +697,36 @@ export function featureImportance(features, target) {
     const res = [];
     const tmean = mean(target);
     const t_std = Math.sqrt(target.reduce((s, v) => s + (v - tmean) ** 2, 0) / (n - 1 || 1));
-    
+
     if (!isFinite(t_std)) {
       toast.error('Target standard deviation calculation failed');
       throw new Error('Invalid target std');
     }
-    
+
     for (let j = 0; j < m; j += 1) {
       const col = features.map((r) => r[j]);
       const meanC = mean(col);
       const stdC = Math.sqrt(col.reduce((s, v) => s + (v - meanC) ** 2, 0) / (n - 1 || 1));
-      
+
       if (!isFinite(stdC)) {
         toast.error(`Feature ${j} standard deviation calculation failed`);
         throw new Error('Invalid feature std');
       }
-      
+
       let cov = 0;
       for (let i = 0; i < n; i += 1) cov += (col[i] - meanC) * (target[i] - tmean);
       cov /= (n - 1 || 1);
-      
+
       const corr = (stdC === 0 || t_std === 0) ? 0 : cov / (stdC * t_std);
-      
+
       if (!isFinite(corr)) {
         toast.error(`Correlation calculation failed for feature ${j}`);
         throw new Error('Invalid correlation');
       }
-      
+
       res.push({ feature: j, correlation: Number(corr.toFixed(4)), importance: Number(Math.abs(corr).toFixed(4)) });
     }
-    
+
     res.sort((a, b) => b.importance - a.importance);
     return res;
   } catch (error) {

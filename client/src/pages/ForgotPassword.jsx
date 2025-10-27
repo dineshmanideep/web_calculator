@@ -1,24 +1,24 @@
-import { useState } from "react";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
-import { toast } from "react-toastify"; // ADDED
+import { useState } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify'; // ADDED
 
 export default function ForgotPassword() {
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState('');
   const [sendingOtp, setSendingOtp] = useState(false);
   const navigate = useNavigate();
   const API = import.meta.env.VITE_API_URL;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
       setSendingOtp(true);
       const res = await axios.post(`${API}/auth/forgot-password`, { email });
-      toast.success("OTP sent to your email"); // REPLACED alert
+      toast.success('OTP sent to your email'); // REPLACED alert
       navigate(`/reset-password?userId=${res.data.userId}`);
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to send OTP"); // REPLACED alert
+      toast.error(err.response?.data?.message || 'Failed to send OTP'); // REPLACED alert
     } finally {
       setSendingOtp(false);
     }
@@ -42,7 +42,7 @@ export default function ForgotPassword() {
           className="p-2 bg-green-500 rounded text-white disabled:opacity-50"
           disabled={sendingOtp}
         >
-          {sendingOtp ? "Sending..." : "Send OTP"}
+          {sendingOtp ? 'Sending...' : 'Send OTP'}
         </button>
       </form>
     </div>

@@ -1,6 +1,7 @@
-import { toast } from "react-toastify";
+import { toast } from 'react-toastify';
+
 export const trigFunctions = {
-     sin: (x) => {
+  sin: (x) => {
     try {
       const val = Number(x);
       if (isNaN(val)) {
@@ -51,14 +52,14 @@ export const trigFunctions = {
         toast.error('tan: Input must be finite');
         throw new Error('Infinite input to tan');
       }
-      
+
       const result = Math.tan(val);
-      
+
       if (!isFinite(result)) {
         toast.error('tan: Result undefined at this angle');
         throw new Error('Tangent undefined');
       }
-      
+
       return result;
     } catch (error) {
       if (!error.message.includes('tan')) {
@@ -127,4 +128,4 @@ export const trigFunctions = {
       throw error;
     }
   },
-}
+};

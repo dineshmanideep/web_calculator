@@ -1,12 +1,12 @@
-import { useState } from "react";
-import axios from "axios";
-import { Link, useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
-import { Calculator, ArrowLeft } from "lucide-react";
+import { useState } from 'react';
+import axios from 'axios';
+import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import { Calculator, ArrowLeft } from 'lucide-react';
 
 export default function Login({ setAuthenticated, setUser }) {
-  const [emailOrUsername, setEmailOrUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [emailOrUsername, setEmailOrUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const API = import.meta.env.VITE_API_URL;
@@ -18,10 +18,16 @@ export default function Login({ setAuthenticated, setUser }) {
       const res = await axios.post(`${API}/auth/login`, { emailOrUsername, password }, { withCredentials: true });
       setUser(res.data.user);
       setAuthenticated(true);
-      toast.success("Login successful!");
-      navigate("/calculator");
+      toast.success('Login successful!');
+
+      // Store login info in sessionStorage for display on Calculator page
+      if (res.data.loginInfo) {
+        sessionStorage.setItem('loginInfo', JSON.stringify(res.data.loginInfo));
+      }
+
+      navigate('/calculator');
     } catch (err) {
-      toast.error(err.response?.data?.message || "Login failed");
+      toast.error(err.response?.data?.message || 'Login failed');
     } finally {
       setLoading(false);
     }
@@ -30,8 +36,8 @@ export default function Login({ setAuthenticated, setUser }) {
   return (
     <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center px-4">
       {/* Back to Home */}
-      <Link 
-        to="/" 
+      <Link
+        to="/"
         className="absolute top-4 left-4 flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
       >
         <ArrowLeft className="w-5 h-5" />
@@ -72,8 +78,8 @@ export default function Login({ setAuthenticated, setUser }) {
           />
         </div>
 
-        <button 
-          type="submit" 
+        <button
+          type="submit"
           disabled={loading}
           className="w-full p-3 bg-purple-600 hover:bg-purple-500 rounded text-white font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
@@ -83,7 +89,7 @@ export default function Login({ setAuthenticated, setUser }) {
         <div className="text-center mt-4">
           <button
             type="button"
-            onClick={() => navigate("/forgot-password")}
+            onClick={() => navigate('/forgot-password')}
             className="text-purple-400 hover:text-purple-300 text-sm transition-colors"
           >
             Forgot Password?
@@ -93,7 +99,8 @@ export default function Login({ setAuthenticated, setUser }) {
 
       {/* Signup Link */}
       <p className="text-gray-400 mt-6 text-center">
-        Don't have an account?{" "}
+        Don't have an account?
+        {' '}
         <Link to="/signup" className="text-purple-400 hover:text-purple-300 font-semibold transition-colors">
           Sign Up
         </Link>

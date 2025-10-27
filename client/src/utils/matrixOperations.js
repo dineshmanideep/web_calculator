@@ -1,5 +1,5 @@
-import math from './index.js';
 import { toast } from 'react-toastify';
+import math from './index.js';
 
 /**
  * Parse matrix string input like "[[1,2],[3,4]]" into a matrix
@@ -8,20 +8,20 @@ export const parseMatrix = (str) => {
   try {
     // Remove whitespace
     const cleaned = str.trim();
-    
+
     // Check if it's a valid matrix format
     if (!cleaned.startsWith('[') || !cleaned.endsWith(']')) {
       throw new Error('Matrix must start with [ and end with ]');
     }
-    
+
     // Parse using JSON
     const parsed = JSON.parse(cleaned);
-    
+
     // Validate it's a 2D array
     if (!Array.isArray(parsed) || !Array.isArray(parsed[0])) {
       throw new Error('Invalid matrix format');
     }
-    
+
     return math.matrix(parsed);
   } catch (error) {
     throw new Error(`Invalid matrix format: ${error.message}`);
@@ -107,21 +107,21 @@ export const performMatrixOperation = (operation, matrix1, matrix2 = null) => {
     case 'MatMul':
       if (!matrix2) throw new Error('Matrix multiplication requires two matrices');
       return matrixMultiply(matrix1, matrix2);
-    
+
     case 'MatAdd':
       if (!matrix2) throw new Error('Matrix addition requires two matrices');
       return matrixAdd(matrix1, matrix2);
-    
+
     case 'MatSub':
       if (!matrix2) throw new Error('Matrix subtraction requires two matrices');
       return matrixSubtract(matrix1, matrix2);
-    
+
     case 'Det':
       return matrixDeterminant(matrix1);
-    
+
     case 'Transpose':
       return matrixTranspose(matrix1);
-    
+
     default:
       throw new Error('Unknown matrix operation');
   }

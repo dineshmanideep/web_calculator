@@ -1,7 +1,7 @@
-import { toast } from "react-toastify";
+import { toast } from 'react-toastify';
 
 export const combinatorics = {
-      // Combinatorics
+  // Combinatorics
   nCr: (n, r) => {
     try {
       if (!Number.isFinite(n) || !Number.isFinite(r)) {
@@ -55,5 +55,5 @@ export const combinatorics = {
       }
       throw error;
     }
-  }
+  },
 };

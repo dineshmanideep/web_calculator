@@ -1,17 +1,37 @@
 {
-  "extends": ["airbnb", "airbnb/hooks"],
+  "extends": [
+    "airbnb",
+    "airbnb/hooks"
+  ],
   "env": {
     "browser": true,
     "es2021": true
   },
   "parserOptions": {
-    "ecmaFeatures": { "jsx": true },
-    "ecmaVersion": 12,
-    "sourceType": "module"
+    "ecmaVersion": "latest",
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true
+    }
   },
   "rules": {
     "react/react-in-jsx-scope": "off",
-    "react/jsx-filename-extension": ["warn", { "extensions": [".js", ".jsx"] }],
-    "no-console": "warn"
+    "react/prop-types": "off",
+    "no-console": "off",
+    "import/extensions": "off",
+    "react/function-component-definition": "off",
+    "no-unused-vars": "warn",
+    "import/prefer-default-export": "off",
+    "react/jsx-props-no-spreading": "off",
+    "react/button-has-type": "off",
+    "max-len": "off",
+    "no-nested-ternary": "off",
+    "react-hooks/exhaustive-deps": "warn",
+    "no-restricted-globals": "off",
+    "consistent-return": "off",
+    "no-else-return": "off",
+    "prefer-template": "off",
+    "no-plusplus": "off",
+    "import/no-extraneous-dependencies": "off"
   }
 }

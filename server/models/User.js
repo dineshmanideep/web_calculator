@@ -20,6 +20,8 @@ const userSchema = new mongoose.Schema({
     code: String,
     expiresAt: Date,
   },
+  lastLogin: { type: Date }, // Track last login time
+  lastLogout: { type: Date }, // Track last logout time
   history: [historySchema], // Add this line
 }, { timestamps: true });
 

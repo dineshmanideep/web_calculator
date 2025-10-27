@@ -6,7 +6,7 @@ const math = create(all, { number: 'number', precision: 15 });
 // Override divide for division by zero checking
 const originalDivide = math.divide;
 math.import({
-  divide: function(...args) {
+  divide(...args) {
     try {
       const result = originalDivide(...args);
       if (!isFinite(result) && typeof result === 'number') {
@@ -18,12 +18,10 @@ math.import({
       if (error.message.includes('Division by zero')) {
         throw error;
       }
-      toast.error('Division error: ' + error.message);
+      toast.error(`Division error: ${error.message}`);
       throw error;
     }
-  }
+  },
 }, { override: true });
-
-
 
 export default math;

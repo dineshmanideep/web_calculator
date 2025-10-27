@@ -1,19 +1,21 @@
-import { useState ,useEffect } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import axios from "axios";
-import Landing from "./pages/Landing.jsx";
-import Login from "./pages/Login";
-import Signup from "./pages/Signup";
-import Calculator from "./pages/Calculator";
-import Admin from "./pages/Admin";
-import OtpVerification from "./pages/OtpVerification";
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
-import { ToastContainer } from "react-toastify"; // NEW
+import { useState, useEffect } from 'react';
+import {
+  BrowserRouter, Routes, Route, Navigate,
+} from 'react-router-dom';
+import axios from 'axios';
+import { ToastContainer } from 'react-toastify'; // NEW
+import Landing from './pages/Landing.jsx';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
+import Calculator from './pages/Calculator';
+import Admin from './pages/Admin';
+import OtpVerification from './pages/OtpVerification';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-function App() {
+const App = () => {
   const [authenticated, setAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true); // To handle initial session check
@@ -21,13 +23,13 @@ function App() {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const { data } = await axios.get(`${API_URL}/auth/check-session`,{ withCredentials: true });
+        const { data } = await axios.get(`${API_URL}/auth/check-session`, { withCredentials: true });
         if (data.authenticated) {
           setAuthenticated(true);
           setUser(data.user);
         }
       } catch (error) {
-        console.error("Session check failed:", error);
+        console.error('Session check failed:', error);
         setAuthenticated(false);
         setUser(null);
         handleSignOut();
@@ -40,31 +42,31 @@ function App() {
 
   const handleSignOut = async () => {
     try {
-      await axios.post(`${API_URL}/auth/logout`,{ withCredentials: true });
+      await axios.post(`${API_URL}/auth/logout`, { withCredentials: true });
       setAuthenticated(false);
       setUser(null);
     } catch (error) {
-      console.error("Sign out failed:", error);
+      console.error('Sign out failed:', error);
     }
   };
 
-    if (loading) {
+  if (loading) {
     return <div>Loading...</div>; // Or a spinner component
   }
 
   return (
     <>
-      <ToastContainer 
-        position="top-right" 
-        autoClose={3000} 
-        hideProgressBar={false} 
-        newestOnTop={false} 
-        closeOnClick 
-        rtl={false} 
-        pauseOnFocusLoss 
-        draggable 
-        pauseOnHover 
-        theme="dark" 
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="dark"
       />
       <BrowserRouter>
         <Routes>
@@ -73,20 +75,20 @@ function App() {
             path="/"
             element={authenticated ? <Navigate to="/calculator" /> : <Landing />}
           />
-          
+
           {/* Auth Routes */}
-          <Route 
-            path="/login" 
-            element={authenticated ? <Navigate to="/calculator" /> : <Login setAuthenticated={setAuthenticated} setUser={setUser} />} 
+          <Route
+            path="/login"
+            element={authenticated ? <Navigate to="/calculator" /> : <Login setAuthenticated={setAuthenticated} setUser={setUser} />}
           />
-          <Route 
-            path="/signup" 
-            element={authenticated ? <Navigate to="/calculator" /> : <Signup />} 
+          <Route
+            path="/signup"
+            element={authenticated ? <Navigate to="/calculator" /> : <Signup />}
           />
           <Route path="/verify-otp" element={<OtpVerification />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
-          
+
           {/* Protected Routes */}
           <Route
             path="/calculator"
@@ -94,7 +96,7 @@ function App() {
               authenticated ? <Calculator user={user} onSignOut={handleSignOut} /> : <Navigate to="/login" />
             }
           />
-          
+
           {/* Admin Route */}
           <Route
             path="/admin"
@@ -115,6 +117,6 @@ function App() {
       </BrowserRouter>
     </>
   );
-}
+};
 
 export default App;

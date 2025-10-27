@@ -17,12 +17,12 @@ math.import({
     const step = (b - a) / n;
     let sum = 0;
     for (let i = 0; i <= n; i++) {
-        const x = a + i * step;
-        const fx = f.evaluate({ x });
-        sum += (i === 0 || i === n ? fx / 2 : fx);
+      const x = a + i * step;
+      const fx = f.evaluate({ x });
+      sum += (i === 0 || i === n ? fx / 2 : fx);
     }
     return sum * step;
-}
+  },
 }, { override: true });
 
 export default math;

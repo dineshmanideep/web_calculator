@@ -1,27 +1,27 @@
-import { useState } from "react";
-import axios from "axios";
-import { useSearchParams, useNavigate } from "react-router-dom";
-import { toast } from "react-toastify"; // ADDED
+import { useState } from 'react';
+import axios from 'axios';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify'; // ADDED
 
 export default function ResetPassword() {
-  const [otp, setOtp] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
+  const [otp, setOtp] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirm, setConfirm] = useState('');
   const [searchParams] = useSearchParams();
-  const userId = searchParams.get("userId");
+  const userId = searchParams.get('userId');
   const API = import.meta.env.VITE_API_URL;
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (newPassword !== confirm) return toast.error("Passwords do not match"); // REPLACED alert
+    if (newPassword !== confirm) return toast.error('Passwords do not match'); // REPLACED alert
 
     try {
       await axios.post(`${API}/auth/reset-password`, { userId, otp, newPassword });
-      toast.success("Password reset successful. Please login."); // REPLACED alert
-      navigate("/");
+      toast.success('Password reset successful. Please login.'); // REPLACED alert
+      navigate('/');
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to reset password"); // REPLACED alert
+      toast.error(err.response?.data?.message || 'Failed to reset password'); // REPLACED alert
     }
   };
 

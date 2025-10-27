@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { 
-  ArrowLeft, 
-  RefreshCw, 
-  Filter, 
+import {
+  ArrowLeft,
+  RefreshCw,
+  Filter,
   Download,
   Search,
   Calendar,
@@ -16,7 +16,7 @@ import {
   XCircle,
   Monitor,
   Smartphone,
-  Tablet
+  Tablet,
 } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -27,7 +27,7 @@ const Admin = ({ user, onSignOut }) => {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState(null);
   const [pagination, setPagination] = useState({});
-  
+
   // Filters
   const [filters, setFilters] = useState({
     page: 1,
@@ -36,7 +36,7 @@ const Admin = ({ user, onSignOut }) => {
     status: '',
     search: '',
     startDate: '',
-    endDate: ''
+    endDate: '',
   });
 
   const [availableActions, setAvailableActions] = useState([]);
@@ -58,15 +58,15 @@ const Admin = ({ user, onSignOut }) => {
     try {
       setLoading(true);
       const params = new URLSearchParams();
-      
-      Object.keys(filters).forEach(key => {
+
+      Object.keys(filters).forEach((key) => {
         if (filters[key]) {
           params.append(key, filters[key]);
         }
       });
 
       const { data } = await axios.get(`${API_URL}/admin/audit-logs?${params.toString()}`, {
-        withCredentials: true
+        withCredentials: true,
       });
 
       setLogs(data.logs);
@@ -74,7 +74,7 @@ const Admin = ({ user, onSignOut }) => {
     } catch (error) {
       console.error('Error fetching audit logs:', error);
       toast.error('Failed to fetch audit logs');
-      
+
       if (error.response?.status === 403) {
         navigate('/calculator');
       }
@@ -86,7 +86,7 @@ const Admin = ({ user, onSignOut }) => {
   const fetchStats = async () => {
     try {
       const { data } = await axios.get(`${API_URL}/admin/stats`, {
-        withCredentials: true
+        withCredentials: true,
       });
       setStats(data);
     } catch (error) {
@@ -97,7 +97,7 @@ const Admin = ({ user, onSignOut }) => {
   const fetchAvailableActions = async () => {
     try {
       const { data } = await axios.get(`${API_URL}/admin/actions`, {
-        withCredentials: true
+        withCredentials: true,
       });
       setAvailableActions(data.actions);
     } catch (error) {
@@ -106,10 +106,10 @@ const Admin = ({ user, onSignOut }) => {
   };
 
   const handleFilterChange = (key, value) => {
-    setFilters(prev => ({
+    setFilters((prev) => ({
       ...prev,
       [key]: value,
-      page: key !== 'page' ? 1 : value // Reset to page 1 when filter changes
+      page: key !== 'page' ? 1 : value, // Reset to page 1 when filter changes
     }));
   };
 
@@ -124,7 +124,7 @@ const Admin = ({ user, onSignOut }) => {
     const headers = ['Timestamp', 'User', 'Email', 'Device Type', 'Browser', 'OS', 'Action', 'Status', 'Details', 'Input', 'Result', 'IP Address'];
     const csvContent = [
       headers.join(','),
-      ...logs.map(log => [
+      ...logs.map((log) => [
         new Date(log.timestamp).toLocaleString(),
         log.username || 'N/A',
         log.email || 'N/A',
@@ -136,8 +136,8 @@ const Admin = ({ user, onSignOut }) => {
         `"${(log.details || '').replace(/"/g, '""')}"`,
         `"${(log.input || '').replace(/"/g, '""')}"`,
         `"${(log.result || '').replace(/"/g, '""')}"`,
-        log.ipAddress || 'N/A'
-      ].join(','))
+        log.ipAddress || 'N/A',
+      ].join(',')),
     ].join('\n');
 
     // Download CSV
@@ -148,7 +148,7 @@ const Admin = ({ user, onSignOut }) => {
     a.download = `audit-logs-${new Date().toISOString()}.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
-    
+
     toast.success('Audit logs exported successfully');
   };
 
@@ -205,7 +205,10 @@ const Admin = ({ user, onSignOut }) => {
               <h1 className="text-2xl font-bold">Admin Dashboard</h1>
             </div>
             <div className="flex items-center gap-3">
-              <span className="text-gray-400">Welcome, {user?.fullName || user?.username}</span>
+              <span className="text-gray-400">
+                Welcome,
+                {user?.fullName || user?.username}
+              </span>
               <button
                 onClick={handleRefresh}
                 className="p-2 bg-gray-700 hover:bg-gray-600 rounded transition-colors"
@@ -237,38 +240,38 @@ const Admin = ({ user, onSignOut }) => {
                 </div>
               </div>
             </div>
-            
+
             <div className="bg-gray-800 p-4 rounded-lg border border-gray-700">
               <div className="flex items-center gap-3">
                 <CheckCircle className="w-8 h-8 text-green-400" />
                 <div>
                   <p className="text-gray-400 text-sm">Successful</p>
                   <p className="text-2xl font-bold">
-                    {stats.statusStats.find(s => s._id === 'SUCCESS')?.count || 0}
+                    {stats.statusStats.find((s) => s._id === 'SUCCESS')?.count || 0}
                   </p>
                 </div>
               </div>
             </div>
-            
+
             <div className="bg-gray-800 p-4 rounded-lg border border-gray-700">
               <div className="flex items-center gap-3">
                 <XCircle className="w-8 h-8 text-red-400" />
                 <div>
                   <p className="text-gray-400 text-sm">Failed</p>
                   <p className="text-2xl font-bold">
-                    {stats.statusStats.find(s => s._id === 'FAILED')?.count || 0}
+                    {stats.statusStats.find((s) => s._id === 'FAILED')?.count || 0}
                   </p>
                 </div>
               </div>
             </div>
-            
+
             <div className="bg-gray-800 p-4 rounded-lg border border-gray-700">
               <div className="flex items-center gap-3">
                 <AlertCircle className="w-8 h-8 text-yellow-400" />
                 <div>
                   <p className="text-gray-400 text-sm">Errors</p>
                   <p className="text-2xl font-bold">
-                    {stats.statusStats.find(s => s._id === 'ERROR')?.count || 0}
+                    {stats.statusStats.find((s) => s._id === 'ERROR')?.count || 0}
                   </p>
                 </div>
               </div>
@@ -284,7 +287,7 @@ const Admin = ({ user, onSignOut }) => {
             <Filter className="w-5 h-5 text-gray-400" />
             <h2 className="text-lg font-semibold">Filters</h2>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {/* Search */}
             <div>
@@ -310,7 +313,7 @@ const Admin = ({ user, onSignOut }) => {
                 className="w-full px-3 py-2 bg-gray-700 rounded text-white text-sm"
               >
                 <option value="">All Actions</option>
-                {availableActions.map(action => (
+                {availableActions.map((action) => (
                   <option key={action} value={action}>{action}</option>
                 ))}
               </select>
@@ -363,13 +366,13 @@ const Admin = ({ user, onSignOut }) => {
                 status: '',
                 search: '',
                 startDate: '',
-                endDate: ''
+                endDate: '',
               })}
               className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded text-sm transition-colors"
             >
               Clear Filters
             </button>
-            
+
             <button
               onClick={handleExport}
               className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-500 rounded text-sm transition-colors"
@@ -479,9 +482,19 @@ const Admin = ({ user, onSignOut }) => {
           {pagination.pages > 1 && (
             <div className="bg-gray-900 px-4 py-3 border-t border-gray-700 flex items-center justify-between">
               <div className="text-sm text-gray-400">
-                Showing {((pagination.page - 1) * pagination.limit) + 1} to{' '}
-                {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
-                {pagination.total} results
+                Showing
+                {' '}
+                {((pagination.page - 1) * pagination.limit) + 1}
+                {' '}
+                to
+                {' '}
+                {Math.min(pagination.page * pagination.limit, pagination.total)}
+                {' '}
+                of
+                {' '}
+                {pagination.total}
+                {' '}
+                results
               </div>
               <div className="flex gap-2">
                 <button
@@ -492,7 +505,13 @@ const Admin = ({ user, onSignOut }) => {
                   Previous
                 </button>
                 <span className="px-3 py-1 bg-gray-800 rounded text-sm">
-                  Page {pagination.page} of {pagination.pages}
+                  Page
+                  {' '}
+                  {pagination.page}
+                  {' '}
+                  of
+                  {' '}
+                  {pagination.pages}
                 </span>
                 <button
                   onClick={() => handleFilterChange('page', pagination.page + 1)}

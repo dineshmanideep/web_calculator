@@ -1,5 +1,5 @@
-import math from './mathCore';
 import { toast } from 'react-toastify';
+import math from './mathCore';
 
 export const preprocess = (expr, angleMode) => {
   try {
@@ -12,17 +12,14 @@ export const preprocess = (expr, angleMode) => {
         .replace(/acos\(([^)]+)\)/g, 'rad2deg(acos($1))')
         .replace(/atan\(([^)]+)\)/g, 'rad2deg(atan($1))');
     }
-      expr = expr.replace(/∫\(([^,]+),\s*([^)]+),\s*([^)]+)\)/g, 'defInt("$1", $2, $3)');
-      expr = expr.replace(/d\/dx\((.+)\)/g, 'derivative("$1", "x")');
+    expr = expr.replace(/∫\(([^,]+),\s*([^)]+),\s*([^)]+)\)/g, 'defInt("$1", $2, $3)');
+    expr = expr.replace(/d\/dx\((.+)\)/g, 'derivative("$1", "x")');
 
-      expr = expr.replace(/log\(([^)]+)\)/g, 'log10($1)');
-      expr = expr.replace(/ln\(([^)]+)\)/g, 'log($1)');
+    expr = expr.replace(/log\(([^)]+)\)/g, 'log10($1)');
+    expr = expr.replace(/ln\(([^)]+)\)/g, 'log($1)');
 
-      expr = expr.replace(/ix/g, '(i * x)');
-     expr = expr.replace(/xi/g, '(x * i)');
-
-
-
+    expr = expr.replace(/ix/g, '(i * x)');
+    expr = expr.replace(/xi/g, '(x * i)');
 
     return expr;
   } catch (error) {
@@ -37,7 +34,7 @@ export const evaluateExpression = (expr, angleMode) => {
     toast.error('Please enter an expression');
     throw new Error('Empty expression');
   }
-  
+
   try {
     // Check for common syntax errors before processing
     const openParens = (expr.match(/\(/g) || []).length;
@@ -69,7 +66,7 @@ export const evaluateExpression = (expr, angleMode) => {
     const scope = { i: math.complex(0, 1) }; // complex unit
     const node = math.parse(pre);
     const res = node.evaluate(scope);
-    
+
     // Additional validation of result
     if (typeof res === 'number') {
       if (isNaN(res)) {
@@ -81,32 +78,31 @@ export const evaluateExpression = (expr, angleMode) => {
         throw new Error('Result is infinite');
       }
     }
-    
+
     return res;
   } catch (error) {
     // Specific error handling - only show toast if not already shown
     const msg = error.message.toLowerCase();
-    
-    if (!msg.includes('division by zero') && 
-        !msg.includes('empty expression') &&
-        !msg.includes('mismatched parentheses') &&
-        !msg.includes('empty parentheses') &&
-        !msg.includes('invalid operators') &&
-        !msg.includes('invalid starting operator') &&
-        !msg.includes('sqrt') &&
-        !msg.includes('log') &&
-        !msg.includes('ln') &&
-        !msg.includes('factorial') &&
-        !msg.includes('ncr') &&
-        !msg.includes('npr') &&
-        !msg.includes('pow') &&
-        !msg.includes('mod') &&
-        !msg.includes('tan') &&
-        !msg.includes('asin') &&
-        !msg.includes('acos') &&
-        !msg.includes('nan') &&
-        !msg.includes('infinity')) {
-      
+
+    if (!msg.includes('division by zero')
+        && !msg.includes('empty expression')
+        && !msg.includes('mismatched parentheses')
+        && !msg.includes('empty parentheses')
+        && !msg.includes('invalid operators')
+        && !msg.includes('invalid starting operator')
+        && !msg.includes('sqrt')
+        && !msg.includes('log')
+        && !msg.includes('ln')
+        && !msg.includes('factorial')
+        && !msg.includes('ncr')
+        && !msg.includes('npr')
+        && !msg.includes('pow')
+        && !msg.includes('mod')
+        && !msg.includes('tan')
+        && !msg.includes('asin')
+        && !msg.includes('acos')
+        && !msg.includes('nan')
+        && !msg.includes('infinity')) {
       // Handle remaining math.js errors
       if (msg.includes('undefined symbol')) {
         const symbol = error.message.split('Undefined symbol')[1]?.trim() || 'unknown';

@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from "react";
-import math from "../utils/index.js";
+import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
+import math from '../utils/index.js';
 
-const MatrixModal = ({ show, onClose, onResult, initialInput = "", operation: propOperation }) => {
-  const [operation, setOperation] = useState(propOperation || "multiply");
+const MatrixModal = ({
+  show, onClose, onResult, initialInput = '', operation: propOperation,
+}) => {
+  const [operation, setOperation] = useState(propOperation || 'multiply');
   const [step, setStep] = useState(0); // 0: operation select, 1+: matrix input steps
   const [matrices, setMatrices] = useState([]); // store collected matrices
-  const [currentMatrixText, setCurrentMatrixText] = useState("");
+  const [currentMatrixText, setCurrentMatrixText] = useState('');
   const [matrixNames, setMatrixNames] = useState([]); // names like 'A', 'B', 'C'...
 
   useEffect(() => {
@@ -20,7 +22,7 @@ const MatrixModal = ({ show, onClose, onResult, initialInput = "", operation: pr
       // Reset state when modal closes
       setStep(0);
       setMatrices([]);
-      setCurrentMatrixText("");
+      setCurrentMatrixText('');
       setMatrixNames([]);
       return;
     }
@@ -46,7 +48,7 @@ const MatrixModal = ({ show, onClose, onResult, initialInput = "", operation: pr
     if (!text || text.trim() === '') {
       throw new Error(`${name} cannot be empty`);
     }
-    
+
     try {
       const parsed = JSON.parse(text);
       if (!Array.isArray(parsed)) {
@@ -58,22 +60,22 @@ const MatrixModal = ({ show, onClose, onResult, initialInput = "", operation: pr
       if (!Array.isArray(parsed[0])) {
         throw new Error(`${name} must be a 2D array`);
       }
-      
+
       const cols = parsed[0].length;
       for (let i = 1; i < parsed.length; i++) {
         if (!Array.isArray(parsed[i]) || parsed[i].length !== cols) {
           throw new Error(`${name} rows must have equal length`);
         }
       }
-      
-      for (let row of parsed) {
-        for (let val of row) {
+
+      for (const row of parsed) {
+        for (const val of row) {
           if (typeof val !== 'number' || !isFinite(val)) {
             throw new Error(`${name} must contain only valid numbers`);
           }
         }
       }
-      
+
       return parsed;
     } catch (e) {
       if (e instanceof SyntaxError) {
@@ -87,11 +89,11 @@ const MatrixModal = ({ show, onClose, onResult, initialInput = "", operation: pr
     try {
       const matrixName = String.fromCharCode(65 + matrices.length);
       const parsed = validateMatrix(currentMatrixText, `Matrix ${matrixName}`);
-      
+
       setMatrices([...matrices, parsed]);
       setMatrixNames([...matrixNames, matrixName]);
-      setCurrentMatrixText("");
-      
+      setCurrentMatrixText('');
+
       toast.success(`Matrix ${matrixName} added successfully`);
     } catch (e) {
       toast.error(e.message);
@@ -110,83 +112,79 @@ const MatrixModal = ({ show, onClose, onResult, initialInput = "", operation: pr
         return;
       }
 
-      let result = "";
-      let expr = "";
+      let result = '';
+      let expr = '';
 
-      if (operation === "multiply") {
+      if (operation === 'multiply') {
         // Multiply all matrices sequentially
         let resultMatrix = math.matrix(matrices[0]);
         expr = `MatMul ${JSON.stringify(matrices[0])}`;
-        
+
         for (let i = 1; i < matrices.length; i++) {
           const nextMatrix = math.matrix(matrices[i]);
           const prevShape = resultMatrix.size();
           const nextShape = nextMatrix.size();
-          
+
           if (prevShape[1] !== nextShape[0]) {
-            toast.error(`Cannot multiply: Matrix ${matrixNames[i-1]} columns (${prevShape[1]}) must equal Matrix ${matrixNames[i]} rows (${nextShape[0]})`);
+            toast.error(`Cannot multiply: Matrix ${matrixNames[i - 1]} columns (${prevShape[1]}) must equal Matrix ${matrixNames[i]} rows (${nextShape[0]})`);
             return;
           }
-          
+
           resultMatrix = math.multiply(resultMatrix, nextMatrix);
           expr += ` × ${JSON.stringify(matrices[i])}`;
         }
-        
+
         result = JSON.stringify(resultMatrix.toArray());
         toast.success(`Multiplication completed: ${matrices.length} matrices`);
-      } 
-      else if (operation === "add") {
+      } else if (operation === 'add') {
         // Add all matrices
         let resultMatrix = math.matrix(matrices[0]);
         const firstShape = resultMatrix.size();
         expr = `Add ${JSON.stringify(matrices[0])}`;
-        
+
         for (let i = 1; i < matrices.length; i++) {
           const nextMatrix = math.matrix(matrices[i]);
           const nextShape = nextMatrix.size();
-          
+
           if (firstShape[0] !== nextShape[0] || firstShape[1] !== nextShape[1]) {
             toast.error(`Matrices must have same dimensions. Matrix A: ${firstShape[0]}×${firstShape[1]}, Matrix ${matrixNames[i]}: ${nextShape[0]}×${nextShape[1]}`);
             return;
           }
-          
+
           resultMatrix = math.add(resultMatrix, nextMatrix);
           expr += ` + ${JSON.stringify(matrices[i])}`;
         }
-        
+
         result = JSON.stringify(resultMatrix.toArray());
         toast.success(`Addition completed: ${matrices.length} matrices`);
-      }
-      else if (operation === "subtract") {
+      } else if (operation === 'subtract') {
         // Subtract all matrices sequentially
         let resultMatrix = math.matrix(matrices[0]);
         const firstShape = resultMatrix.size();
         expr = `Subtract ${JSON.stringify(matrices[0])}`;
-        
+
         for (let i = 1; i < matrices.length; i++) {
           const nextMatrix = math.matrix(matrices[i]);
           const nextShape = nextMatrix.size();
-          
+
           if (firstShape[0] !== nextShape[0] || firstShape[1] !== nextShape[1]) {
             toast.error(`Matrices must have same dimensions. Matrix A: ${firstShape[0]}×${firstShape[1]}, Matrix ${matrixNames[i]}: ${nextShape[0]}×${nextShape[1]}`);
             return;
           }
-          
+
           resultMatrix = math.subtract(resultMatrix, nextMatrix);
           expr += ` - ${JSON.stringify(matrices[i])}`;
         }
-        
+
         result = JSON.stringify(resultMatrix.toArray());
         toast.success(`Subtraction completed: ${matrices.length} matrices`);
-      }
-      else if (operation === "transpose") {
+      } else if (operation === 'transpose') {
         const mat = matrices[0];
         const res = math.transpose(math.matrix(mat));
         result = JSON.stringify(res.toArray());
         expr = `Transpose: ${JSON.stringify(mat)}`;
         toast.success('Matrix transposed');
-      } 
-      else if (operation === "det") {
+      } else if (operation === 'det') {
         const mat = matrices[0];
         if (mat.length !== mat[0].length) {
           toast.error(`Determinant requires square matrix. Matrix is ${mat.length}×${mat[0].length}`);
@@ -196,8 +194,7 @@ const MatrixModal = ({ show, onClose, onResult, initialInput = "", operation: pr
         result = String(math.format(res, { notation: 'fixed', precision: 6 }));
         expr = `Determinant: ${JSON.stringify(mat)}`;
         toast.success('Determinant calculated');
-      }
-      else if (operation === "inverse") {
+      } else if (operation === 'inverse') {
         const mat = matrices[0];
         if (mat.length !== mat[0].length) {
           toast.error(`Inverse requires square matrix. Matrix is ${mat.length}×${mat[0].length}`);
@@ -216,14 +213,14 @@ const MatrixModal = ({ show, onClose, onResult, initialInput = "", operation: pr
 
       onResult(expr, result);
       onClose();
-      
+
       // Reset for next use
       setStep(0);
       setMatrices([]);
       setMatrixNames([]);
-      setCurrentMatrixText("");
+      setCurrentMatrixText('');
     } catch (e) {
-      toast.error("Matrix operation failed: " + e.message);
+      toast.error(`Matrix operation failed: ${e.message}`);
       console.error('Matrix operation error:', e);
     }
   };
@@ -238,31 +235,27 @@ const MatrixModal = ({ show, onClose, onResult, initialInput = "", operation: pr
     } else if (step > 0) {
       // Go back to operation selection
       setStep(0);
-      setCurrentMatrixText("");
+      setCurrentMatrixText('');
       toast.info('Back to operation selection');
     }
   };
 
-  const getCurrentMatrixName = () => {
-    return String.fromCharCode(65 + matrices.length);
-  };
+  const getCurrentMatrixName = () => String.fromCharCode(65 + matrices.length);
 
   const handleButtonClick = (value) => {
-    setCurrentMatrixText(prev => prev + value);
+    setCurrentMatrixText((prev) => prev + value);
   };
 
   const handleClear = () => {
-    setCurrentMatrixText("");
+    setCurrentMatrixText('');
     toast.info('Input cleared');
   };
 
   const handleBackspace = () => {
-    setCurrentMatrixText(prev => prev.slice(0, -1));
+    setCurrentMatrixText((prev) => prev.slice(0, -1));
   };
 
-  const canProceed = () => {
-    return currentMatrixText.trim() !== '';
-  };
+  const canProceed = () => currentMatrixText.trim() !== '';
 
   const numberButtons = ['7', '8', '9', '4', '5', '6', '1', '2', '3', '0', '.', '-'];
   const specialButtons = ['[', ']', ','];
@@ -326,20 +319,25 @@ const MatrixModal = ({ show, onClose, onResult, initialInput = "", operation: pr
             <div className="mb-3">
               <div className="flex items-center justify-between mb-2">
                 <p className="text-white text-sm font-semibold">
-                  Matrix {getCurrentMatrixName()}:
+                  Matrix
+                  {' '}
+                  {getCurrentMatrixName()}
+                  :
                 </p>
                 <span className="text-gray-400 text-xs">
-                  {matrices.length} matrices added
+                  {matrices.length}
+                  {' '}
+                  matrices added
                 </span>
               </div>
               <p className="text-gray-400 text-xs mb-2">Format: [[1,2],[3,4]]</p>
-              
+
               {/* Layout: Keypad on left, Input on right */}
               <div className="flex gap-3">
                 {/* Button pad - LEFT SIDE */}
                 <div className="flex-shrink-0">
                   <div className="grid grid-cols-3 gap-2 mb-2">
-                    {numberButtons.map(btn => (
+                    {numberButtons.map((btn) => (
                       <button
                         key={btn}
                         onClick={() => handleButtonClick(btn)}
@@ -350,7 +348,7 @@ const MatrixModal = ({ show, onClose, onResult, initialInput = "", operation: pr
                     ))}
                   </div>
                   <div className="grid grid-cols-3 gap-2">
-                    {specialButtons.map(btn => (
+                    {specialButtons.map((btn) => (
                       <button
                         key={btn}
                         onClick={() => handleButtonClick(btn)}
@@ -387,7 +385,13 @@ const MatrixModal = ({ show, onClose, onResult, initialInput = "", operation: pr
                 <p className="text-white text-xs font-semibold mb-1">Previously entered matrices:</p>
                 {matrices.map((mat, idx) => (
                   <div key={idx} className="text-gray-300 text-xs font-mono mb-1">
-                    <span className="text-green-400">Matrix {matrixNames[idx]}:</span> {JSON.stringify(mat)}
+                    <span className="text-green-400">
+                      Matrix
+                      {matrixNames[idx]}
+                      :
+                    </span>
+                    {' '}
+                    {JSON.stringify(mat)}
                   </div>
                 ))}
               </div>
@@ -400,15 +404,17 @@ const MatrixModal = ({ show, onClose, onResult, initialInput = "", operation: pr
               >
                 Back
               </button>
-              
+
               <button
                 onClick={handleAddMatrix}
                 disabled={!canProceed()}
                 className="flex-1 bg-blue-600 hover:bg-blue-500 p-2 rounded text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Add Matrix {getCurrentMatrixName()}
+                Add Matrix
+                {' '}
+                {getCurrentMatrixName()}
               </button>
-              
+
               <button
                 onClick={handleCompute}
                 disabled={matrices.length < 1}
@@ -416,7 +422,7 @@ const MatrixModal = ({ show, onClose, onResult, initialInput = "", operation: pr
               >
                 Compute
               </button>
-              
+
               <button
                 onClick={onClose}
                 className="bg-red-600 hover:bg-red-500 p-2 rounded text-white font-semibold px-4"

@@ -19,7 +19,6 @@ const auditLogSchema = new mongoose.Schema({
       'SIGNUP_VERIFY',
       'PASSWORD_RESET_REQUEST',
       'PASSWORD_RESET_SUCCESS',
-      'CALCULATION',
       'HISTORY_SAVE',
       'HISTORY_CLEAR',
       'ADMIN_ACCESS',
@@ -27,8 +26,8 @@ const auditLogSchema = new mongoose.Schema({
     ]
   },
   details: { type: String }, // Additional information about the action
-  input: { type: String }, // For calculations, store the input expression
-  result: { type: String }, // For calculations, store the result
+  input: { type: String }, // For auth actions: email/username attempted, route accessed, etc.
+  result: { type: String }, // For auth actions: success/failure message, outcome description
   ipAddress: { type: String },
   userAgent: { type: String },
   deviceType: { type: String }, // Desktop, Mobile, Tablet

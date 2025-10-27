@@ -1,12 +1,12 @@
-import { useState } from "react";
-import axios from "axios";
-import { useSearchParams, useNavigate } from "react-router-dom";
-import { toast } from "react-toastify"; // ADDED
+import { useState } from 'react';
+import axios from 'axios';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify'; // ADDED
 
 export default function OtpVerification() {
-  const [otp, setOtp] = useState("");
+  const [otp, setOtp] = useState('');
   const [searchParams] = useSearchParams();
-  const userId = searchParams.get("userId");
+  const userId = searchParams.get('userId');
   const navigate = useNavigate();
   const API = import.meta.env.VITE_API_URL;
 
@@ -14,10 +14,10 @@ export default function OtpVerification() {
     e.preventDefault();
     try {
       await axios.post(`${API}/auth/verify-signup`, { userId, otp });
-      toast.success("Account verified. Please login now."); // REPLACED alert
-      navigate("/");
+      toast.success('Account verified. Please login now.'); // REPLACED alert
+      navigate('/');
     } catch (err) {
-      toast.error(err.response?.data?.message || "OTP verification failed"); // REPLACED alert
+      toast.error(err.response?.data?.message || 'OTP verification failed'); // REPLACED alert
     }
   };
 

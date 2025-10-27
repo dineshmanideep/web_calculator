@@ -3,6 +3,7 @@ import { parseUserAgent } from '../utils/deviceParser.js';
 
 /**
  * Middleware to log user actions to the audit log
+ * Note: Calculations are handled in frontend, so this middleware focuses on auth/backend actions
  */
 export const auditLogger = (action) => {
   return async (req, res, next) => {
@@ -30,10 +31,45 @@ export const auditLogger = (action) => {
             errorMessage: data.message && res.statusCode >= 400 ? data.message : null
           };
 
-          // Special handling for calculations
-          if (action === 'CALCULATION' && req.body) {
-            logData.input = req.body.expression;
-            logData.result = data.result || data.message;
+          // Populate input/result for auth-related actions
+          const isSuccess = res.statusCode >= 200 && res.statusCode < 300;
+          
+          switch(action) {
+            case 'LOGIN_SUCCESS':
+            case 'LOGIN_FAILED':
+              logData.input = req.body?.emailOrUsername || req.body?.email || 'Unknown';
+              logData.result = isSuccess ? 'Login successful' : (data.message || 'Login failed');
+              break;
+              
+            case 'SIGNUP':
+              logData.input = req.body?.email || 'Unknown';
+              logData.result = isSuccess ? 'Signup successful - OTP sent' : (data.message || 'Signup failed');
+              break;
+              
+            case 'SIGNUP_VERIFY':
+              logData.input = req.body?.email || 'Unknown';
+              logData.result = isSuccess ? 'Account verified successfully' : (data.message || 'Verification failed');
+              break;
+              
+            case 'PASSWORD_RESET_REQUEST':
+              logData.input = req.body?.email || 'Unknown';
+              logData.result = isSuccess ? 'Reset OTP sent' : (data.message || 'Request failed');
+              break;
+              
+            case 'PASSWORD_RESET_SUCCESS':
+              logData.input = req.body?.email || 'Unknown';
+              logData.result = isSuccess ? 'Password reset successful' : (data.message || 'Reset failed');
+              break;
+              
+            case 'ADMIN_ACCESS':
+              logData.input = req.originalUrl || req.path || 'Unknown route';
+              logData.result = isSuccess ? 'Access granted' : 'Access denied';
+              break;
+              
+            case 'UNAUTHORIZED_ACCESS':
+              logData.input = req.originalUrl || req.path || 'Unknown route';
+              logData.result = 'Unauthorized attempt';
+              break;
           }
 
           await AuditLog.create(logData);
@@ -58,9 +94,10 @@ export const logAction = async (action, req, additionalData = {}) => {
     const deviceInfo = parseUserAgent(req.headers?.['user-agent']);
     
     const logData = {
-      userId: req.session?.user?.id || null,
-      username: req.session?.user?.username || additionalData.username || 'Anonymous',
-      email: req.session?.user?.email || additionalData.email || null,
+      // Prioritize additionalData for userId, username, email (important for LOGOUT)
+      userId: additionalData.userId || req.session?.user?.id || null,
+      username: additionalData.username || req.session?.user?.username || 'Anonymous',
+      email: additionalData.email || req.session?.user?.email || null,
       action: action,
       details: additionalData.details || '',
       input: additionalData.input || null,

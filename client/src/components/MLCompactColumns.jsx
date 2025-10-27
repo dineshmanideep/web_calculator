@@ -8,7 +8,7 @@ export default function MLCompactColumns({
   startParamSequence, pushHistory, setInput, mlSize = 'md',
 }) {
   const sizeClass = mlSize === 'sm' ? 'py-1 text-xs' : mlSize === 'lg' ? 'py-2 text-sm' : 'py-1.5 text-sm';
-  
+
   const start = (specs, handler, label) => {
     if (!startParamSequence) {
       toast.error('Parameter sequence function not available');
@@ -18,7 +18,7 @@ export default function MLCompactColumns({
     startParamSequence(specs, (values) => {
       try {
         // Validate all values are present
-        if (values.some(v => v === undefined || v === null || v === '')) {
+        if (values.some((v) => v === undefined || v === null || v === '')) {
           toast.error('All parameters must be provided');
           return;
         }
@@ -26,10 +26,10 @@ export default function MLCompactColumns({
         // handler processes values and returns result
         const out = handler(values);
         const txt = typeof out === 'string' ? out : JSON.stringify(out);
-        
+
         if (setInput) setInput(String(txt));
         if (pushHistory) pushHistory(label || 'ML', txt);
-        
+
         toast.success(`${label} computed successfully`);
       } catch (error) {
         toast.error(`${label} failed: ${error.message}`);
@@ -49,7 +49,7 @@ export default function MLCompactColumns({
               'H', 'W', 'K',
             ], (vals) => {
               const [H, W, K] = vals.map(Number);
-              
+
               if (isNaN(H) || isNaN(W) || isNaN(K)) {
                 toast.error('H, W, and K must be valid numbers');
                 throw new Error('Invalid input');
@@ -58,7 +58,7 @@ export default function MLCompactColumns({
                 toast.error('H, W, and K must be positive');
                 throw new Error('Invalid input');
               }
-              
+
               return optimalPaddingStride(H, W, K);
             }, 'Best P/S');
           }}
@@ -72,8 +72,8 @@ export default function MLCompactColumns({
           onClick={() => {
             start(['H', 'W', 'K', 'P', 'S'], (vals) => {
               const [H, W, K, P, S] = vals.map(Number);
-              
-              if (vals.some(v => isNaN(Number(v)))) {
+
+              if (vals.some((v) => isNaN(Number(v)))) {
                 toast.error('All parameters must be valid numbers');
                 throw new Error('Invalid input');
               }
@@ -81,7 +81,7 @@ export default function MLCompactColumns({
                 toast.error('H, W, K, and S must be positive');
                 throw new Error('Invalid input');
               }
-              
+
               return convOutputShape({
                 H_in: H, W_in: W, K, P, S,
               });
@@ -98,15 +98,15 @@ export default function MLCompactColumns({
             start([{ name: 'kernel_size' }, { name: 'stride', parse: 'raw' }, { name: 'num_layers' }], (vals) => {
               const k = Number(vals[0]);
               let stride = vals[1];
-              
+
               if (isNaN(k) || k <= 0) {
                 toast.error('Kernel size must be a positive number');
                 throw new Error('Invalid kernel size');
               }
-              
+
               if (typeof stride === 'string' && stride.includes(',')) {
                 stride = stride.split(',').map((x) => Number(x.trim()));
-                if (stride.some(s => isNaN(s) || s <= 0)) {
+                if (stride.some((s) => isNaN(s) || s <= 0)) {
                   toast.error('All stride values must be positive numbers');
                   throw new Error('Invalid stride');
                 }
@@ -117,13 +117,13 @@ export default function MLCompactColumns({
                   throw new Error('Invalid stride');
                 }
               }
-              
+
               const L = Number(vals[2]);
               if (isNaN(L) || L <= 0) {
                 toast.error('Number of layers must be a positive number');
                 throw new Error('Invalid num_layers');
               }
-              
+
               return receptiveField({ kernel_size: k, stride, num_layers: L });
             }, 'RF');
           }}
@@ -137,8 +137,8 @@ export default function MLCompactColumns({
           onClick={() => {
             start(['inCh', 'outCh', 'kernel'], (vals) => {
               const [inCh, outCh, k] = vals.map(Number);
-              
-              if (vals.some(v => isNaN(Number(v)))) {
+
+              if (vals.some((v) => isNaN(Number(v)))) {
                 toast.error('All parameters must be valid numbers');
                 throw new Error('Invalid input');
               }
@@ -146,7 +146,7 @@ export default function MLCompactColumns({
                 toast.error('All parameters must be positive');
                 throw new Error('Invalid input');
               }
-              
+
               const params = paramCount({ in_channels: inCh, out_channels: outCh, kernel_size: k });
               const out = convOutputShape({
                 H_in: 1, W_in: 1, K: k, P: 0, S: 1,
@@ -178,10 +178,10 @@ export default function MLCompactColumns({
                 }
                 return nums;
               };
-              
-              const xs = parseNums(vals[0]); 
+
+              const xs = parseNums(vals[0]);
               const ys = parseNums(vals[1]);
-              
+
               if (xs.length !== ys.length) {
                 toast.error(`X and Y must have same length (X: ${xs.length}, Y: ${ys.length})`);
                 throw new Error('Length mismatch');
@@ -190,7 +190,7 @@ export default function MLCompactColumns({
                 toast.error('Need at least 2 data points');
                 throw new Error('Insufficient data');
               }
-              
+
               return bestFit(xs, ys);
             }, 'BestFit');
           }}
@@ -215,10 +215,10 @@ export default function MLCompactColumns({
                 }
                 return nums;
               };
-              
-              const scores = parseNums(vals[0]); 
+
+              const scores = parseNums(vals[0]);
               const labels = parseNums(vals[1]);
-              
+
               if (scores.length !== labels.length) {
                 toast.error(`Scores and labels must have same length (scores: ${scores.length}, labels: ${labels.length})`);
                 throw new Error('Length mismatch');
@@ -227,13 +227,13 @@ export default function MLCompactColumns({
                 toast.error('Need at least one data point');
                 throw new Error('Empty data');
               }
-              
+
               // Validate labels are binary
-              if (labels.some(l => l !== 0 && l !== 1)) {
+              if (labels.some((l) => l !== 0 && l !== 1)) {
                 toast.error('Labels must be binary (0 or 1)');
                 throw new Error('Invalid labels');
               }
-              
+
               return optimalThreshold(scores, labels, 'f1');
             }, 'Threshold');
           }}
@@ -258,10 +258,10 @@ export default function MLCompactColumns({
                 }
                 return nums;
               };
-              
-              const losses = parseNums(vals[0]); 
+
+              const losses = parseNums(vals[0]);
               const steps = parseNums(vals[1]);
-              
+
               if (losses.length !== steps.length) {
                 toast.error(`Losses and steps must have same length (losses: ${losses.length}, steps: ${steps.length})`);
                 throw new Error('Length mismatch');
@@ -270,11 +270,11 @@ export default function MLCompactColumns({
                 toast.error('Need at least one data point');
                 throw new Error('Empty data');
               }
-              if (steps.some(s => s <= 0)) {
+              if (steps.some((s) => s <= 0)) {
                 toast.error('All learning rate steps must be positive');
                 throw new Error('Invalid steps');
               }
-              
+
               return estimateLearningRate(losses, steps);
             }, 'LR Estimator');
           }}
@@ -292,20 +292,20 @@ export default function MLCompactColumns({
                   toast.error('Xs input cannot be empty');
                   throw new Error('Empty Xs');
                 }
-                
+
                 if (s.includes(';')) {
                   const cols = s.split(';').map((col) => {
                     const nums = col.split(',').map((x) => Number(x.trim()));
-                    if (nums.some(n => isNaN(n))) {
+                    if (nums.some((n) => isNaN(n))) {
                       toast.error('All Xs values must be valid numbers');
                       throw new Error('Invalid Xs values');
                     }
                     return nums;
                   });
-                  
+
                   // Validate all columns have same length
                   const len = cols[0].length;
-                  if (cols.some(col => col.length !== len)) {
+                  if (cols.some((col) => col.length !== len)) {
                     toast.error('All Xs columns must have same length');
                     throw new Error('Xs column length mismatch');
                   }
@@ -313,31 +313,31 @@ export default function MLCompactColumns({
                 }
                 // single column
                 const nums = s.split(',').map((x) => Number(x.trim()));
-                if (nums.some(n => isNaN(n))) {
+                if (nums.some((n) => isNaN(n))) {
                   toast.error('All Xs values must be valid numbers');
                   throw new Error('Invalid Xs values');
                 }
                 return [nums];
               };
-              
+
               const Xs = parseCols(vals[0]);
-              
+
               if (!vals[1] || vals[1].trim() === '') {
                 toast.error('Y input cannot be empty');
                 throw new Error('Empty Y');
               }
-              
+
               const Y = (vals[1] || '').split(',').map((x) => Number(x.trim()));
-              if (Y.some(n => isNaN(n))) {
+              if (Y.some((n) => isNaN(n))) {
                 toast.error('All Y values must be valid numbers');
                 throw new Error('Invalid Y values');
               }
-              
+
               if (Y.length !== Xs[0].length) {
                 toast.error(`Y length (${Y.length}) must match Xs rows (${Xs[0].length})`);
                 throw new Error('Length mismatch');
               }
-              
+
               return optimizeWeights(Xs, Y);
             }, 'WeightOpt');
           }}
@@ -354,39 +354,39 @@ export default function MLCompactColumns({
                 toast.error('Features input cannot be empty');
                 throw new Error('Empty features');
               }
-              
+
               const featRows = (vals[0] || '').split(';').map((r) => {
                 const nums = r.split(',').map((x) => Number(x.trim()));
-                if (nums.some(n => isNaN(n))) {
+                if (nums.some((n) => isNaN(n))) {
                   toast.error('All feature values must be valid numbers');
                   throw new Error('Invalid feature values');
                 }
                 return nums;
               });
-              
+
               // Validate all rows have same number of features
               const numFeatures = featRows[0].length;
-              if (featRows.some(row => row.length !== numFeatures)) {
+              if (featRows.some((row) => row.length !== numFeatures)) {
                 toast.error('All feature rows must have same number of features');
                 throw new Error('Feature count mismatch');
               }
-              
+
               if (!vals[1] || vals[1].trim() === '') {
                 toast.error('Target input cannot be empty');
                 throw new Error('Empty target');
               }
-              
+
               const target = (vals[1] || '').split(',').map((x) => Number(x.trim()));
-              if (target.some(n => isNaN(n))) {
+              if (target.some((n) => isNaN(n))) {
                 toast.error('All target values must be valid numbers');
                 throw new Error('Invalid target values');
               }
-              
+
               if (target.length !== featRows.length) {
                 toast.error(`Target length (${target.length}) must match number of feature rows (${featRows.length})`);
                 throw new Error('Length mismatch');
               }
-              
+
               return featureImportance(featRows, target);
             }, 'FeatureImp');
           }}

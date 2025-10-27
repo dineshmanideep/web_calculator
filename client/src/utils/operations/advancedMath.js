@@ -1,7 +1,7 @@
-import { toast } from "react-toastify";
+import { toast } from 'react-toastify';
 
 export const advancedMath = {
-      sqrt: (x) => {
+  sqrt: (x) => {
     try {
       const val = Number(x);
       if (isNaN(val)) {
@@ -88,7 +88,7 @@ export const advancedMath = {
         toast.error('factorial: Number too large (max 170)');
         throw new Error('Factorial overflow');
       }
-      
+
       let result = 1;
       for (let i = 2; i <= val; i++) {
         result *= i;
@@ -100,5 +100,5 @@ export const advancedMath = {
       }
       throw error;
     }
-  }
+  },
 };

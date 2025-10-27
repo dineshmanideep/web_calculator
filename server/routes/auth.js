@@ -37,6 +37,8 @@ try {
       email: emailOrUsername,
       username: emailOrUsername,
       details: 'User not found',
+      input: emailOrUsername,
+      result: 'Failed: User not found',
       status: 'FAILED',
       errorMessage: 'Invalid credentials'
     });
@@ -50,11 +52,22 @@ try {
       email: user.email,
       username: user.username,
       details: 'Incorrect password',
+      input: emailOrUsername,
+      result: 'Failed: Incorrect password',
       status: 'FAILED',
       errorMessage: 'Invalid credentials'
     });
     return res.status(400).json({ message: 'Invalid credentials' });
   }
+  
+  // Store previous login/logout info before updating
+  const previousLogin = user.lastLogin;
+  const previousLogout = user.lastLogout;
+  const isFirstLogin = !previousLogin; // Check if this is the first login
+  
+  // Update last login time to current time
+  user.lastLogin = new Date();
+  await user.save();
   
   req.session.user = { 
     id: user._id, 
@@ -69,6 +82,8 @@ try {
     email: user.email,
     username: user.username,
     details: 'User logged in successfully',
+    input: emailOrUsername,
+    result: 'Login successful',
     status: 'SUCCESS'
   });
 
@@ -81,6 +96,12 @@ try {
       fullName: user.fullName,
       isAdmin: user.isAdmin 
     },
+    loginInfo: {
+      isFirstLogin,
+      lastLogin: previousLogin,
+      lastLogout: previousLogout,
+      currentLogin: user.lastLogin
+    }
   });
   
 } catch (error) {
@@ -88,6 +109,8 @@ try {
   await logAction('LOGIN_FAILED', req, {
     email: emailOrUsername,
     details: 'Login error',
+    input: emailOrUsername,
+    result: 'Error: ' + error.message,
     status: 'ERROR',
     errorMessage: error.message
   });
@@ -101,12 +124,26 @@ router.post("/logout", async (req, res) => {
   const userEmail = req.session?.user?.email;
   const username = req.session?.user?.username;
   
+  // Update lastLogout time in database before destroying session
+  if (userId) {
+    try {
+      await User.findByIdAndUpdate(userId, { 
+        lastLogout: new Date() 
+      });
+    } catch (error) {
+      console.error('Error updating logout time:', error);
+    }
+  }
+  
   req.session.destroy(async (err) => {
     if (err) {
       await logAction('LOGOUT', req, {
+        userId: userId,
         email: userEmail,
         username: username,
         details: 'Logout failed',
+        input: userEmail, // Email of user attempting logout
+        result: 'Failed: ' + err.message,
         status: 'ERROR',
         errorMessage: err.message
       });
@@ -115,9 +152,12 @@ router.post("/logout", async (req, res) => {
     
     // Log successful logout
     await logAction('LOGOUT', req, {
+      userId: userId,
       email: userEmail,
       username: username,
       details: 'User logged out successfully',
+      input: userEmail, // Email of user who logged out
+      result: 'Success',
       status: 'SUCCESS'
     });
     
@@ -146,21 +186,68 @@ router.get("/check-session", (req, res) => {
 // FORGOT PASSWORD: create reset OTP and email it
 router.post('/forgot-password', async (req, res) => {
   const { email } = req.body;
-  if (!email) return res.status(400).json({ message: 'email required' });
+  if (!email) {
+    await logAction('PASSWORD_RESET_REQUEST', req, {
+      email: email,
+      username: 'Anonymous',
+      details: 'Email not provided',
+      input: email || 'Not provided',
+      result: 'Failed: Email required',
+      status: 'FAILED',
+      errorMessage: 'email required'
+    });
+    return res.status(400).json({ message: 'email required' });
+  }
+  
   const user = await User.findOne({ email });
-  if (!user) return res.status(404).json({ message: 'User not found' });
+  if (!user) {
+    await logAction('PASSWORD_RESET_REQUEST', req, {
+      email: email,
+      username: 'Anonymous',
+      details: 'User not found for password reset',
+      input: email,
+      result: 'Failed: User not found',
+      status: 'FAILED',
+      errorMessage: 'User not found'
+    });
+    return res.status(404).json({ message: 'User not found' });
+  }
 
   const otp = makeOtp();
   user.resetOtp = { code: otp, expiresAt: otpExpiryDate() };
   await user.save();
 
-  await sendMail({
-    to: email,
-    subject: 'Password reset OTP',
-    text: `Your password reset code is ${otp}. It expires in ${OTP_EXPIRES_MIN} minutes.`,
-  });
+  try {
+    await sendMail({
+      to: email,
+      subject: 'Password reset OTP',
+      text: `Your password reset code is ${otp}. It expires in ${OTP_EXPIRES_MIN} minutes.`,
+    });
 
-  return res.json({ message: 'OTP sent to email', userId: user._id });
+    await logAction('PASSWORD_RESET_REQUEST', req, {
+      userId: user._id,
+      email: user.email,
+      username: user.username,
+      details: 'Password reset OTP sent successfully',
+      input: email,
+      result: 'OTP sent to email',
+      status: 'SUCCESS'
+    });
+
+    return res.json({ message: 'OTP sent to email', userId: user._id });
+  } catch (error) {
+    await logAction('PASSWORD_RESET_REQUEST', req, {
+      userId: user._id,
+      email: user.email,
+      username: user.username,
+      details: 'Failed to send reset OTP email',
+      input: email,
+      result: 'Failed: Email delivery error',
+      status: 'ERROR',
+      errorMessage: error.message
+    });
+    return res.status(500).json({ message: 'Failed to send email' });
+  }
 });
 
 // VERIFY OTP for reset (optional separate step)
@@ -187,23 +274,73 @@ router.post('/verify-otp-reset', async (req, res) => {
 router.post('/reset-password', async (req, res) => {
   const { userId, otp, newPassword } = req.body;
   if (!userId || !otp || !newPassword) {
+    await logAction('PASSWORD_RESET_SUCCESS', req, {
+      email: 'Unknown',
+      username: 'Anonymous',
+      details: 'Missing required fields',
+      input: 'Incomplete data',
+      result: 'Failed: Missing fields',
+      status: 'FAILED',
+      errorMessage: 'Missing fields'
+    });
     return res.status(400).json({ message: 'Missing fields' });
   }
 
   const user = await User.findById(userId);
   if (!user || !user.resetOtp) {
+    await logAction('PASSWORD_RESET_SUCCESS', req, {
+      email: user?.email || 'Unknown',
+      username: user?.username || 'Anonymous',
+      details: 'Invalid reset request',
+      input: user?.email || userId,
+      result: 'Failed: Invalid request',
+      status: 'FAILED',
+      errorMessage: 'Invalid request'
+    });
     return res.status(400).json({ message: 'Invalid request' });
   }
+  
   if (user.resetOtp.expiresAt < new Date()) {
+    await logAction('PASSWORD_RESET_SUCCESS', req, {
+      userId: user._id,
+      email: user.email,
+      username: user.username,
+      details: 'OTP expired',
+      input: user.email,
+      result: 'Failed: OTP expired',
+      status: 'FAILED',
+      errorMessage: 'OTP expired'
+    });
     return res.status(400).json({ message: 'OTP expired' });
   }
+  
   if (user.resetOtp.code !== otp) {
+    await logAction('PASSWORD_RESET_SUCCESS', req, {
+      userId: user._id,
+      email: user.email,
+      username: user.username,
+      details: 'Invalid OTP provided',
+      input: user.email,
+      result: 'Failed: Invalid OTP',
+      status: 'FAILED',
+      errorMessage: 'Invalid OTP'
+    });
     return res.status(400).json({ message: 'Invalid OTP' });
   }
 
   user.passwordHash = await bcrypt.hash(newPassword, SALT_ROUNDS);
   user.resetOtp = undefined;
   await user.save();
+
+  await logAction('PASSWORD_RESET_SUCCESS', req, {
+    userId: user._id,
+    email: user.email,
+    username: user.username,
+    details: 'Password reset completed successfully',
+    input: user.email,
+    result: 'Password reset successful',
+    status: 'SUCCESS'
+  });
 
   return res.json({ message: 'Password reset successful' });
 });
@@ -216,11 +353,33 @@ const tempSignupOtps = {}; // { [email]: { code, expiresAt, verified } }
 router.post('/signup-send-otp', async (req, res) => {
   try {
     const { email } = req.body;
-    if (!email) return res.status(400).json({ message: 'Email required' });
+    if (!email) {
+      await logAction('SIGNUP', req, {
+        email: email || 'Not provided',
+        username: 'Anonymous',
+        details: 'Signup OTP request - email not provided',
+        input: email || 'Not provided',
+        result: 'Failed: Email required',
+        status: 'FAILED',
+        errorMessage: 'Email required'
+      });
+      return res.status(400).json({ message: 'Email required' });
+    }
 
     // if already registered, block
     const existing = await User.findOne({ email });
-    if (existing) return res.status(400).json({ message: 'Email already registered' });
+    if (existing) {
+      await logAction('SIGNUP', req, {
+        email: email,
+        username: 'Anonymous',
+        details: 'Signup attempt with existing email',
+        input: email,
+        result: 'Failed: Email already registered',
+        status: 'FAILED',
+        errorMessage: 'Email already registered'
+      });
+      return res.status(400).json({ message: 'Email already registered' });
+    }
 
     const otp = makeOtp();
     tempSignupOtps[email] = { code: otp, expiresAt: otpExpiryDate(), verified: false };
@@ -231,9 +390,27 @@ router.post('/signup-send-otp', async (req, res) => {
       text: `Your signup verification code is ${otp}. It expires in ${OTP_EXPIRES_MIN} minutes.`,
     });
 
+    await logAction('SIGNUP', req, {
+      email: email,
+      username: 'Anonymous',
+      details: 'Signup OTP sent successfully',
+      input: email,
+      result: 'OTP sent to email',
+      status: 'SUCCESS'
+    });
+
     return res.json({ message: 'OTP sent to email' });
   } catch (err) {
     console.error(err);
+    await logAction('SIGNUP', req, {
+      email: req.body?.email || 'Unknown',
+      username: 'Anonymous',
+      details: 'Signup OTP sending failed',
+      input: req.body?.email || 'Unknown',
+      result: 'Error: ' + err.message,
+      status: 'ERROR',
+      errorMessage: err.message
+    });
     return res.status(500).json({ message: 'Server error' });
   }
 });
@@ -242,20 +419,83 @@ router.post('/signup-send-otp', async (req, res) => {
 router.post('/signup-verify-otp', async (req, res) => {
   try {
     const { email, otp } = req.body;
-    if (!email || !otp) return res.status(400).json({ message: 'Email and otp required' });
+    if (!email || !otp) {
+      await logAction('SIGNUP_VERIFY', req, {
+        email: email || 'Not provided',
+        username: 'Anonymous',
+        details: 'OTP verification - missing fields',
+        input: email || 'Not provided',
+        result: 'Failed: Email and OTP required',
+        status: 'FAILED',
+        errorMessage: 'Email and otp required'
+      });
+      return res.status(400).json({ message: 'Email and otp required' });
+    }
 
     const record = tempSignupOtps[email];
-    if (!record) return res.status(400).json({ message: 'No OTP sent for this email' });
+    if (!record) {
+      await logAction('SIGNUP_VERIFY', req, {
+        email: email,
+        username: 'Anonymous',
+        details: 'No OTP found for email',
+        input: email,
+        result: 'Failed: No OTP sent for this email',
+        status: 'FAILED',
+        errorMessage: 'No OTP sent for this email'
+      });
+      return res.status(400).json({ message: 'No OTP sent for this email' });
+    }
+    
     if (record.expiresAt < new Date()) {
       delete tempSignupOtps[email];
+      await logAction('SIGNUP_VERIFY', req, {
+        email: email,
+        username: 'Anonymous',
+        details: 'OTP expired during verification',
+        input: email,
+        result: 'Failed: OTP expired',
+        status: 'FAILED',
+        errorMessage: 'OTP expired'
+      });
       return res.status(400).json({ message: 'OTP expired' });
     }
-    if (record.code !== otp) return res.status(400).json({ message: 'Invalid OTP' });
+    
+    if (record.code !== otp) {
+      await logAction('SIGNUP_VERIFY', req, {
+        email: email,
+        username: 'Anonymous',
+        details: 'Invalid OTP provided',
+        input: email,
+        result: 'Failed: Invalid OTP',
+        status: 'FAILED',
+        errorMessage: 'Invalid OTP'
+      });
+      return res.status(400).json({ message: 'Invalid OTP' });
+    }
 
     record.verified = true;
+    
+    await logAction('SIGNUP_VERIFY', req, {
+      email: email,
+      username: 'Anonymous',
+      details: 'Email verified successfully',
+      input: email,
+      result: 'Email verified',
+      status: 'SUCCESS'
+    });
+    
     return res.json({ message: 'Email verified' });
   } catch (err) {
     console.error(err);
+    await logAction('SIGNUP_VERIFY', req, {
+      email: req.body?.email || 'Unknown',
+      username: 'Anonymous',
+      details: 'OTP verification error',
+      input: req.body?.email || 'Unknown',
+      result: 'Error: ' + err.message,
+      status: 'ERROR',
+      errorMessage: err.message
+    });
     return res.status(500).json({ message: 'Server error' });
   }
 });
@@ -264,18 +504,61 @@ router.post('/signup-verify-otp', async (req, res) => {
 router.post('/signup-complete', async (req, res) => {
   try {
     const { email, username, fullName, password } = req.body;
-    if (!email || !username || !password) return res.status(400).json({ message: 'Missing fields' });
+    if (!email || !username || !password) {
+      await logAction('SIGNUP', req, {
+        email: email || 'Not provided',
+        username: username || 'Anonymous',
+        details: 'Signup completion - missing fields',
+        input: email || 'Not provided',
+        result: 'Failed: Missing fields',
+        status: 'FAILED',
+        errorMessage: 'Missing fields'
+      });
+      return res.status(400).json({ message: 'Missing fields' });
+    }
 
     const record = tempSignupOtps[email];
-    if (!record || !record.verified) return res.status(400).json({ message: 'Email not verified' });
+    if (!record || !record.verified) {
+      await logAction('SIGNUP', req, {
+        email: email,
+        username: username,
+        details: 'Signup completion - email not verified',
+        input: email,
+        result: 'Failed: Email not verified',
+        status: 'FAILED',
+        errorMessage: 'Email not verified'
+      });
+      return res.status(400).json({ message: 'Email not verified' });
+    }
+    
     if (record.expiresAt < new Date()) {
       delete tempSignupOtps[email];
+      await logAction('SIGNUP', req, {
+        email: email,
+        username: username,
+        details: 'Signup completion - OTP expired',
+        input: email,
+        result: 'Failed: OTP expired',
+        status: 'FAILED',
+        errorMessage: 'OTP expired'
+      });
       return res.status(400).json({ message: 'OTP expired' });
     }
 
     // check username/email uniqueness again
     const existing = await User.findOne({ $or: [{ email }, { username }] });
-    if (existing) return res.status(400).json({ message: 'Email or username already in use' });
+    if (existing) {
+      await logAction('SIGNUP', req, {
+        email: email,
+        username: username,
+        details: 'Signup completion - duplicate email or username',
+        input: email,
+        result: 'Failed: Email or username already in use',
+        status: 'FAILED',
+        errorMessage: 'Email or username already in use'
+      });
+      return res.status(400).json({ message: 'Email or username already in use' });
+    }
 
     const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
     const user = new User({
@@ -290,9 +573,28 @@ router.post('/signup-complete', async (req, res) => {
     // cleanup temp record
     delete tempSignupOtps[email];
 
+    await logAction('SIGNUP', req, {
+      userId: user._id,
+      email: user.email,
+      username: user.username,
+      details: 'Signup completed successfully',
+      input: email,
+      result: 'Account created successfully',
+      status: 'SUCCESS'
+    });
+
     return res.status(201).json({ message: 'Signup complete', userId: user._id });
   } catch (err) {
     console.error(err);
+    await logAction('SIGNUP', req, {
+      email: req.body?.email || 'Unknown',
+      username: req.body?.username || 'Anonymous',
+      details: 'Signup completion error',
+      input: req.body?.email || 'Unknown',
+      result: 'Error: ' + err.message,
+      status: 'ERROR',
+      errorMessage: err.message
+    });
     return res.status(500).json({ message: 'Server error' });
   }
 });

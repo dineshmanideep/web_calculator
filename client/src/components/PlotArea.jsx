@@ -1,20 +1,22 @@
 import React, { useRef, useState, useCallback } from 'react';
-import Plot from "react-plotly.js";
+import Plot from 'react-plotly.js';
+import { toast } from 'react-toastify';
 import math from '../utils/index.js';
 import { preprocess } from '../utils/mathEngine';
-import { toast } from 'react-toastify';
 
 const MIN_WIDTH = 400;
 const MAX_WIDTH = 900;
 const MIN_HEIGHT = 300;
 const MAX_HEIGHT = 700;
 
-const PlotArea = ({ plotWidth, setPlotWidth, plotHeight, setPlotHeight, setShowPlot, angleMode, calculatorInput, complexMode, onPlotTrigger }) => {
+const PlotArea = ({
+  plotWidth, setPlotWidth, plotHeight, setPlotHeight, setShowPlot, angleMode, calculatorInput, complexMode, onPlotTrigger,
+}) => {
   const [plotData, setPlotData] = useState(null);
   const [xRange, setXRange] = useState([-10, 10]);
   const [isPlotting, setIsPlotting] = useState(false);
   const [plotMode, setPlotMode] = useState('function'); // 'function' or 'complex'
-  
+
   const resizing = useRef({ type: null });
 
   // Update plot mode based on complex mode from calculator
@@ -44,15 +46,15 @@ const PlotArea = ({ plotWidth, setPlotWidth, plotHeight, setPlotHeight, setShowP
       const range = Math.abs(xMax - xMin);
       const numPoints = Math.min(Math.max(500, Math.floor(range * 20)), 5000);
       const step = range / numPoints;
-      
+
       const xs = [];
       const ys = [];
-      
+
       for (let x = xMin; x <= xMax; x += step) {
         try {
           const y = math.evaluate(expr.replace(/x/g, `(${x})`));
           const yVal = typeof y === 'number' ? y : (y.re !== undefined ? y.re : NaN);
-          
+
           if (isFinite(yVal)) {
             xs.push(x);
             ys.push(yVal);
@@ -61,12 +63,12 @@ const PlotArea = ({ plotWidth, setPlotWidth, plotHeight, setPlotHeight, setShowP
           // Skip invalid points
         }
       }
-      
+
       if (xs.length === 0) {
         toast.error('No valid data points to plot. Check your function.');
         return null;
       }
-      
+
       return { x: xs, y: ys };
     } catch (e) {
       toast.error(`Plot generation failed: ${e.message}`);
@@ -79,9 +81,10 @@ const PlotArea = ({ plotWidth, setPlotWidth, plotHeight, setPlotHeight, setShowP
     try {
       // Evaluate the expression
       const result = math.evaluate(expr, { i: math.complex(0, 1) });
-      
+
       // Extract real and imaginary parts
-      let real, imag;
+      let real; let
+        imag;
       if (typeof result === 'number') {
         real = result;
         imag = 0;
@@ -102,7 +105,7 @@ const PlotArea = ({ plotWidth, setPlotWidth, plotHeight, setPlotHeight, setShowP
         imag,
         magnitude,
         angle,
-        expr
+        expr,
       };
     } catch (e) {
       toast.error(`Complex evaluation failed: ${e.message}`);
@@ -112,14 +115,14 @@ const PlotArea = ({ plotWidth, setPlotWidth, plotHeight, setPlotHeight, setShowP
 
   const handlePlotFunction = useCallback((inputExpression = null) => {
     const expressionToPlot = inputExpression || calculatorInput;
-    
+
     if (!expressionToPlot || expressionToPlot.trim() === '') {
       toast.warn('Please enter a function to plot');
       return;
     }
 
     setIsPlotting(true);
-    
+
     try {
       if (plotMode === 'complex') {
         // Complex number mode - no need for 'x'
@@ -135,7 +138,7 @@ const PlotArea = ({ plotWidth, setPlotWidth, plotHeight, setPlotHeight, setShowP
           setIsPlotting(false);
           return;
         }
-        
+
         const data = generatePlotData(expressionToPlot, xRange[0], xRange[1]);
         if (data) {
           setPlotData({ mode: 'function', func: expressionToPlot, ...data });
@@ -152,20 +155,20 @@ const PlotArea = ({ plotWidth, setPlotWidth, plotHeight, setPlotHeight, setShowP
   // Handle zoom/pan events from Plotly (only for function mode)
   const handleRelayout = useCallback((event) => {
     if (plotData?.mode !== 'function') return;
-    
+
     if (event['xaxis.range[0]'] !== undefined && event['xaxis.range[1]'] !== undefined) {
       const newXMin = event['xaxis.range[0]'];
       const newXMax = event['xaxis.range[1]'];
-      
+
       // Check if range changed significantly
       const currentRange = xRange[1] - xRange[0];
       const newRange = newXMax - newXMin;
       const rangeChange = Math.abs(newRange - currentRange) / currentRange;
-      
+
       // Regenerate data if zoomed out/in significantly or panned far
       if (rangeChange > 0.1 || newXMin < xRange[0] || newXMax > xRange[1]) {
         setXRange([newXMin, newXMax]);
-        
+
         if (plotData && plotData.func) {
           const newData = generatePlotData(plotData.func, newXMin, newXMax);
           if (newData) {
@@ -177,17 +180,17 @@ const PlotArea = ({ plotWidth, setPlotWidth, plotHeight, setPlotHeight, setShowP
   }, [xRange, plotData, generatePlotData]);
 
   const onMouseMove = (e) => {
-    if (resizing.current.type === "width") {
+    if (resizing.current.type === 'width') {
       let newWidth = resizing.current.startWidth + (e.clientX - resizing.current.startX);
       newWidth = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, newWidth));
       setPlotWidth(newWidth);
     }
-    if (resizing.current.type === "height") {
+    if (resizing.current.type === 'height') {
       let newHeight = resizing.current.startHeight + (e.clientY - resizing.current.startY);
       newHeight = Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, newHeight));
       setPlotHeight(newHeight);
     }
-    if (resizing.current.type === "corner") {
+    if (resizing.current.type === 'corner') {
       let newWidth = resizing.current.startWidth + (e.clientX - resizing.current.startX);
       let newHeight = resizing.current.startHeight + (e.clientY - resizing.current.startY);
       newWidth = Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, newWidth));
@@ -199,8 +202,8 @@ const PlotArea = ({ plotWidth, setPlotWidth, plotHeight, setPlotHeight, setShowP
 
   const onMouseUp = () => {
     resizing.current.type = null;
-    window.removeEventListener("mousemove", onMouseMove);
-    window.removeEventListener("mouseup", onMouseUp);
+    window.removeEventListener('mousemove', onMouseMove);
+    window.removeEventListener('mouseup', onMouseUp);
   };
 
   const startResize = (type, e) => {
@@ -209,10 +212,10 @@ const PlotArea = ({ plotWidth, setPlotWidth, plotHeight, setPlotHeight, setShowP
       startX: e.clientX,
       startY: e.clientY,
       startWidth: plotWidth,
-      startHeight: plotHeight
+      startHeight: plotHeight,
     };
-    window.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("mouseup", onMouseUp);
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
   };
 
   const headerHeight = 36;
@@ -227,17 +230,19 @@ const PlotArea = ({ plotWidth, setPlotWidth, plotHeight, setPlotHeight, setShowP
         maxWidth: `${MAX_WIDTH}px`,
         minHeight: `${MIN_HEIGHT}px`,
         maxHeight: `${MAX_HEIGHT}px`,
-        transition: "width 0.4s cubic-bezier(0.4,0,0.2,1), height 0.4s cubic-bezier(0.4,0,0.2,1)",
-        zIndex: 10
+        transition: 'width 0.4s cubic-bezier(0.4,0,0.2,1), height 0.4s cubic-bezier(0.4,0,0.2,1)',
+        zIndex: 10,
       }}
     >
       {/* Header */}
       <div className="flex justify-between items-center mb-2" style={{ height: `${headerHeight}px` }}>
         <h2 className="text-white font-semibold text-sm">
-          Plot Area {plotMode === 'complex' ? '(Complex Mode)' : '(Function Mode)'}
+          Plot Area
+          {' '}
+          {plotMode === 'complex' ? '(Complex Mode)' : '(Function Mode)'}
         </h2>
-        <button 
-          onClick={() => setShowPlot(false)} 
+        <button
+          onClick={() => setShowPlot(false)}
           className="text-white bg-gray-700 px-2 rounded hover:bg-gray-600"
         >
           X
@@ -251,7 +256,7 @@ const PlotArea = ({ plotWidth, setPlotWidth, plotHeight, setPlotHeight, setShowP
           minHeight: 0,
           minWidth: 0,
           margin: 0,
-          height: `calc(100% - ${headerHeight}px)`
+          height: `calc(100% - ${headerHeight}px)`,
         }}
       >
         {plotData ? (
@@ -268,7 +273,7 @@ const PlotArea = ({ plotWidth, setPlotWidth, plotHeight, setPlotHeight, setShowP
                   line: { color: '#3b82f6', width: 3 },
                   marker: { size: 10, color: '#3b82f6' },
                   name: 'Complex Number',
-                  hovertemplate: `${plotData.real.toFixed(3)} + ${plotData.imag.toFixed(3)}i<extra></extra>`
+                  hovertemplate: `${plotData.real.toFixed(3)} + ${plotData.imag.toFixed(3)}i<extra></extra>`,
                 },
                 // Projection lines (dashed)
                 {
@@ -278,7 +283,7 @@ const PlotArea = ({ plotWidth, setPlotWidth, plotHeight, setPlotHeight, setShowP
                   mode: 'lines',
                   line: { color: '#9ca3af', width: 1, dash: 'dot' },
                   showlegend: false,
-                  hoverinfo: 'skip'
+                  hoverinfo: 'skip',
                 },
                 {
                   x: [0, plotData.real],
@@ -287,20 +292,22 @@ const PlotArea = ({ plotWidth, setPlotWidth, plotHeight, setPlotHeight, setShowP
                   mode: 'lines',
                   line: { color: '#9ca3af', width: 1, dash: 'dot' },
                   showlegend: false,
-                  hoverinfo: 'skip'
-                }
+                  hoverinfo: 'skip',
+                },
               ]}
               layout={{
                 title: {
-                  text: `z = ${plotData.real.toFixed(3)} + ${plotData.imag.toFixed(3)}i<br>` +
-                        `r = ${plotData.magnitude.toFixed(3)}, θ = ${plotData.angle.toFixed(2)}°`,
-                  font: { size: 14 }
+                  text: `z = ${plotData.real.toFixed(3)} + ${plotData.imag.toFixed(3)}i<br>`
+                        + `r = ${plotData.magnitude.toFixed(3)}, θ = ${plotData.angle.toFixed(2)}°`,
+                  font: { size: 14 },
                 },
                 autosize: true,
                 paper_bgcolor: '#1f2937',
                 plot_bgcolor: '#111827',
                 font: { color: '#fff' },
-                margin: { l: 60, r: 30, t: 80, b: 50 },
+                margin: {
+                  l: 60, r: 30, t: 80, b: 50,
+                },
                 xaxis: {
                   title: 'Real',
                   gridcolor: '#374151',
@@ -309,8 +316,8 @@ const PlotArea = ({ plotWidth, setPlotWidth, plotHeight, setPlotHeight, setShowP
                   color: '#9ca3af',
                   range: [
                     Math.min(-1, plotData.real - Math.abs(plotData.real) * 0.5),
-                    Math.max(1, plotData.real + Math.abs(plotData.real) * 0.5)
-                  ]
+                    Math.max(1, plotData.real + Math.abs(plotData.real) * 0.5),
+                  ],
                 },
                 yaxis: {
                   title: 'Imaginary',
@@ -322,8 +329,8 @@ const PlotArea = ({ plotWidth, setPlotWidth, plotHeight, setPlotHeight, setShowP
                   scaleratio: 1,
                   range: [
                     Math.min(-1, plotData.imag - Math.abs(plotData.imag) * 0.5),
-                    Math.max(1, plotData.imag + Math.abs(plotData.imag) * 0.5)
-                  ]
+                    Math.max(1, plotData.imag + Math.abs(plotData.imag) * 0.5),
+                  ],
                 },
                 annotations: [
                   // Label for the point
@@ -340,17 +347,17 @@ const PlotArea = ({ plotWidth, setPlotWidth, plotHeight, setPlotHeight, setShowP
                     ay: -30,
                     font: { color: '#fff', size: 12 },
                     bgcolor: '#374151',
-                    borderpad: 4
-                  }
-                ]
+                    borderpad: 4,
+                  },
+                ],
               }}
               config={{
                 responsive: true,
                 displayModeBar: true,
-                displaylogo: false
+                displaylogo: false,
               }}
               useResizeHandler
-              style={{ width: "100%", height: "100%" }}
+              style={{ width: '100%', height: '100%' }}
             />
           ) : (
             // Function plot
@@ -361,8 +368,8 @@ const PlotArea = ({ plotWidth, setPlotWidth, plotHeight, setPlotHeight, setShowP
                   y: plotData.y,
                   type: 'scatter',
                   mode: 'lines',
-                  line: { color: '#3b82f6', width: 2 }
-                }
+                  line: { color: '#3b82f6', width: 2 },
+                },
               ]}
               layout={{
                 title: `y = ${plotData.func}`,
@@ -370,29 +377,31 @@ const PlotArea = ({ plotWidth, setPlotWidth, plotHeight, setPlotHeight, setShowP
                 paper_bgcolor: '#1f2937',
                 plot_bgcolor: '#111827',
                 font: { color: '#fff' },
-                margin: { l: 50, r: 20, t: 50, b: 50 },
+                margin: {
+                  l: 50, r: 20, t: 50, b: 50,
+                },
                 xaxis: {
                   title: 'x',
                   gridcolor: '#374151',
                   zerolinecolor: '#4b5563',
-                  color: '#9ca3af'
+                  color: '#9ca3af',
                 },
                 yaxis: {
                   title: 'y',
                   gridcolor: '#374151',
                   zerolinecolor: '#4b5563',
-                  color: '#9ca3af'
-                }
+                  color: '#9ca3af',
+                },
               }}
               config={{
                 responsive: true,
                 displayModeBar: true,
                 modeBarButtonsToAdd: ['pan2d', 'zoom2d', 'zoomIn2d', 'zoomOut2d', 'autoScale2d', 'resetScale2d'],
-                displaylogo: false
+                displaylogo: false,
               }}
               onRelayout={handleRelayout}
               useResizeHandler
-              style={{ width: "100%", height: "100%" }}
+              style={{ width: '100%', height: '100%' }}
             />
           )
         ) : (
@@ -401,7 +410,7 @@ const PlotArea = ({ plotWidth, setPlotWidth, plotHeight, setPlotHeight, setShowP
               {plotMode === 'complex' ? '🔢 Complex Mode' : '📈 Function Mode'}
             </p>
             <p className="text-gray-500 text-sm mb-1">
-              {plotMode === 'complex' 
+              {plotMode === 'complex'
                 ? 'Enter a complex expression (e.g., 3+4i, 2*e^(i*π/4))'
                 : 'Enter a function of x (e.g., sin(x), x^2, tan(x))'}
             </p>
@@ -416,17 +425,17 @@ const PlotArea = ({ plotWidth, setPlotWidth, plotHeight, setPlotHeight, setShowP
       <div
         className="absolute top-0 right-0 h-full w-2 cursor-ew-resize"
         style={{ zIndex: 20 }}
-        onMouseDown={e => startResize("width", e)}
+        onMouseDown={(e) => startResize('width', e)}
       />
       <div
         className="absolute bottom-0 left-0 w-full h-2 cursor-ns-resize"
         style={{ zIndex: 20 }}
-        onMouseDown={e => startResize("height", e)}
+        onMouseDown={(e) => startResize('height', e)}
       />
       <div
         className="absolute bottom-0 right-0 w-3 h-3 cursor-nwse-resize bg-gray-500 rounded"
         style={{ zIndex: 30 }}
-        onMouseDown={e => startResize("corner", e)}
+        onMouseDown={(e) => startResize('corner', e)}
       />
     </div>
   );

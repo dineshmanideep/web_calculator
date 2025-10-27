@@ -1,17 +1,19 @@
-import { useState } from "react";
-import axios from "axios";
-import { Link, useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
-import { Calculator, ArrowLeft, Mail, Lock, User, CheckCircle } from "lucide-react";
+import { useState } from 'react';
+import axios from 'axios';
+import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import {
+  Calculator, ArrowLeft, Mail, Lock, User, CheckCircle,
+} from 'lucide-react';
 
 export default function Signup() {
   const [step, setStep] = useState(1); // 1: email, 2: otp, 3: details
-  const [email, setEmail] = useState("");
-  const [otp, setOtp] = useState("");
-  const [fullName, setFullName] = useState("");
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [otp, setOtp] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [sendingOtp, setSendingOtp] = useState(false);
   const [verifyingOtp, setVerifyingOtp] = useState(false);
   const [completingSignup, setCompletingSignup] = useState(false);
@@ -21,14 +23,14 @@ export default function Signup() {
   // Step 1: send OTP
   const handleSendOtp = async (e) => {
     e.preventDefault();
-    if (!email) return toast.error("Enter email");
+    if (!email) return toast.error('Enter email');
     try {
       setSendingOtp(true);
       await axios.post(`${API}/auth/signup-send-otp`, { email });
-      toast.success("OTP sent to your email");
+      toast.success('OTP sent to your email');
       setStep(2);
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to send OTP");
+      toast.error(err.response?.data?.message || 'Failed to send OTP');
     } finally {
       setSendingOtp(false);
     }
@@ -37,14 +39,14 @@ export default function Signup() {
   // Step 2: verify OTP
   const handleVerifyOtp = async (e) => {
     e.preventDefault();
-    if (!otp) return toast.error("Enter OTP");
+    if (!otp) return toast.error('Enter OTP');
     try {
       setVerifyingOtp(true);
       await axios.post(`${API}/auth/signup-verify-otp`, { email, otp });
-      toast.success("Email verified. Please complete your profile.");
+      toast.success('Email verified. Please complete your profile.');
       setStep(3);
     } catch (err) {
-      toast.error(err.response?.data?.message || "OTP verification failed");
+      toast.error(err.response?.data?.message || 'OTP verification failed');
     } finally {
       setVerifyingOtp(false);
     }
@@ -53,7 +55,7 @@ export default function Signup() {
   // Step 3: complete signup
   const handleCompleteSignup = async (e) => {
     e.preventDefault();
-    if (password !== confirmPassword) return toast.error("Passwords do not match");
+    if (password !== confirmPassword) return toast.error('Passwords do not match');
     try {
       setCompletingSignup(true);
       await axios.post(`${API}/auth/signup-complete`, {
@@ -62,10 +64,10 @@ export default function Signup() {
         fullName,
         password,
       });
-      toast.success("Signup successful. Please login.");
-      navigate("/login");
+      toast.success('Signup successful. Please login.');
+      navigate('/login');
     } catch (err) {
-      toast.error(err.response?.data?.message || "Signup failed");
+      toast.error(err.response?.data?.message || 'Signup failed');
     } finally {
       setCompletingSignup(false);
     }
@@ -74,8 +76,8 @@ export default function Signup() {
   return (
     <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center px-4">
       {/* Back to Home */}
-      <Link 
-        to="/" 
+      <Link
+        to="/"
         className="absolute top-4 left-4 flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
       >
         <ArrowLeft className="w-5 h-5" />
@@ -117,7 +119,7 @@ export default function Signup() {
         <form onSubmit={handleSendOtp} className="bg-gray-800 p-8 rounded-lg shadow-xl w-full max-w-md border border-gray-700">
           <h2 className="text-white text-2xl mb-2 text-center font-semibold">Create Account</h2>
           <p className="text-gray-400 text-sm text-center mb-6">Enter your email to get started</p>
-          
+
           <div className="mb-6">
             <label className="block text-gray-400 text-sm mb-2">Email Address</label>
             <div className="relative">
@@ -133,13 +135,13 @@ export default function Signup() {
               />
             </div>
           </div>
-          
+
           <button
             type="submit"
             className="w-full p-3 bg-purple-600 hover:bg-purple-500 rounded text-white font-semibold transition-colors disabled:opacity-50"
             disabled={sendingOtp}
           >
-            {sendingOtp ? "Sending OTP..." : "Continue"}
+            {sendingOtp ? 'Sending OTP...' : 'Continue'}
           </button>
         </form>
       )}
@@ -148,8 +150,11 @@ export default function Signup() {
       {step === 2 && (
         <form onSubmit={handleVerifyOtp} className="bg-gray-800 p-8 rounded-lg shadow-xl w-full max-w-md border border-gray-700">
           <h2 className="text-white text-2xl mb-2 text-center font-semibold">Verify Email</h2>
-          <p className="text-gray-400 text-sm text-center mb-6">Enter the 6-digit code sent to {email}</p>
-          
+          <p className="text-gray-400 text-sm text-center mb-6">
+            Enter the 6-digit code sent to
+            {email}
+          </p>
+
           <div className="mb-6">
             <label className="block text-gray-400 text-sm mb-2">Verification Code</label>
             <input
@@ -163,22 +168,22 @@ export default function Signup() {
               disabled={verifyingOtp}
             />
           </div>
-          
+
           <div className="flex gap-3">
-            <button 
-              type="button" 
+            <button
+              type="button"
               onClick={() => setStep(1)}
               className="flex-1 p-3 bg-gray-700 hover:bg-gray-600 rounded text-white font-semibold transition-colors"
               disabled={verifyingOtp}
             >
               Back
             </button>
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="flex-1 p-3 bg-purple-600 hover:bg-purple-500 rounded text-white font-semibold transition-colors disabled:opacity-50"
               disabled={verifyingOtp}
             >
-              {verifyingOtp ? "Verifying..." : "Verify"}
+              {verifyingOtp ? 'Verifying...' : 'Verify'}
             </button>
           </div>
         </form>
@@ -189,7 +194,7 @@ export default function Signup() {
         <form onSubmit={handleCompleteSignup} className="bg-gray-800 p-8 rounded-lg shadow-xl w-full max-w-md border border-gray-700">
           <h2 className="text-white text-2xl mb-2 text-center font-semibold">Complete Profile</h2>
           <p className="text-gray-400 text-sm text-center mb-6">Fill in your details to finish signup</p>
-          
+
           <div className="space-y-4 mb-6">
             <div>
               <label className="block text-gray-400 text-sm mb-2">Full Name</label>
@@ -206,7 +211,7 @@ export default function Signup() {
                 />
               </div>
             </div>
-            
+
             <div>
               <label className="block text-gray-400 text-sm mb-2">Username</label>
               <div className="relative">
@@ -222,7 +227,7 @@ export default function Signup() {
                 />
               </div>
             </div>
-            
+
             <div>
               <label className="block text-gray-400 text-sm mb-2">Password</label>
               <div className="relative">
@@ -238,7 +243,7 @@ export default function Signup() {
                 />
               </div>
             </div>
-            
+
             <div>
               <label className="block text-gray-400 text-sm mb-2">Confirm Password</label>
               <div className="relative">
@@ -255,20 +260,21 @@ export default function Signup() {
               </div>
             </div>
           </div>
-          
+
           <button
             type="submit"
             className="w-full p-3 bg-purple-600 hover:bg-purple-500 rounded text-white font-semibold transition-colors disabled:opacity-50"
             disabled={completingSignup}
           >
-            {completingSignup ? "Creating Account..." : "Create Account"}
+            {completingSignup ? 'Creating Account...' : 'Create Account'}
           </button>
         </form>
       )}
 
       {/* Login Link */}
       <p className="text-gray-400 mt-6 text-center">
-        Already have an account?{" "}
+        Already have an account?
+        {' '}
         <Link to="/login" className="text-purple-400 hover:text-purple-300 font-semibold transition-colors">
           Sign In
         </Link>
