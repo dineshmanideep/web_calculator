@@ -3,7 +3,6 @@ import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import CalculatorInput from '../components/CalculatorInput';
 import PlotArea from '../components/PlotArea';
-import MatrixModal from '../components/MatrixModal';
 import LastLoginInfo from '../components/LastLoginInfo';
 import useCalculatorHistory from '../hooks/useCalculatorHistory';
 import useMatrixOperations from '../hooks/useMatrixOperations';
@@ -17,7 +16,7 @@ export default function Calculator({ user, onSignOut }) {
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [showMatrixModal, setShowMatrixModal] = useState(false);
   const inputRef = useRef(null);
-
+  
   // Use history hook
   const {
     history,
@@ -92,7 +91,6 @@ export default function Calculator({ user, onSignOut }) {
       // When complex mode is disabled, hide complex plot
       setShowComplexPlot(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [complexMode]);
 
   // Render
@@ -139,7 +137,6 @@ export default function Calculator({ user, onSignOut }) {
                 Sign Out
               </button>
               <div className="flex gap-2 p-2">
-                {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
                 <label htmlFor="angle-mode-select" className="text-white text-sm">Mode:</label>
                 <select
                   id="angle-mode-select"
@@ -234,21 +231,14 @@ export default function Calculator({ user, onSignOut }) {
               <div className="flex flex-col gap-1 overflow-y-auto text-sm font-mono text-white max-h-96">
                 {history.length === 0 && <div className="text-gray-400">No history</div>}
                 {history.map((item, i) => (
-                  // eslint-disable-next-line react/no-array-index-key
-                  <button
-                    key={`history-${i}`}
+                  <div
+                    key={i + item}
                     onClick={() => handleHistoryClick(item)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        handleHistoryClick(item);
-                      }
-                    }}
-                    className="cursor-pointer hover:bg-gray-700 p-1 rounded text-left"
+                    className="cursor-pointer hover:bg-gray-700 p-1 rounded"
                     title="Click to load this expression"
-                    type="button"
                   >
                     {item}
-                  </button>
+                  </div>
                 ))}
               </div>
 
@@ -256,17 +246,6 @@ export default function Calculator({ user, onSignOut }) {
           </div>
         </div>
       </div>
-
-      {/* Matrix Modal */}
-      <MatrixModal
-        show={showMatrixModal}
-        onClose={() => {
-          setShowMatrixModal(false);
-          toast.info('Matrix modal closed');
-        }}
-        onResult={handleMatrixResult}
-        initialInput={input}
-      />
     </div>
   );
 }
