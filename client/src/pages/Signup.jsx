@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 
 export default function Signup() {
-  const [step, setStep] = useState(1); // 1: email, 2: otp, 3: details
+  const [step, setStep] = useState(1);
   const [email, setEmail] = useState('');
   const [otp, setOtp] = useState('');
   const [fullName, setFullName] = useState('');
@@ -67,10 +67,30 @@ export default function Signup() {
     }
   };
 
+   const validatePassword = (password) => {
+    const minLength = password.length >= 8;
+    const hasLower = /[a-z]/.test(password);
+    const hasUpper = /[A-Z]/.test(password);
+    const hasNumber = /\d/.test(password);
+    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    return { minLength, hasLower, hasUpper, hasNumber, hasSpecial };
+  };
+
+
   // Step 3: complete signup
   const handleCompleteSignup = async (e) => {
     e.preventDefault();
-    if (password !== confirmPassword) return toast.error('Passwords do not match');
+    if (password !== confirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
+
+    const checks = validatePassword(password);
+    if (!Object.values(checks).every(Boolean)) {
+      toast.error('Password must meet all the required rules');
+      return;
+    }
+
     try {
       setCompletingSignup(true);
       await axios.post(`${API}/auth/signup-complete`, {
@@ -87,6 +107,7 @@ export default function Signup() {
       setCompletingSignup(false);
     }
   };
+
 
   return (
     <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center px-4">
@@ -274,6 +295,17 @@ export default function Signup() {
                 />
               </div>
             </div>
+            <div className="bg-gray-700 text-gray-300 text-sm p-4 rounded-lg border border-gray-600 mt-4">
+                <p className="font-semibold mb-1 text-purple-400">Password must contain:</p>
+                <ul className="list-disc ml-5 space-y-1">
+                  <li>At least 8 characters</li>
+                  <li>At least one lowercase letter</li>
+                  <li>At least one uppercase letter</li>
+                  <li>At least one number</li>
+                  <li>At least one special character (!@#$%^&amp;*)</li>
+                </ul>
+            </div>
+
           </div>
 
           <button
