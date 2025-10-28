@@ -2,11 +2,11 @@
  * ModeToolbar
  *
  * Purpose:
- * Renders calculator mode toggle buttons (ML, Calculus, Complex, Matrix, Inverse, Plot)
+ * Renders calculator mode toggle buttons (DL, Calculus, Complex, Matrix, Inverse, Plot)
  * and manages their active states with toast feedback.
  *
  * Parameters:
- * - mlMode, setMlMode: control ML mode
+ * - DLMode, setDLMode: control DL mode
  * - calculusMode, setCalculusMode: control calculus mode
  * - complexMode, setComplexMode: control complex mode
  * - matrixMode, setMatrixMode: control matrix mode
@@ -21,8 +21,8 @@ import React from 'react';
 import { toast } from 'react-toastify';
 
 function ModeToolbar({
-  mlMode,
-  setMlMode,
+  DLMode,
+  setDLMode,
   calculusMode,
   setCalculusMode,
   complexMode,
@@ -41,7 +41,7 @@ function ModeToolbar({
 
     // Turn off other modes (except inverse which works independently)
     if (modeName !== 'inverse') {
-      if (modeName !== 'ml') setMlMode(false);
+      if (modeName !== 'DL') setDLMode(false);
       if (modeName !== 'calculus') setCalculusMode(false);
       if (modeName !== 'complex') setComplexMode(false);
       if (modeName !== 'matrix') setMatrixMode(false);
@@ -61,11 +61,11 @@ function ModeToolbar({
   return (
     <div className="flex flex-wrap gap-2 justify-between">
       <button
-        onClick={() => toggleMode('ml', mlMode, setMlMode)}
-        className={`px-3 py-1 rounded ${mlMode ? 'bg-indigo-600' : 'bg-gray-700'} text-white`}
+        onClick={() => toggleMode('DL', DLMode, setDLMode)}
+        className={`px-3 py-1 rounded ${DLMode ? 'bg-indigo-600' : 'bg-gray-700'} text-white`}
         type="button"
       >
-        ML
+        DL
       </button>
 
       <button

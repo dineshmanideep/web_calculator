@@ -7,7 +7,7 @@
  * Separates computation logic from UI and manages result display and history updates.
  *
  * Parameters:
- * - mlMode, calculusMode, complexMode, matrixMode (bool): active calculation modes.
+ * - DLMode, calculusMode, complexMode, matrixMode (bool): active calculation modes.
  * - angleMode (string): angle unit setting ("deg" or "rad").
  * - currentInput (string): current expression entered by the user.
  * - setCurrentInput (function): updates calculator input.
@@ -29,7 +29,7 @@ import { evaluateExpression } from '../utils/evaluator';
  * Separates evaluation concerns from UI component
  */
 function useCalculatorEvaluation({
-  mlMode,
+  DLMode,
   calculusMode,
   complexMode,
   matrixMode,
@@ -56,9 +56,9 @@ function useCalculatorEvaluation({
       // Determine which mode is active
       let result;
 
-      if (mlMode) {
+      if (DLMode) {
         result = evaluateExpression(currentInput, {
-          mode: 'ml',
+          mode: 'DL',
           angleMode,
         });
       } else if (calculusMode) {
@@ -92,7 +92,7 @@ function useCalculatorEvaluation({
         pushHistory({
           expression: currentInput,
           result: resultString,
-          mode: mlMode ? 'ML' : calculusMode ? 'Calculus' : complexMode ? 'Complex' : 'Standard',
+          mode: DLMode ? 'DL' : calculusMode ? 'Calculus' : complexMode ? 'Complex' : 'Standard',
         });
 
         toast.success('Calculated!');
@@ -105,7 +105,7 @@ function useCalculatorEvaluation({
     }
   }, [
     currentInput,
-    mlMode,
+    DLMode,
     calculusMode,
     complexMode,
     matrixMode,

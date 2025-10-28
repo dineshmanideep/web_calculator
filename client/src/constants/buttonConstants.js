@@ -17,8 +17,17 @@
 export const COMPLEX_BUTTONS = ['i', 're(', 'im(', 'conj(', 'abs(', 'arg('];
 
 
-export const ML_BUTTONS = ['BestFit', 'Params', 'WOpt', 'RF', 'LR', 'FeatImp'];
-
+export const DL_BUTTONS = [
+    'C→O',
+    'P→O',
+    'PSAME',
+    'PDOUT',
+    'TC→O',
+    'C1D→P',
+    'TC1D→P',
+    'C2D→P',
+    'TC2D→P'
+  ];
 
 export const CONSTANT_BUTTONS = ['π', 'e'];
 

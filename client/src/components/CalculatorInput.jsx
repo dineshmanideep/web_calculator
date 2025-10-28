@@ -7,7 +7,7 @@
  *
  * Features:
  * - Input field and result management
- * - Mode toolbar (ML, Calculus, Complex, Matrix, Inverse, Plot)
+ * - Mode toolbar (DL, Calculus, Complex, Matrix, Inverse, Plot)
  * - Matrix operation handling and display
  * - History tracking and clearing
  * - Keyboard shortcuts for efficient input
@@ -30,7 +30,7 @@ import ModeToolbar from './ModeToolbar';
 import MatrixStatusDisplay from './MatrixStatusDisplay';
 import { useCalculatorContext } from '../contexts/CalculatorContext';
 import useKeyboardShortcuts from '../hooks/useKeyboardShortcuts';
-import { MATRIX_BUTTONS } from '../constants/buttonConstants';
+import { MATRIX_BUTTONS, DL_BUTTONS } from '../constants/buttonConstants';
 
 function CalculatorInput() {
   const {
@@ -40,8 +40,8 @@ function CalculatorInput() {
     angleMode,
     lastAnswer,
     pushHistory,
-    mlMode,
-    setMlMode,
+    DLMode,
+    setDLMode,
     calculusMode,
     setCalculusMode,
     complexMode,
@@ -60,16 +60,52 @@ function CalculatorInput() {
     showInfo,
     setShowInfo,
     showMatrixModal,
+    // DL parameter collection
+    dlActiveOp,
+    dlParamIndex,
+    dlParams,
+    dlSchema,
+    startDLOperation,
+    handleDLEquals,
+    cancelDLOperation,
   } = useCalculatorContext();
 
   const handleEquals = useCallback(() => {
     if (!input || input.trim() === '') {
+      // During DL param collection, avoid toast; rely on placeholder prompt
+      if (DLMode && dlActiveOp) {
+        inputRef.current?.focus();
+        return;
+      }
       toast.warn('Please enter an expression first');
       inputRef.current?.focus();
       return;
     }
 
     try {
+      // If a DL operation is active, treat '=' as parameter accept/compute
+      if (DLMode && dlActiveOp) {
+        const opKey = dlActiveOp.key;
+        const schema = dlSchema || [];
+        const prevParams = dlParams || [];
+        const res = handleDLEquals(input, angleMode);
+        if (!res) return;
+        if (res.type === 'continue') {
+          setInput('');
+          return;
+        }
+        if (res.type === 'done') {
+          const fullParams = schema.map((_, i) => (i < prevParams.length ? prevParams[i] : input));
+          const label = `${opKey}(${fullParams.join(', ')})`;
+          const resultStr = String(res.value);
+          pushHistory(label, resultStr);
+          setInput(resultStr);
+          toast.success('Calculation complete!');
+          inputRef.current?.focus();
+          return;
+        }
+      }
+
       // If in matrix mode and there's a pending operation, execute it
       if (matrixMode && firstMatrix && matrixOperation) {
         // Trigger the matrix operation to complete with the current input as second matrix
@@ -86,7 +122,7 @@ function CalculatorInput() {
       console.error('Evaluation error:', err);
     }
     inputRef.current?.focus();
-  }, [input, angleMode, pushHistory, setInput, inputRef, matrixMode, firstMatrix, matrixOperation, handleMatrixOperation]);
+  }, [input, angleMode, pushHistory, setInput, inputRef, matrixMode, firstMatrix, matrixOperation, handleMatrixOperation, DLMode, dlActiveOp, dlSchema, dlParams, handleDLEquals]);
 
   const handleClick = useCallback(
     (btn) => {
@@ -98,6 +134,12 @@ function CalculatorInput() {
 
       if (btn === 'C') {
         setInput('');
+        // Cancel DL parameter collection if active
+        if (DLMode && dlActiveOp) {
+          cancelDLOperation();
+          toast.info('DL operation canceled');
+          return;
+        }
         // Clear matrix operation if in matrix mode
         if (matrixMode && handleMatrixClear) {
           handleMatrixClear();
@@ -135,9 +177,10 @@ function CalculatorInput() {
         return;
       }
 
-      // ML operations - removed startParamSequence as it's not in context
-      if (mlMode && btn === 'Params') {
-        toast.info('ML Parameters feature - implement parameter collection');
+      // DL operations: start parameter collection for selected DL op
+      if (DLMode && DL_BUTTONS.includes(btn)) {
+        startDLOperation(btn, input);
+        setInput('');
         return;
       }
 
@@ -150,19 +193,24 @@ function CalculatorInput() {
       setInput((s) => s + btn);
       inputRef.current?.focus();
     },
-    [inputRef, lastAnswer, handleEquals, setInput, mlMode,
-      input, complexMode, matrixMode, handleMatrixClear, handleMatrixOperation, setComplexMode],
+    [inputRef, lastAnswer, handleEquals, setInput, DLMode,
+      input, complexMode, matrixMode, handleMatrixClear, handleMatrixOperation, setComplexMode, startDLOperation, dlActiveOp, cancelDLOperation],
   );
 
   // Use keyboard shortcuts hook for cleaner code
   useKeyboardShortcuts(inputRef, showMatrixModal, handleEquals, setInput);
 
+  // Dynamic placeholder for DL parameter collection
+  const inputPlaceholder = (DLMode && dlActiveOp)
+    ? `Enter ${dlSchema?.[dlParamIndex] || 'parameter'}`
+    : 'Enter expression';
+
   return (
     <div className="bg-gray-800 p-4 rounded-lg shadow-md flex flex-col gap-3">
       {/* Mode Toggle Toolbar */}
       <ModeToolbar
-        mlMode={mlMode}
-        setMlMode={setMlMode}
+        DLMode={DLMode}
+        setDLMode={setDLMode}
         calculusMode={calculusMode}
         setCalculusMode={setCalculusMode}
         complexMode={complexMode}
@@ -190,11 +238,11 @@ function CalculatorInput() {
           className="bg-gray-700 text-white p-3 rounded text-lg font-mono text-right shadow-inner flex-1"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Enter expression"
+          placeholder={inputPlaceholder}
         />
         <button
           onClick={() => setShowInfo(true)}
-          className="ml-2 w-8 h-8 rounded-full bg-yellow-500 text-white font-bold text-lg flex items-center justify-center shadow hover:bg-yellow-600"
+          className="DL-2 w-8 h-8 rounded-full bg-yellow-500 text-white font-bold text-lg flex items-center justify-center shadow hover:bg-yellow-600"
           title="Calculator Help"
         >
           ?
@@ -206,7 +254,7 @@ function CalculatorInput() {
       <ButtonGrid
         inverseMode={inverseMode}
         complexMode={complexMode}
-        mlMode={mlMode}
+        DLMode={DLMode}
         calculusMode={calculusMode}
         matrixMode={matrixMode}
         handleClick={handleClick}

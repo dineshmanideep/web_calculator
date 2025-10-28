@@ -3,11 +3,11 @@
  *
  * Purpose:
  * Renders all calculator buttons dynamically based on the active mode.
- * Groups buttons into functional categories (trig, matrix, calculus, ML, constants, base keypad)
+ * Groups buttons into functional categories (trig, matrix, calculus, DL, constants, base keypad)
  * and applies distinct styling for each.
  *
  * Features:
- * - Supports multiple modes (inverse, complex, ML, calculus, matrix)
+ * - Supports multiple modes (inverse, complex, DL, calculus, matrix)
  * - Dynamically switches between standard and inverse trigonometric buttons
  * - Consistent grid layout and color-coded button groups
  * - Delegates all button click logic to parent via handleClick
@@ -15,7 +15,7 @@
  * Parameters:
  * - inverseMode (boolean): Toggles between standard and inverse trig functions
  * - complexMode (boolean): Enables complex number operation buttons
- * - mlMode (boolean): Enables machine learning operation buttons
+ * - DLMode (boolean): Enables machine learning operation buttons
  * - calculusMode (boolean): Enables calculus operation buttons
  * - matrixMode (boolean): Enables matrix operation buttons
  * - handleClick (function): Handles button press logic
@@ -27,7 +27,7 @@
 import React from 'react';
 import {
   COMPLEX_BUTTONS,
-  ML_BUTTONS,
+  DL_BUTTONS,
   CONSTANT_BUTTONS,
   CALCULUS_BUTTONS,
   MATRIX_BUTTONS,
@@ -39,7 +39,7 @@ import {
 function ButtonGrid({
   inverseMode,
   complexMode,
-  mlMode,
+  DLMode,
   calculusMode,
   matrixMode,
   handleClick,
@@ -77,10 +77,10 @@ function ButtonGrid({
         </div>
       )}
 
-      {/* ML mode buttons */}
-      {mlMode && (
+      {/* DL mode buttons */}
+      {DLMode && (
         <div className="grid grid-cols-3 gap-2">
-          {ML_BUTTONS.map((b) => (
+          {DL_BUTTONS.map((b) => (
             <button
               key={b}
               onClick={() => handleClick(b)}
