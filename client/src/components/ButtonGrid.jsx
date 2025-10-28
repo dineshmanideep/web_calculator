@@ -31,6 +31,7 @@ import {
   CONSTANT_BUTTONS,
   CALCULUS_BUTTONS,
   MATRIX_BUTTONS,
+  PLOT_BUTTONS,
   BASE_BUTTONS,
   INVERSE_BUTTONS,
   STANDARD_BUTTONS,
@@ -42,6 +43,7 @@ function ButtonGrid({
   DLMode,
   calculusMode,
   matrixMode,
+  plotMode,
   handleClick,
 }) {
   const AdvFxnButtons = inverseMode ? INVERSE_BUTTONS : STANDARD_BUTTONS;
@@ -117,6 +119,22 @@ function ButtonGrid({
               key={b}
               onClick={() => handleClick(b)}
               className="p-2 bg-indigo-700 hover:bg-indigo-600 rounded text-white text-sm font-medium transition-colors shadow-md"
+              type="button"
+            >
+              {b}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Plot mode buttons */}
+      {plotMode && (
+        <div className="grid grid-cols-2 gap-2">
+          {PLOT_BUTTONS.map((b) => (
+            <button
+              key={b}
+              onClick={() => handleClick(b)}
+              className="p-2 bg-purple-700 hover:bg-purple-600 rounded text-white text-sm font-medium transition-colors shadow-md"
               type="button"
             >
               {b}

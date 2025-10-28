@@ -7,17 +7,17 @@ class ValidationError extends Error {
   }
 }
 
-const MAX_SAFE_DIM = 1e5;
-const MAX_SAFE_CHANNELS = 1e4;
+const maxSafeDim = 1e5;
+const maxSafeChannels = 1e4;
 
 const validateInput = (name, value, options = {}) => {
-  const { 
-    max = MAX_SAFE_DIM,
+  const {
+    max = maxSafeDim,
     isGroups = false,
     isStride = false,
     isOpad = false,
     isDilation = false,
-    stride = null 
+    stride = null,
   } = options;
 
   // Reject empty/null values
@@ -57,7 +57,7 @@ const validateInput = (name, value, options = {}) => {
 
   if (isOpad && stride) {
     if (num < 0 || num >= stride) {
-      toast.error(`Output padding must be between 0 and stride-1 (${stride-1})`);
+      toast.error(`Output padding must be between 0 and stride-1 (${stride - 1})`);
       throw new ValidationError('Invalid output padding');
     }
   }
@@ -70,25 +70,25 @@ const validateInput = (name, value, options = {}) => {
   return num;
 };
 
-const validateGroupedChannels = (Cin, Cout, groups) => {
-  if (Cin % groups !== 0) {
-    toast.error(`Input channels (${Cin}) must be divisible by groups (${groups})`);
+const validateGroupedChannels = (cIn, cOut, groups) => {
+  if (cIn % groups !== 0) {
+    toast.error(`Input channels (${cIn}) must be divisible by groups (${groups})`);
     throw new ValidationError('Invalid group configuration: input channels');
   }
-  if (Cout % groups !== 0) {
-    toast.error(`Output channels (${Cout}) must be divisible by groups (${groups})`);
+  if (cOut % groups !== 0) {
+    toast.error(`Output channels (${cOut}) must be divisible by groups (${groups})`);
     throw new ValidationError('Invalid group configuration: output channels');
   }
-  if (Cout < groups) {
-    toast.error(`Output channels (${Cout}) must be >= groups (${groups})`);
+  if (cOut < groups) {
+    toast.error(`Output channels (${cOut}) must be >= groups (${groups})`);
     throw new ValidationError('Invalid group configuration: insufficient outputs');
   }
 };
 
-const validateKernelSize = (L_in, K, P, d = 1, name = '') => {
-  const effectiveKernel = d * (K - 1) + 1;
-  const paddedInput = L_in + 2 * P;
-  
+const validateKernelSize = (lIn, k, p, d = 1, name = '') => {
+  const effectiveKernel = d * (k - 1) + 1;
+  const paddedInput = lIn + 2 * p;
+
   if (effectiveKernel > paddedInput) {
     toast.error(`${name}: Effective kernel size (${effectiveKernel}) exceeds padded input (${paddedInput})`);
     throw new ValidationError(`Invalid kernel configuration: ${name}`);
@@ -111,29 +111,29 @@ const handleCatch = (error, fallbackMsg) => {
  * Formula: L_out = floor((L_in + 2P - d*(K - 1) - 1) / S) + 1
  */
 export function convOut1D({
-  L_in, K, S, P, d = 1,
+  lIn, k, s, p, d = 1,
 }) {
   try {
     const inputs = {
-      L_in: validateInput('Input length', L_in),
-      K: validateInput('Kernel size', K),
-      S: validateInput('Stride', S, { isStride: true }),
-      P: validateInput('Padding', P),
-      d: validateInput('Dilation', d, { isDilation: true })
+      lIn: validateInput('Input length', lIn),
+      k: validateInput('Kernel size', k),
+      s: validateInput('Stride', s, { isStride: true }),
+      p: validateInput('Padding', p),
+      d: validateInput('Dilation', d, { isDilation: true }),
     };
 
-    validateKernelSize(inputs.L_in, inputs.K, inputs.P, inputs.d, 'Conv1D');
+    validateKernelSize(inputs.lIn, inputs.k, inputs.p, inputs.d, 'Conv1D');
 
-    const L_out = Math.floor((inputs.L_in + 2 * inputs.P - inputs.d * (inputs.K - 1) - 1) / inputs.S) + 1;
+    const lOut = Math.floor((inputs.lIn + 2 * inputs.p - inputs.d * (inputs.k - 1) - 1) / inputs.s) + 1;
 
-    if (L_out < 1) {
-      toast.error(`Invalid output length (${L_out}): configuration results in zero or negative output size`);
+    if (lOut < 1) {
+      toast.error(`Invalid output length (${lOut}): configuration results in zero or negative output size`);
       throw new Error('Invalid output length');
     }
 
     return {
-      L_out,
-      explain: `Output length ${L_out} computed with L_in=${L_in}, K=${K}, S=${S}, P=${P}, d=${d}`,
+      lOut,
+      explain: `Output length ${lOut} computed with lIn=${lIn}, k=${k}, s=${s}, p=${p}, d=${d}`,
     };
   } catch (error) {
     handleCatch(error, 'Convolution calculation failed');
@@ -145,28 +145,28 @@ export function convOut1D({
  * Formula: L_out = (L_in - 1) * S - 2P + d*(K - 1) + opad + 1
  */
 export function transOut1D({
-  L_in, K, S, P, opad = 0, d = 1,
+  lIn, k, s, p, oPad = 0, d = 1,
 }) {
   try {
     const inputs = {
-      L_in: validateInput('Input length', L_in),
-      K: validateInput('Kernel size', K),
-      S: validateInput('Stride', S, { isStride: true }),
-      P: validateInput('Padding', P),
-      opad: validateInput('Output padding', opad, { isOpad: true, stride: S }),
-      d: validateInput('Dilation', d, { isDilation: true })
+      lIn: validateInput('Input length', lIn),
+      k: validateInput('Kernel size', k),
+      s: validateInput('Stride', s, { isStride: true }),
+      p: validateInput('Padding', p),
+      oPad: validateInput('Output padding', oPad, { isOpad: true, stride: s }),
+      d: validateInput('Dilation', d, { isDilation: true }),
     };
 
-    const L_out = (inputs.L_in - 1) * inputs.S - 2 * inputs.P + inputs.d * (inputs.K - 1) + inputs.opad + 1;
+    const lOut = (inputs.lIn - 1) * inputs.s - 2 * inputs.p + inputs.d * (inputs.k - 1) + inputs.oPad + 1;
 
-     if (L_out < 1) {
-      toast.error(`Invalid output length (${L_out}): configuration results in zero or negative output size`);
+    if (lOut < 1) {
+      toast.error(`Invalid output length (${lOut}): configuration results in zero or negative output size`);
       throw new Error('Invalid output length');
     }
 
     return {
-      L_out,
-      explain: `Output length ${L_out} computed with L_in=${L_in}, K=${K}, S=${S}, P=${P}, opad=${opad}, d=${d}`,
+      lOut,
+      explain: `Output length ${lOut} computed with lIn=${lIn}, k=${k}, s=${s}, p=${p}, oPad=${oPad}, d=${d}`,
     };
   } catch (error) {
     handleCatch(error, 'Transposed convolution calculation failed');
@@ -177,26 +177,26 @@ export function transOut1D({
  * Compute SAME padding per side to maintain output length ≈ ceil(L_in / S).
  */
 export function padSame1D({
-  L_in, K, S, d = 1,
+  lIn, k, s, d = 1,
 }) {
   try {
     const inputs = {
-      L_in: validateInput('Input length', L_in),
-      K: validateInput('Kernel size', K),
-      S: validateInput('Stride', S, { isStride: true }),
-      d: validateInput('Dilation', d, { isDilation: true })
+      lIn: validateInput('Input length', lIn),
+      k: validateInput('Kernel size', k),
+      s: validateInput('Stride', s, { isStride: true }),
+      d: validateInput('Dilation', d, { isDilation: true }),
     };
 
-    if (inputs.K > inputs.L_in * 2) {
-      toast.error(`Kernel size (${inputs.K}) too large for SAME padding with input length (${inputs.L_in})`);
+    if (inputs.k > inputs.lIn * 2) {
+      toast.error(`Kernel size (${inputs.k}) too large for SAME padding with input length (${inputs.lIn})`);
       throw new Error('Invalid kernel for SAME padding');
     }
 
-    const L_out = Math.ceil(inputs.L_in / inputs.S);
-    const P = Math.max(0, Math.ceil(((L_out - 1) * inputs.S + inputs.d * (inputs.K - 1) + 1 - inputs.L_in) / 2));
+    const lOut = Math.ceil(inputs.lIn / inputs.s);
+    const p = Math.max(0, Math.ceil(((lOut - 1) * inputs.s + inputs.d * (inputs.k - 1) + 1 - inputs.lIn) / 2));
 
     return {
-      P,
+      p,
       explain: 'Padding (per side) to achieve SAME output length.',
     };
   } catch (error) {
@@ -208,26 +208,26 @@ export function padSame1D({
  * Compute padding required to reach a desired output length.
  */
 export function padDiff1D({
-  L_in, K, S, L_out_desired, d = 1,
+  lIn, k, s, desiredLOut, d = 1,
 }) {
   try {
     const inputs = {
-      L_in: validateInput('Input length', L_in),
-      K: validateInput('Kernel size', K),
-      S: validateInput('Stride', S, { isStride: true }),
-      L_out_desired: validateInput('Desired output length', L_out_desired),
-      d: validateInput('Dilation', d, { isDilation: true })
+      lIn: validateInput('Input length', lIn),
+      k: validateInput('Kernel size', k),
+      s: validateInput('Stride', s, { isStride: true }),
+      desiredLOut: validateInput('Desired output length', desiredLOut),
+      d: validateInput('Dilation', d, { isDilation: true }),
     };
 
-    if (inputs.L_out_desired < Math.ceil(inputs.L_in / inputs.S)) {
-      toast.error(`Desired output length (${inputs.L_out_desired}) too small for input length (${inputs.L_in})`);
+    if (inputs.desiredLOut < Math.ceil(inputs.lIn / inputs.s)) {
+      toast.error(`Desired output length (${inputs.desiredLOut}) too small for input length (${inputs.lIn})`);
       throw new Error('Invalid desired output length');
     }
 
-    const P = Math.ceil(((inputs.L_out_desired - 1) * inputs.S + inputs.d * (inputs.K - 1) + 1 - inputs.L_in) / 2);
+    const p = Math.ceil(((inputs.desiredLOut - 1) * inputs.s + inputs.d * (inputs.k - 1) + 1 - inputs.lIn) / 2);
 
     return {
-      P,
+      p,
       explain: 'Padding (per side) to reach a specific desired output length.',
     };
   } catch (error) {
@@ -240,35 +240,35 @@ export function padDiff1D({
  * Formula: L_out = floor((L_in + 2P - K) / S) + 1
  */
 export function poolOut1D({
-  L_in, K, S, P,
+  lIn, k, s, p,
 }) {
   try {
     const inputs = {
-      L_in: validateInput('Input length', L_in),
-      K: validateInput('Kernel size', K),
-      S: validateInput('Stride', S, { isStride: true }),
-      P: validateInput('Padding', P),
+      lIn: validateInput('Input length', lIn),
+      k: validateInput('Kernel size', k),
+      s: validateInput('Stride', s, { isStride: true }),
+      p: validateInput('Padding', p),
     };
 
-    if (inputs.K > inputs.L_in + 2 * inputs.P) {
-      toast.error(`Pool kernel (${inputs.K}) larger than padded input (${inputs.L_in + 2 * inputs.P})`);
+    if (inputs.k > inputs.lIn + 2 * inputs.p) {
+      toast.error(`Pool kernel (${inputs.k}) larger than padded input (${inputs.lIn + 2 * inputs.p})`);
       throw new Error('Invalid pool size');
     }
 
-    const L_out = Math.floor((inputs.L_in + 2 * inputs.P - inputs.K) / inputs.S) + 1;
+    const lOut = Math.floor((inputs.lIn + 2 * inputs.p - inputs.k) / inputs.s) + 1;
 
-    if (!isFinite(L_out)) {
+    if (!isFinite(lOut)) {
       toast.error('Pooling output length is invalid: computation resulted in infinity or NaN');
       throw new Error('Invalid output length');
     }
-    if (L_out < 1) {
-      toast.error(`Pooling output length (${L_out}) is invalid: Kernel size (${K}) is too large for input length (${L_in}) with current stride (${S}) and padding (${P})`);
+    if (lOut < 1) {
+      toast.error(`Pooling output length (${lOut}) is invalid: Kernel size (${k}) is too large for input length (${lIn}) with current stride (${s}) and padding (${p})`);
       throw new Error('Invalid pooling output length < 1');
     }
 
     return {
-      L_out,
-      explain: `Pooling output length ${L_out} computed with L_in=${L_in}, K=${K}, S=${S}, P=${P}`,
+      lOut,
+      explain: `Pooling output length ${lOut} computed with lIn=${lIn}, k=${k}, s=${s}, p=${p}`,
     };
   } catch (error) {
     handleCatch(error, 'Pooling calculation failed');
@@ -279,20 +279,20 @@ export function poolOut1D({
  * Compute trainable parameter count for a 1D convolution layer.
  */
 export function convParams1D({
-  Cin, Cout, K, groups = 1, biasFlag = 1,
+  cIn, cOut, k, groups = 1, biasFlag = 1,
 }) {
   try {
     const inputs = {
-      Cin: validateInput('Input channels', Cin, { max: MAX_SAFE_CHANNELS }),
-      Cout: validateInput('Output channels', Cout, { max: MAX_SAFE_CHANNELS }),
-      K: validateInput('Kernel size', K),
-      groups: validateInput('Groups', groups, { isGroups: true })
+      cIn: validateInput('Input channels', cIn, { max: maxSafeChannels }),
+      cOut: validateInput('Output channels', cOut, { max: maxSafeChannels }),
+      k: validateInput('Kernel size', k),
+      groups: validateInput('Groups', groups, { isGroups: true }),
     };
 
-    validateGroupedChannels(inputs.Cin, inputs.Cout, inputs.groups);
-    
-    const weightParams = inputs.Cout * (inputs.Cin / inputs.groups) * inputs.K;
-    const biasParams = biasFlag ? inputs.Cout : 0;
+    validateGroupedChannels(inputs.cIn, inputs.cOut, inputs.groups);
+
+    const weightParams = inputs.cOut * (inputs.cIn / inputs.groups) * inputs.k;
+    const biasParams = biasFlag ? inputs.cOut : 0;
     const totalParams = weightParams + biasParams;
 
     if (!Number.isSafeInteger(weightParams) || !Number.isSafeInteger(biasParams)) {
@@ -313,20 +313,20 @@ export function convParams1D({
  * Compute trainable parameter count for a 1D transposed convolution layer.
  */
 export function transParams1D({
-  Cin, Cout, K, groups = 1, biasFlag = 1,
+  cIn, cOut, k, groups = 1, biasFlag = 1,
 }) {
   try {
     const inputs = {
-      Cin: validateInput('Input channels', Cin, { max: MAX_SAFE_CHANNELS }),
-      Cout: validateInput('Output channels', Cout, { max: MAX_SAFE_CHANNELS }),
-      K: validateInput('Kernel size', K),
-      groups: validateInput('Groups', groups, { isGroups: true })
+      cIn: validateInput('Input channels', cIn, { max: maxSafeChannels }),
+      cOut: validateInput('Output channels', cOut, { max: maxSafeChannels }),
+      k: validateInput('Kernel size', k),
+      groups: validateInput('Groups', groups, { isGroups: true }),
     };
 
-    validateGroupedChannels(inputs.Cin, inputs.Cout, inputs.groups);
-    
-    const weightParams = inputs.Cout * (inputs.Cin / inputs.groups) * inputs.K;
-    const biasParams = biasFlag ? inputs.Cout : 0;
+    validateGroupedChannels(inputs.cIn, inputs.cOut, inputs.groups);
+
+    const weightParams = inputs.cOut * (inputs.cIn / inputs.groups) * inputs.k;
+    const biasParams = biasFlag ? inputs.cOut : 0;
     const totalParams = weightParams + biasParams;
 
     if (!Number.isSafeInteger(weightParams) || !Number.isSafeInteger(biasParams)) {
@@ -347,21 +347,21 @@ export function transParams1D({
  * Compute trainable parameter count for a 2D convolution layer.
  */
 export function convParams2D({
-  Cin, Cout, Kh, Kw, groups = 1, biasFlag = 1,
+  cIn, cOut, kH, kW, groups = 1, biasFlag = 1,
 }) {
   try {
     const inputs = {
-      Cin: validateInput('Input channels', Cin),
-      Cout: validateInput('Output channels', Cout),
-      Kh: validateInput('Kernel height', Kh),
-      Kw: validateInput('Kernel width', Kw),
-      groups: validateInput('Groups', groups)
+      cIn: validateInput('Input channels', cIn),
+      cOut: validateInput('Output channels', cOut),
+      kH: validateInput('Kernel height', kH),
+      kW: validateInput('Kernel width', kW),
+      groups: validateInput('Groups', groups),
     };
 
-    validateGroupedChannels(inputs.Cin, inputs.Cout, inputs.groups);
+    validateGroupedChannels(inputs.cIn, inputs.cOut, inputs.groups);
 
-    const weightParams = inputs.Cout * (inputs.Cin / inputs.groups) * inputs.Kh * inputs.Kw;
-    const biasParams = biasFlag ? inputs.Cout : 0;
+    const weightParams = inputs.cOut * (inputs.cIn / inputs.groups) * inputs.kH * inputs.kW;
+    const biasParams = biasFlag ? inputs.cOut : 0;
     const totalParams = weightParams + biasParams;
 
     if (!Number.isSafeInteger(weightParams) || !Number.isSafeInteger(biasParams)) {
@@ -382,21 +382,21 @@ export function convParams2D({
  * Compute trainable parameter count for a 2D transposed convolution layer.
  */
 export function transParams2D({
-  Cin, Cout, Kh, Kw, groups = 1, biasFlag = 1,
+  cIn, cOut, kH, kW, groups = 1, biasFlag = 1,
 }) {
   try {
     const inputs = {
-      Cin: validateInput('Input channels', Cin),
-      Cout: validateInput('Output channels', Cout),
-      Kh: validateInput('Kernel height', Kh),
-      Kw: validateInput('Kernel width', Kw),
-      groups: validateInput('Groups', groups)
+      cIn: validateInput('Input channels', cIn),
+      cOut: validateInput('Output channels', cOut),
+      kH: validateInput('Kernel height', kH),
+      kW: validateInput('Kernel width', kW),
+      groups: validateInput('Groups', groups),
     };
 
-    validateGroupedChannels(inputs.Cin, inputs.Cout, inputs.groups);
+    validateGroupedChannels(inputs.cIn, inputs.cOut, inputs.groups);
 
-    const weightParams = inputs.Cout * (inputs.Cin / inputs.groups) * inputs.Kh * inputs.Kw;
-    const biasParams = biasFlag ? inputs.Cout : 0;
+    const weightParams = inputs.cOut * (inputs.cIn / inputs.groups) * inputs.kH * inputs.kW;
+    const biasParams = biasFlag ? inputs.cOut : 0;
     const totalParams = weightParams + biasParams;
 
     if (!Number.isSafeInteger(weightParams) || !Number.isSafeInteger(biasParams)) {

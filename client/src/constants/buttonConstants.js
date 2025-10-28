@@ -9,25 +9,23 @@
  * Exports button label arrays for calculator component rendering.
  */
 
-
 /**
  * Complex number operation buttons
  * @constant {string[]}
  */
 export const COMPLEX_BUTTONS = ['i', 're(', 'im(', 'conj(', 'abs(', 'arg('];
 
-
 export const DL_BUTTONS = [
-    'C→O',
-    'P→O',
-    'PSAME',
-    'PDOUT',
-    'TC→O',
-    'C1D→P',
-    'TC1D→P',
-    'C2D→P',
-    'TC2D→P'
-  ];
+  'C→O',
+  'P→O',
+  'PSAME',
+  'PDOUT',
+  'TC→O',
+  'C1D→P',
+  'TC1D→P',
+  'C2D→P',
+  'TC2D→P',
+];
 
 export const CONSTANT_BUTTONS = ['π', 'e'];
 
@@ -42,6 +40,12 @@ export const CALCULUS_BUTTONS = ['d/dx(', '∫(', 'x', ','];
  * @constant {string[]}
  */
 export const MATRIX_BUTTONS = ['MatMul', 'MatAdd', 'MatSub', 'Det', 'Transpose'];
+
+/**
+ * Plot operation buttons
+ * @constant {string[]}
+ */
+export const PLOT_BUTTONS = ['Plot', 'x'];
 
 /**
  * Base calculator buttons (numbers, basic operators, control)

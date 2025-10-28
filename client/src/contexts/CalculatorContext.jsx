@@ -26,7 +26,7 @@
  */
 
 import React, {
-  createContext, useContext, useState, useRef, useMemo,
+  createContext, useContext, useState, useRef, useMemo, useCallback,
 } from 'react';
 import PropTypes from 'prop-types';
 import useCalculatorHistory from '../hooks/useCalculatorHistory';
@@ -119,51 +119,87 @@ export function CalculatorProvider({ children, user }) {
   } = usePlotting(setComplexMode);
 
   // DL parameter collection handlers
-  const startDLOperation = (opKey, initialValue) => {
+  const startDLOperation = useCallback((opKey) => {
     const opMap = {
       'C→O': {
-        schema: ['L_in', 'K', 'S', 'P', 'd'],
-        fn: ({ L_in, K, S, P, d }) => convOut1D({ L_in, K, S, P, d }),
-        resultKey: 'L_out',
+        schema: ['lIn', 'k', 's', 'p', 'd'],
+        fn: ({
+          lIn, k, s, p, d,
+        }) => convOut1D({
+          lIn, k, s, p, d,
+        }),
+        resultKey: 'lOut',
       },
       'P→O': {
-        schema: ['L_in', 'K', 'S', 'P'],
-        fn: ({ L_in, K, S, P }) => poolOut1D({ L_in, K, S, P }),
-        resultKey: 'L_out',
+        schema: ['lIn', 'k', 's', 'p'],
+        fn: ({
+          lIn, k, s, p,
+        }) => poolOut1D({
+          lIn, k, s, p,
+        }),
+        resultKey: 'lOut',
       },
-      'PSAME': {
-        schema: ['L_in', 'K', 'S', 'd'],
-        fn: ({ L_in, K, S, d }) => padSame1D({ L_in, K, S, d }),
-        resultKey: 'P',
+      PSAME: {
+        schema: ['lIn', 'k', 's', 'd'],
+        fn: ({
+          lIn, k, s, d,
+        }) => padSame1D({
+          lIn, k, s, d,
+        }),
+        resultKey: 'p',
       },
-      'PDOUT': {
-        schema: ['L_in', 'K', 'S', 'L_out_desired', 'd'],
-        fn: ({ L_in, K, S, L_out_desired, d }) => padDiff1D({ L_in, K, S, L_out_desired, d }),
-        resultKey: 'P',
+      PDOUT: {
+        schema: ['lIn', 'k', 's', 'desiredLOut', 'd'],
+        fn: ({
+          lIn, k, s, desiredLOut, d,
+        }) => padDiff1D({
+          lIn, k, s, desiredLOut, d,
+        }),
+        resultKey: 'p',
       },
       'TC→O': {
-        schema: ['L_in', 'K', 'S', 'P', 'opad', 'd'],
-        fn: ({ L_in, K, S, P, opad, d }) => transOut1D({ L_in, K, S, P, opad, d }),
-        resultKey: 'L_out',
+        schema: ['lIn', 'k', 's', 'p', 'oPad', 'd'],
+        fn: ({
+          lIn, k, s, p, oPad, d,
+        }) => transOut1D({
+          lIn, k, s, p, oPad, d,
+        }),
+        resultKey: 'lOut',
       },
       'C1D→P': {
-        schema: ['Cin', 'Cout', 'K', 'groups', 'biasFlag'],
-        fn: ({ Cin, Cout, K, groups, biasFlag }) => convParams1D({ Cin, Cout, K, groups, biasFlag }),
+        schema: ['cIn', 'cOut', 'k', 'groups', 'biasFlag'],
+        fn: ({
+          cIn, cOut, k, groups, biasFlag,
+        }) => convParams1D({
+          cIn, cOut, k, groups, biasFlag,
+        }),
         resultKey: 'params',
       },
       'TC1D→P': {
-        schema: ['Cin', 'Cout', 'K', 'groups', 'biasFlag'],
-        fn: ({ Cin, Cout, K, groups, biasFlag }) => transParams1D({ Cin, Cout, K, groups, biasFlag }),
+        schema: ['cIn', 'cOut', 'k', 'groups', 'biasFlag'],
+        fn: ({
+          cIn, cOut, k, groups, biasFlag,
+        }) => transParams1D({
+          cIn, cOut, k, groups, biasFlag,
+        }),
         resultKey: 'params',
       },
       'C2D→P': {
-        schema: ['Cin', 'Cout', 'Kh', 'Kw', 'groups', 'biasFlag'],
-        fn: ({ Cin, Cout, Kh, Kw, groups, biasFlag }) => convParams2D({ Cin, Cout, Kh, Kw, groups, biasFlag }),
+        schema: ['cIn', 'cOut', 'kH', 'kW', 'groups', 'biasFlag'],
+        fn: ({
+          cIn, cOut, kH, kW, groups, biasFlag,
+        }) => convParams2D({
+          cIn, cOut, kH, kW, groups, biasFlag,
+        }),
         resultKey: 'params',
       },
       'TC2D→P': {
-        schema: ['Cin', 'Cout', 'Kh', 'Kw', 'groups', 'biasFlag'],
-        fn: ({ Cin, Cout, Kh, Kw, groups, biasFlag }) => transParams2D({ Cin, Cout, Kh, Kw, groups, biasFlag }),
+        schema: ['cIn', 'cOut', 'kH', 'kW', 'groups', 'biasFlag'],
+        fn: ({
+          cIn, cOut, kH, kW, groups, biasFlag,
+        }) => transParams2D({
+          cIn, cOut, kH, kW, groups, biasFlag,
+        }),
         resultKey: 'params',
       },
     };
@@ -175,9 +211,9 @@ export function CalculatorProvider({ children, user }) {
     // Always start fresh and ask for the first parameter in the textbox
     setDlParams([]);
     setDlParamIndex(0);
-  };
+  }, []);
 
-  const handleDLEquals = (currentValue, angleModeParam = angleMode) => {
+  const handleDLEquals = useCallback((currentValue, angleModeParam = angleMode) => {
     if (!dlActiveOp || !dlSchema) return null;
 
     const nextParams = [...dlParams];
@@ -206,7 +242,7 @@ export function CalculatorProvider({ children, user }) {
       throw e;
     }
 
-    const resultKey = dlActiveOp.resultKey;
+    const { resultKey } = dlActiveOp;
     const value = out && typeof out === 'object' && resultKey in out ? out[resultKey] : out;
 
     setDlActiveOp(null);
@@ -215,7 +251,7 @@ export function CalculatorProvider({ children, user }) {
     setDlParamIndex(0);
 
     return { type: 'done', value };
-  };
+  }, [angleMode, dlActiveOp, dlSchema, dlParams]);
 
   const cancelDLOperation = () => {
     setDlActiveOp(null);
@@ -296,6 +332,10 @@ export function CalculatorProvider({ children, user }) {
     calculusMode,
     inverseMode,
     matrixMode,
+    dlActiveOp,
+    dlParamIndex,
+    dlParams,
+    dlSchema,
     showInfo,
     showProfileDropdown,
     showMatrixModal,
@@ -332,6 +372,8 @@ export function CalculatorProvider({ children, user }) {
     setPlotHeight,
     handlePlot,
     triggerPlot,
+    handleDLEquals,
+    startDLOperation,
   ]);
 
   return (

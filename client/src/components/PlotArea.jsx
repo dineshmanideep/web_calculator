@@ -80,15 +80,30 @@ const PlotArea = ({
 
       for (let x = xMin; x <= xMax; x += step) {
         try {
-          const y = math.evaluate(expr.replace(/x/g, `(${x})`));
-          const yVal = typeof y === 'number' ? y : (y.re !== undefined ? y.re : NaN);
-
-          if (isFinite(yVal)) {
+          // Replace x with actual value
+          const exprWithX = expr.replace(/x/g, `(${x})`);
+          
+          // Evaluate directly without toasts
+          const result = math.evaluate(exprWithX);
+          
+          // Extract numeric value
+          let y;
+          if (typeof result === 'number') {
+            y = result;
+          } else if (result && typeof result === 'object' && result.re !== undefined) {
+            y = result.re;
+          } else {
+            // Skip non-numeric results
+            y = null;
+          }
+          
+          // Only add finite values (skip NaN and Infinity)
+          if (y !== null && Number.isFinite(y)) {
             xs.push(x);
-            ys.push(yVal);
+            ys.push(y);
           }
         } catch {
-          // Skip invalid points
+          // Silently skip points that cause errors (e.g., log(-1))
         }
       }
 

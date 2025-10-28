@@ -20,7 +20,6 @@
  * A complete calculator input interface React element.
  */
 
-
 import React, { useCallback } from 'react';
 import { toast } from 'react-toastify';
 import { evaluateExpression, math } from '../utils/evaluator';
@@ -52,6 +51,7 @@ function CalculatorInput() {
     setInverseMode,
     plotMode,
     handlePlot,
+    triggerPlot,
     handleMatrixOperation,
     matrixOperation,
     firstMatrix,
@@ -177,6 +177,17 @@ function CalculatorInput() {
         return;
       }
 
+      // Plot button - triggers plotting of current input
+      if (btn === 'Plot') {
+        if (!input || input.trim() === '') {
+          toast.warn('Enter a function to plot (e.g., x^2, sin(x))');
+          return;
+        }
+        triggerPlot();
+        toast.success('Plotting function...');
+        return;
+      }
+
       // DL operations: start parameter collection for selected DL op
       if (DLMode && DL_BUTTONS.includes(btn)) {
         startDLOperation(btn, input);
@@ -194,7 +205,7 @@ function CalculatorInput() {
       inputRef.current?.focus();
     },
     [inputRef, lastAnswer, handleEquals, setInput, DLMode,
-      input, complexMode, matrixMode, handleMatrixClear, handleMatrixOperation, setComplexMode, startDLOperation, dlActiveOp, cancelDLOperation],
+      input, complexMode, matrixMode, handleMatrixClear, handleMatrixOperation, setComplexMode, startDLOperation, dlActiveOp, cancelDLOperation, triggerPlot],
   );
 
   // Use keyboard shortcuts hook for cleaner code
@@ -257,6 +268,7 @@ function CalculatorInput() {
         DLMode={DLMode}
         calculusMode={calculusMode}
         matrixMode={matrixMode}
+        plotMode={plotMode}
         handleClick={handleClick}
       />
 

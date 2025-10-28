@@ -185,7 +185,7 @@ export const evaluateExpression = (expr, angleMode) => {
     return result;
   } catch (error) {
     handleEvaluationError(error);
-    return null; // Never reached, but TypeScript happy
+    return null;
   }
 };
 
@@ -227,6 +227,50 @@ export const evaluateElement = (element, angleMode = 'rad') => {
     throw new Error(`Element "${element}" did not evaluate to a number`);
   } catch (error) {
     throw new Error(`Could not evaluate "${element}": ${error.message}`);
+  }
+};
+
+/**
+ * Silent evaluation for plotting - evaluates without showing toast notifications
+ * Returns null for invalid/undefined values instead of throwing errors
+ * Used during plotting to prevent toast spam when evaluating many points
+ *
+ * @param {string} expr - Mathematical expression to evaluate
+ * @param {string} angleMode - Either 'deg' or 'rad'
+ * @returns {number|null} Numeric result or null if evaluation fails
+ *
+ * @example
+ * evaluateForPlot('log(-5)', 'rad') // null (no toast shown)
+ * evaluateForPlot('sin(0)', 'rad') // 0
+ * evaluateForPlot('1/0', 'rad') // null (no toast shown)
+ */
+export const evaluateForPlot = (expr, angleMode = 'rad') => {
+  try {
+    // Preprocess expression (without toast on error)
+    const processed = preprocessExpression(expr, angleMode);
+    
+    // Evaluate
+    const result = math.evaluate(processed);
+    
+    // Extract numeric value
+    let numValue;
+    if (typeof result === 'number') {
+      numValue = result;
+    } else if (result && typeof result === 'object' && result.re !== undefined) {
+      numValue = result.re;
+    } else {
+      return null;
+    }
+    
+    // Return null for invalid values (NaN, Infinity)
+    if (!Number.isFinite(numValue)) {
+      return null;
+    }
+    
+    return numValue;
+  } catch (error) {
+    // Silently return null on any error during plotting
+    return null;
   }
 };
 
