@@ -1,5 +1,8 @@
 /*
  * CalculatorContext
+ */
+/*
+ * CalculatorContext
  *
  * Purpose:
  * Provides a centralized global state management system for the calculator.
@@ -12,7 +15,7 @@
  *
  * Context Values:
  * - Input and reference management
- * - Mode states: angle, complex, ml, calculus, inverse, matrix, plot
+ * - Mode states: angle, complex, DL, calculus, inverse, matrix, plot
  * - UI states: info modal, profile dropdown, matrix modal
  * - History: logs, handlers, last answer
  * - Matrix: operation handlers and state
@@ -30,6 +33,17 @@ import useCalculatorHistory from '../hooks/useCalculatorHistory';
 import useMatrixOperations from '../hooks/useMatrixOperations';
 import usePlotting from '../hooks/usePlotting';
 import useAngleMode from '../hooks/useAngleMode';
+import {
+  convOut1D,
+  transOut1D,
+  padSame1D,
+  padDiff1D,
+  poolOut1D,
+  convParams1D,
+  transParams1D,
+  convParams2D,
+  transParams2D,
+} from '../utils/dlHelperFunctions';
 
 const CalculatorContext = createContext(null);
 
@@ -48,9 +62,15 @@ export function CalculatorProvider({ children, user }) {
 
   // Mode states
   const [complexMode, setComplexMode] = useState(false);
-  const [mlMode, setMlMode] = useState(false);
+  const [DLMode, setDLMode] = useState(false);
   const [calculusMode, setCalculusMode] = useState(false);
   const [inverseMode, setInverseMode] = useState(false);
+
+  // DL parameter collection state
+  const [dlActiveOp, setDlActiveOp] = useState(null);
+  const [dlParamIndex, setDlParamIndex] = useState(0);
+  const [dlParams, setDlParams] = useState([]);
+  const [dlSchema, setDlSchema] = useState(null);
 
   // UI states
   const [showInfo, setShowInfo] = useState(false);
@@ -98,6 +118,112 @@ export function CalculatorProvider({ children, user }) {
     triggerPlot,
   } = usePlotting(setComplexMode);
 
+  // DL parameter collection handlers
+  const startDLOperation = (opKey, initialValue) => {
+    const opMap = {
+      'C→O': {
+        schema: ['L_in', 'K', 'S', 'P', 'd'],
+        fn: ({ L_in, K, S, P, d }) => convOut1D({ L_in, K, S, P, d }),
+        resultKey: 'L_out',
+      },
+      'P→O': {
+        schema: ['L_in', 'K', 'S', 'P'],
+        fn: ({ L_in, K, S, P }) => poolOut1D({ L_in, K, S, P }),
+        resultKey: 'L_out',
+      },
+      'PSAME': {
+        schema: ['L_in', 'K', 'S', 'd'],
+        fn: ({ L_in, K, S, d }) => padSame1D({ L_in, K, S, d }),
+        resultKey: 'P',
+      },
+      'PDOUT': {
+        schema: ['L_in', 'K', 'S', 'L_out_desired', 'd'],
+        fn: ({ L_in, K, S, L_out_desired, d }) => padDiff1D({ L_in, K, S, L_out_desired, d }),
+        resultKey: 'P',
+      },
+      'TC→O': {
+        schema: ['L_in', 'K', 'S', 'P', 'opad', 'd'],
+        fn: ({ L_in, K, S, P, opad, d }) => transOut1D({ L_in, K, S, P, opad, d }),
+        resultKey: 'L_out',
+      },
+      'C1D→P': {
+        schema: ['Cin', 'Cout', 'K', 'groups', 'biasFlag'],
+        fn: ({ Cin, Cout, K, groups, biasFlag }) => convParams1D({ Cin, Cout, K, groups, biasFlag }),
+        resultKey: 'params',
+      },
+      'TC1D→P': {
+        schema: ['Cin', 'Cout', 'K', 'groups', 'biasFlag'],
+        fn: ({ Cin, Cout, K, groups, biasFlag }) => transParams1D({ Cin, Cout, K, groups, biasFlag }),
+        resultKey: 'params',
+      },
+      'C2D→P': {
+        schema: ['Cin', 'Cout', 'Kh', 'Kw', 'groups', 'biasFlag'],
+        fn: ({ Cin, Cout, Kh, Kw, groups, biasFlag }) => convParams2D({ Cin, Cout, Kh, Kw, groups, biasFlag }),
+        resultKey: 'params',
+      },
+      'TC2D→P': {
+        schema: ['Cin', 'Cout', 'Kh', 'Kw', 'groups', 'biasFlag'],
+        fn: ({ Cin, Cout, Kh, Kw, groups, biasFlag }) => transParams2D({ Cin, Cout, Kh, Kw, groups, biasFlag }),
+        resultKey: 'params',
+      },
+    };
+
+    const config = opMap[opKey];
+    if (!config) return;
+    setDlActiveOp({ key: opKey, ...config });
+    setDlSchema(config.schema);
+    // Always start fresh and ask for the first parameter in the textbox
+    setDlParams([]);
+    setDlParamIndex(0);
+  };
+
+  const handleDLEquals = (currentValue, angleModeParam = angleMode) => {
+    if (!dlActiveOp || !dlSchema) return null;
+
+    const nextParams = [...dlParams];
+    const incoming = currentValue != null && String(currentValue).trim() !== '' ? String(currentValue).trim() : null;
+    if (incoming !== null) {
+      nextParams.push(incoming);
+    }
+
+    if (nextParams.length < dlSchema.length) {
+      setDlParams(nextParams);
+      setDlParamIndex(nextParams.length);
+      return { type: 'continue', needed: dlSchema[nextParams.length] };
+    }
+
+    const args = {};
+    dlSchema.forEach((name, i) => { args[name] = Number(nextParams[i]); });
+
+    let out;
+    try {
+      out = dlActiveOp.fn(args, angleModeParam);
+    } catch (e) {
+      setDlActiveOp(null);
+      setDlSchema(null);
+      setDlParams([]);
+      setDlParamIndex(0);
+      throw e;
+    }
+
+    const resultKey = dlActiveOp.resultKey;
+    const value = out && typeof out === 'object' && resultKey in out ? out[resultKey] : out;
+
+    setDlActiveOp(null);
+    setDlSchema(null);
+    setDlParams([]);
+    setDlParamIndex(0);
+
+    return { type: 'done', value };
+  };
+
+  const cancelDLOperation = () => {
+    setDlActiveOp(null);
+    setDlSchema(null);
+    setDlParams([]);
+    setDlParamIndex(0);
+  };
+
   const value = useMemo(() => ({
     // Input state
     input,
@@ -109,8 +235,8 @@ export function CalculatorProvider({ children, user }) {
     setAngleMode,
     complexMode,
     setComplexMode,
-    mlMode,
-    setMlMode,
+    DLMode,
+    setDLMode,
     calculusMode,
     setCalculusMode,
     inverseMode,
@@ -118,6 +244,13 @@ export function CalculatorProvider({ children, user }) {
     matrixMode,
     setMatrixMode,
 
+    dlActiveOp,
+    dlParamIndex,
+    dlParams,
+    dlSchema,
+    startDLOperation,
+    handleDLEquals,
+    cancelDLOperation,
     // UI states
     showInfo,
     setShowInfo,
@@ -159,7 +292,7 @@ export function CalculatorProvider({ children, user }) {
     input,
     angleMode,
     complexMode,
-    mlMode,
+    DLMode,
     calculusMode,
     inverseMode,
     matrixMode,
@@ -178,7 +311,7 @@ export function CalculatorProvider({ children, user }) {
     plotTrigger,
     setAngleMode,
     setComplexMode,
-    setMlMode,
+    setDLMode,
     setCalculusMode,
     setInverseMode,
     setMatrixMode,
