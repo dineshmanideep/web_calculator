@@ -1,3 +1,17 @@
+/*
+ * LastLoginInfo
+ *
+ * Purpose:
+ * Displays user's last login/logout information or welcome message
+ * using sessionStorage data, showing it only once per session.
+ *
+ * Parameters:
+ * None (internally fetches from sessionStorage)
+ *
+ * Return value:
+ * A styled info box with formatted last login/logout timestamps,
+ * or a welcome message if it's the first login.
+ */
 import { useEffect, useState } from 'react';
 import {
   Info, X, LogIn, LogOut,

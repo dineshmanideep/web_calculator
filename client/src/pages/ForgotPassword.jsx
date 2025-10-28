@@ -1,3 +1,18 @@
+/*
+ * ForgotPassword
+ *
+ * Purpose:
+ * Handles the user flow for initiating a password reset by sending an OTP to the user's email.
+ * Uses backend API integration and provides feedback through toast notifications.
+ *
+ * Parameters:
+ * None (uses internal state and navigation hooks).
+ *
+ * Return value:
+ * Renders a form that accepts the user's email, sends an OTP via API call, and
+ * navigates to the reset password page upon success.
+ */
+
 import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';

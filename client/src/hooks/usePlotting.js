@@ -1,12 +1,19 @@
+/*
+ * usePlotting
+ *
+ * Purpose:
+ * Custom React hook to manage plotting functionality in the calculator.
+ * Handles both standard function plots and complex number plots, along with dimensions and triggers.
+ *
+ * Parameters:
+ * - setComplexMode (function): function to control the global complex mode state.
+ *
+ * Return value:
+ * An object containing plotting-related state variables and handlers for toggling, sizing, and refreshing plots.
+ */
+
 import { useState } from 'react';
 
-/**
- * Custom hook to manage plotting functionality
- * Handles both regular function plots and complex number plots
- *
- * @param {Function} setComplexMode - Function to control complex mode state
- * @returns {Object} Plot state and handlers
- */
 export default function usePlotting(setComplexMode) {
   const [showPlot, setShowPlot] = useState(false); // Controls plot box visibility
   const [plotMode, setPlotMode] = useState(false); // Track if function plot mode is active

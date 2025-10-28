@@ -1,62 +1,69 @@
-import { useEffect, useRef, useState } from 'react';
+/*
+  Calculator
+
+  Purpose:
+  Main calculator page with full functionality including standard math,
+  matrix operations, ML features, calculus, complex numbers, and plotting.
+
+  Props:
+  - user (Object): Current authenticated user data
+  - onSignOut (Function): Handler for user sign out action
+
+  Features:
+  - Multi-mode calculator (Standard, ML, Calculus, Complex, Matrix)
+  - History management with backend persistence
+  - Plot/graph visualization
+  - Matrix operations modal
+  - Angle mode toggle (degrees/radians)
+
+  Parameters/Return:
+  Returns the main calculator page React element.
+*/
+
+import { useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import CalculatorInput from '../components/CalculatorInput';
 import PlotArea from '../components/PlotArea';
 import LastLoginInfo from '../components/LastLoginInfo';
-import useCalculatorHistory from '../hooks/useCalculatorHistory';
-import useMatrixOperations from '../hooks/useMatrixOperations';
-import usePlotting from '../hooks/usePlotting';
-import useAngleMode from '../hooks/useAngleMode';
+import { CalculatorProvider, useCalculatorContext } from '../contexts/CalculatorContext';
 
-// Main Calculator page component managing UI state and interactions
-export default function Calculator({ user, onSignOut }) {
-  const [input, setInput] = useState('');
-  const [complexMode, setComplexMode] = useState(false); // Track complex number mode
-  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
-  const [showMatrixModal, setShowMatrixModal] = useState(false);
-  const inputRef = useRef(null);
-  
-  // Use history hook
+function CalculatorContent({ user, onSignOut }) {
   const {
+    input,
+    setInput,
+    inputRef,
+    complexMode,
+    setComplexMode,
+    showProfileDropdown,
+    setShowProfileDropdown,
     history,
     lastAnswer,
-    setLastAnswer,
     pushHistory,
     handleHistoryClick,
     clearHistory,
-  } = useCalculatorHistory(user, setInput, inputRef);
-
-  // Use matrix operations hook
-  const {
-    matrixMode,
-    setMatrixMode,
-    matrixOperation,
-    firstMatrix,
     handleMatrixOperation,
     handleMatrixClear,
-    handleMatrixResult,
-  } = useMatrixOperations(input, setInput, pushHistory, setLastAnswer);
-
-  // Use plotting hook
-  const {
-    showPlot,
-    setShowPlot,
+    matrixOperation,
+    firstMatrix,
+    matrixMode,
+    setMatrixMode,
+    angleMode,
+    setAngleMode,
     plotMode,
     setPlotMode,
+    showPlot,
+    setShowPlot,
     showComplexPlot,
     setShowComplexPlot,
     plotWidth,
     setPlotWidth,
     plotHeight,
     setPlotHeight,
-    plotTrigger,
     handlePlot,
     triggerPlot,
-  } = usePlotting(setComplexMode);
-
-  // Use angle mode hook
-  const { angleMode, setAngleMode } = useAngleMode();
+    plotTrigger,
+  } = useCalculatorContext();
 
   const navigate = useNavigate();
 
@@ -91,7 +98,7 @@ export default function Calculator({ user, onSignOut }) {
       // When complex mode is disabled, hide complex plot
       setShowComplexPlot(false);
     }
-  }, [complexMode]);
+  }, [complexMode, setInput, setPlotMode, setShowComplexPlot, setShowPlot]);
 
   // Render
   return (
@@ -230,15 +237,16 @@ export default function Calculator({ user, onSignOut }) {
               <h3 className="text-white font-semibold text-sm mb-2">History</h3>
               <div className="flex flex-col gap-1 overflow-y-auto text-sm font-mono text-white max-h-96">
                 {history.length === 0 && <div className="text-gray-400">No history</div>}
-                {history.map((item, i) => (
-                  <div
-                    key={i + item}
+                {history.map((item, index) => (
+                  <button
+                    key={`history-item-${history.length - index}-${item.replace(/[^a-zA-Z0-9]/g, '-')}`}
+                    type="button"
                     onClick={() => handleHistoryClick(item)}
-                    className="cursor-pointer hover:bg-gray-700 p-1 rounded"
+                    className="cursor-pointer hover:bg-gray-700 p-1 rounded text-left w-full"
                     title="Click to load this expression"
                   >
                     {item}
-                  </div>
+                  </button>
                 ))}
               </div>
 
@@ -247,5 +255,14 @@ export default function Calculator({ user, onSignOut }) {
         </div>
       </div>
     </div>
+  );
+}
+
+// Wrapper component that provides Calculator context
+export default function Calculator({ user, onSignOut }) {
+  return (
+    <CalculatorProvider user={user}>
+      <CalculatorContent user={user} onSignOut={onSignOut} />
+    </CalculatorProvider>
   );
 }

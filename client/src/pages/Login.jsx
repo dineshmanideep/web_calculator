@@ -1,3 +1,18 @@
+/*
+ * Login
+ *
+ * Purpose:
+ * Handles user authentication by validating credentials and initiating a session.
+ * Provides UI for login, navigation to password recovery and signup pages, and feedback via toast notifications.
+ *
+ * Parameters:
+ * - setAuthenticated (func): updates authentication state after successful login.
+ * - setUser (func): stores the authenticated user’s information.
+ *
+ * Return value:
+ * Renders the login form and manages authentication flow with navigation and toast feedback.
+ */
+
 import { useState } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';

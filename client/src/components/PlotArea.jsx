@@ -1,8 +1,36 @@
+/*
+ * PlotArea
+ *
+ * Purpose:
+ * Provides an interactive plotting interface supporting both real function graphs
+ * and complex number visualizations. Handles dynamic resizing, zooming, and
+ * automatic mode switching between function and complex plots.
+ *
+ * Parameters:
+ * - plotWidth, setPlotWidth: Controls the plot container’s width.
+ * - plotHeight, setPlotHeight: Controls the plot container’s height.
+ * - setShowPlot: Toggles visibility of the plot area.
+ * - angleMode: Current trigonometric angle mode ('deg' or 'rad').
+ * - calculatorInput: Expression string to be plotted.
+ * - complexMode: Boolean to toggle between real and complex plotting.
+ * - onPlotTrigger: External signal to trigger plot generation.
+ *
+ * Internal State:
+ * - plotData: Stores current plot dataset and metadata.
+ * - xRange: Defines the x-axis plotting range.
+ * - plotMode: Current mode ('function' or 'complex').
+ * - isPlotting: Indicates ongoing plotting operation.
+ *
+ * Return value:
+ * A responsive, resizable React component rendering either:
+ *   - Function plots (y = f(x)) using Plotly.
+ *   - Complex number vectors (z = a + bi) with annotations and projections.
+ */
+
 import React, { useRef, useState, useCallback } from 'react';
 import Plot from 'react-plotly.js';
 import { toast } from 'react-toastify';
-import math from '../utils/index.js';
-import { preprocess } from '../utils/mathEngine';
+import { math, preprocessExpression } from '../utils/evaluator';
 
 const MIN_WIDTH = 400;
 const MAX_WIDTH = 900;
@@ -42,7 +70,7 @@ const PlotArea = ({
   // Generate plot data based on current x-range for real functions
   const generatePlotData = useCallback((func, xMin, xMax) => {
     try {
-      const expr = preprocess(func, angleMode);
+      const expr = preprocessExpression(func, angleMode);
       const range = Math.abs(xMax - xMin);
       const numPoints = Math.min(Math.max(500, Math.floor(range * 20)), 5000);
       const step = range / numPoints;

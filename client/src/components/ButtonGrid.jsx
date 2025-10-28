@@ -1,26 +1,50 @@
-import React from 'react';
-
-// Button constants
-const COMPLEX_BUTTONS = ['i', 're(', 'im(', 'conj(', 'abs(', 'arg('];
-const ML_BUTTONS = ['BestFit', 'Params', 'WOpt', 'RF', 'LR', 'FeatImp'];
-const CONSTANT_BUTTONS = ['π', 'e'];
-const CALCULUS_BUTTONS = ['d/dx(', '∫(', 'x', ','];
-const MATRIX_BUTTONS = ['MatMul', 'MatAdd', 'MatSub', 'Det', 'Transpose'];
-
-/**
- * ButtonGrid Component
- * Renders all calculator buttons based on active modes
- * Simple, clean, and focused on button display
+/*
+ * ButtonGrid
+ *
+ * Purpose:
+ * Renders all calculator buttons dynamically based on the active mode.
+ * Groups buttons into functional categories (trig, matrix, calculus, ML, constants, base keypad)
+ * and applies distinct styling for each.
+ *
+ * Features:
+ * - Supports multiple modes (inverse, complex, ML, calculus, matrix)
+ * - Dynamically switches between standard and inverse trigonometric buttons
+ * - Consistent grid layout and color-coded button groups
+ * - Delegates all button click logic to parent via handleClick
+ *
+ * Parameters:
+ * - inverseMode (boolean): Toggles between standard and inverse trig functions
+ * - complexMode (boolean): Enables complex number operation buttons
+ * - mlMode (boolean): Enables machine learning operation buttons
+ * - calculusMode (boolean): Enables calculus operation buttons
+ * - matrixMode (boolean): Enables matrix operation buttons
+ * - handleClick (function): Handles button press logic
+ *
+ * Return value:
+ * A collection of button grids rendered conditionally based on modes.
  */
+
+import React from 'react';
+import {
+  COMPLEX_BUTTONS,
+  ML_BUTTONS,
+  CONSTANT_BUTTONS,
+  CALCULUS_BUTTONS,
+  MATRIX_BUTTONS,
+  BASE_BUTTONS,
+  INVERSE_BUTTONS,
+  STANDARD_BUTTONS,
+} from '../constants/buttonConstants';
+
 function ButtonGrid({
-  baseButtons,
-  AdvFxnButtons,
+  inverseMode,
   complexMode,
   mlMode,
   calculusMode,
   matrixMode,
   handleClick,
 }) {
+  const AdvFxnButtons = inverseMode ? INVERSE_BUTTONS : STANDARD_BUTTONS;
   return (
     <>
       {/* Trig buttons - always show */}
@@ -117,7 +141,7 @@ function ButtonGrid({
 
       {/* Base keypad (numbers and operators) */}
       <div className="grid grid-cols-4 gap-2 mt-2">
-        {baseButtons.map((btn) => (
+        {BASE_BUTTONS.map((btn) => (
           <button
             key={btn}
             onClick={() => handleClick(btn)}

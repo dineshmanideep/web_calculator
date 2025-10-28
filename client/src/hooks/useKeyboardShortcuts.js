@@ -1,11 +1,24 @@
+/*
+ * useKeyboardShortcuts
+ *
+ * Purpose:
+ * Custom React hook that manages keyboard input behavior for the calculator.
+ * Handles Enter (evaluate), Backspace (delete), and character input validation.
+ * Integrates with toast notifications to warn about invalid characters.
+ *
+ * Parameters:
+ * - inputRef (ref): reference to the calculator input element.
+ * - showMatrixModal (bool): disables input when the matrix modal is open.
+ * - handleEquals (function): triggers expression evaluation.
+ * - setInput (function): updates calculator input string.
+ *
+ * Return value:
+ * None (side-effect hook adding event listeners to input).
+ */
+
 import { useEffect } from 'react';
 import { toast } from 'react-toastify';
 
-/**
- * useKeyboardShortcuts Hook
- * Handles keyboard input for the calculator
- * Manages Enter, Backspace, and character input
- */
 function useKeyboardShortcuts(inputRef, showMatrixModal, handleEquals, setInput) {
   useEffect(() => {
     const inputElement = inputRef.current;

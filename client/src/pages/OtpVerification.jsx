@@ -1,3 +1,17 @@
+/*
+ * OtpVerification
+ *
+ * Purpose:
+ * Verifies the user’s account using an OTP sent via email after signup.
+ * Confirms the verification through the backend and redirects to the login page upon success.
+ *
+ * Parameters:
+ * None (uses query parameters from the URL and internal state).
+ *
+ * Return value:
+ * Renders an OTP verification form and handles verification logic with toast notifications.
+ */
+
 import { useState } from 'react';
 import axios from 'axios';
 import { useSearchParams, useNavigate } from 'react-router-dom';

@@ -1,3 +1,23 @@
+/*
+ * useCalculatorHistory
+ *
+ * Purpose:
+ * Custom React hook to manage calculator history (fetch, push, clear, and reuse expressions).
+ * Integrates with backend API for user-specific history persistence.
+ * Handles displaying and restoring expressions from history.
+ *
+ * Parameters:
+ * - user (object): authenticated user information.
+ * - setInput (function): updates the calculator input.
+ * - inputRef (ref): input element reference for focusing after loading history.
+ *
+ * Return value:
+ * An object containing:
+ *   - history (array): list of formatted history entries.
+ *   - lastAnswer (string): most recent evaluated result.
+ *   - setLastAnswer, fetchHistory, pushHistory, clearHistory, handleHistoryClick (functions).
+ */
+
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';

@@ -1,3 +1,18 @@
+/*
+ * ResetPassword
+ *
+ * Purpose:
+ * Allows users to reset their password using an OTP sent to their email.
+ * Validates OTP and ensures the new password is confirmed before submitting.
+ *
+ * Parameters:
+ * None (uses internal state and query parameters for userId).
+ *
+ * Return value:
+ * Renders a password reset form that accepts OTP, new password, and confirmation,
+ * then updates the password through the backend API with toast feedback.
+ */
+
 import { useState } from 'react';
 import axios from 'axios';
 import { useSearchParams, useNavigate } from 'react-router-dom';

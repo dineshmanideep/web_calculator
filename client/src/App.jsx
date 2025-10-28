@@ -1,9 +1,25 @@
+/*
+  App
+
+  Purpose:
+  Define application routes and wire public, protected, and guest routes.
+  Manages global authentication state and session management.
+
+  Routes:
+  - Public: /, /login, /signup, /verify-otp, /forgot-password, /reset-password
+  - Protected: /calculator (requires auth), /admin (requires auth + admin role)
+  - Auto-redirects authenticated users away from login/signup pages
+
+  Parameters/Return:
+  Returns the top-level React Router <Routes> element for the app.
+*/
+
 import { useState, useEffect } from 'react';
 import {
   BrowserRouter, Routes, Route, Navigate,
 } from 'react-router-dom';
 import axios from 'axios';
-import { ToastContainer } from 'react-toastify'; // NEW
+import { ToastContainer } from 'react-toastify';
 import Landing from './pages/Landing.jsx';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
@@ -15,10 +31,20 @@ import ResetPassword from './pages/ResetPassword';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-const App = () => {
+function App() {
   const [authenticated, setAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); // To handle initial session check
+  const [loading, setLoading] = useState(true);
+
+  const handleSignOut = async () => {
+    try {
+      await axios.post(`${API_URL}/auth/logout`, { withCredentials: true });
+      setAuthenticated(false);
+      setUser(null);
+    } catch (error) {
+      console.error('Sign out failed:', error);
+    }
+  };
 
   useEffect(() => {
     const checkSession = async () => {
@@ -39,16 +65,6 @@ const App = () => {
     };
     checkSession();
   }, []);
-
-  const handleSignOut = async () => {
-    try {
-      await axios.post(`${API_URL}/auth/logout`, { withCredentials: true });
-      setAuthenticated(false);
-      setUser(null);
-    } catch (error) {
-      console.error('Sign out failed:', error);
-    }
-  };
 
   if (loading) {
     return <div>Loading...</div>; // Or a spinner component
@@ -117,6 +133,6 @@ const App = () => {
       </BrowserRouter>
     </>
   );
-};
+}
 
 export default App;

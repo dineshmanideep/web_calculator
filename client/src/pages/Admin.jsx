@@ -1,3 +1,19 @@
+/*
+ * Admin
+ *
+ * Purpose:
+ * Provides an administrative dashboard for monitoring user activity and system events.
+ * Displays audit logs, filtering tools, statistical summaries, and export functionality.
+ *
+ * Parameters:
+ * - user (object): the current logged-in user object, used to check admin access.
+ * - onSignOut (function): callback function to handle user sign-out.
+ *
+ * Return value:
+ * A React component rendering the admin dashboard with log table, filters, pagination,
+ * and CSV export functionality for audit logs.
+ */
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';

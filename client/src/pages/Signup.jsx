@@ -1,3 +1,18 @@
+/*
+ * Signup
+ *
+ * Purpose:
+ * Manages the multi-step user signup process — sending OTP, verifying email, and completing profile.
+ * Handles user input validation and communicates with backend for each step.
+ *
+ * Parameters:
+ * None (uses internal state and navigation hooks).
+ *
+ * Return value:
+ * Renders a three-step signup flow including email verification, OTP input, and profile completion
+ * with toast-based feedback and navigation to the login page on success.
+ */
+
 import { useState } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';

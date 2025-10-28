@@ -1,11 +1,25 @@
+/*
+ * ModeToolbar
+ *
+ * Purpose:
+ * Renders calculator mode toggle buttons (ML, Calculus, Complex, Matrix, Inverse, Plot)
+ * and manages their active states with toast feedback.
+ *
+ * Parameters:
+ * - mlMode, setMlMode: control ML mode
+ * - calculusMode, setCalculusMode: control calculus mode
+ * - complexMode, setComplexMode: control complex mode
+ * - matrixMode, setMatrixMode: control matrix mode
+ * - inverseMode, setInverseMode: control inverse mode
+ * - plotMode: indicates active plot mode
+ * - handlePlot: external plot handler
+ *
+ * Return value:
+ * A toolbar component with buttons to toggle calculator modes.
+ */
 import React from 'react';
 import { toast } from 'react-toastify';
 
-/**
- * ModeToolbar Component
- * Renders mode toggle buttons and handles mode switching
- * Uses a generic handler to avoid code duplication
- */
 function ModeToolbar({
   mlMode,
   setMlMode,
@@ -24,7 +38,7 @@ function ModeToolbar({
   const toggleMode = (modeName, currentValue, setter) => {
     // Toggle the selected mode
     setter(!currentValue);
-    
+
     // Turn off other modes (except inverse which works independently)
     if (modeName !== 'inverse') {
       if (modeName !== 'ml') setMlMode(false);
@@ -32,7 +46,7 @@ function ModeToolbar({
       if (modeName !== 'complex') setComplexMode(false);
       if (modeName !== 'matrix') setMatrixMode(false);
     }
-    
+
     // Show appropriate message
     const modeLabel = modeName.charAt(0).toUpperCase() + modeName.slice(1);
     toast.info(`${modeLabel} Mode ${currentValue ? 'OFF' : 'ON'}`);

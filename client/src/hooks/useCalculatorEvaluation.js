@@ -1,6 +1,27 @@
+/*
+ * useCalculatorEvaluation
+ *
+ * Purpose:
+ * Custom React hook to handle expression evaluation logic for different calculator modes.
+ * Supports Standard, Machine Learning, Calculus, and Complex evaluation modes.
+ * Separates computation logic from UI and manages result display and history updates.
+ *
+ * Parameters:
+ * - mlMode, calculusMode, complexMode, matrixMode (bool): active calculation modes.
+ * - angleMode (string): angle unit setting ("deg" or "rad").
+ * - currentInput (string): current expression entered by the user.
+ * - setCurrentInput (function): updates calculator input.
+ * - pushHistory (function): logs expression and result to history.
+ *
+ * Return value:
+ * An object with:
+ *   - handleEquals (function): evaluates current expression.
+ *   - lastResult (any): stores last evaluated result.
+ */
+
 import { useState, useCallback } from 'react';
 import { toast } from 'react-toastify';
-import evaluateExpression from '../utils/mathEvaluator';
+import { evaluateExpression } from '../utils/evaluator';
 
 /**
  * Custom hook for calculator evaluation logic
@@ -34,7 +55,7 @@ function useCalculatorEvaluation({
     try {
       // Determine which mode is active
       let result;
-      
+
       if (mlMode) {
         result = evaluateExpression(currentInput, {
           mode: 'ml',
@@ -66,14 +87,14 @@ function useCalculatorEvaluation({
 
         setCurrentInput(resultString);
         setLastResult(result);
-        
+
         // Save to history
         pushHistory({
           expression: currentInput,
           result: resultString,
           mode: mlMode ? 'ML' : calculusMode ? 'Calculus' : complexMode ? 'Complex' : 'Standard',
         });
-        
+
         toast.success('Calculated!');
       } else {
         toast.error('Invalid calculation');

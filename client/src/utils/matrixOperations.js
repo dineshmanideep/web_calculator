@@ -1,10 +1,16 @@
-import { toast } from 'react-toastify';
-import math from './index.js';
+import math from './math.lib';
+import { evaluateElement } from './evaluator';
 
 /**
- * Parse matrix string input like "[[1,2],[3,4]]" into a matrix
+ * Parse matrix string input like "[[1,2],[3,4]]" or "[[π,e],[sin(0),cos(0)]]" into a matrix
+ * Evaluates mathematical expressions and constants before creating the matrix
+ *
+ * @param {string} str - Matrix string in format "[[a,b],[c,d]]"
+ * @param {string} angleMode - Either 'deg' or 'rad' (default: 'rad')
+ * @returns {Matrix} Parsed and evaluated matrix
+ * @throws {Error} If matrix format is invalid or elements cannot be evaluated
  */
-export const parseMatrix = (str) => {
+export const parseMatrix = (str, angleMode = 'rad') => {
   try {
     // Remove whitespace
     const cleaned = str.trim();
@@ -14,15 +20,39 @@ export const parseMatrix = (str) => {
       throw new Error('Matrix must start with [ and end with ]');
     }
 
-    // Parse using JSON
-    const parsed = JSON.parse(cleaned);
-
-    // Validate it's a 2D array
-    if (!Array.isArray(parsed) || !Array.isArray(parsed[0])) {
+    // Extract rows by splitting on "],["
+    const rowsMatch = cleaned.match(/\[(.*)\]/);
+    if (!rowsMatch) {
       throw new Error('Invalid matrix format');
     }
 
-    return math.matrix(parsed);
+    const rowsString = rowsMatch[1];
+    
+    // Split by ],[ to get individual rows
+    const rowStrings = rowsString.split(/\],\s*\[/);
+    
+    // Parse and evaluate each element using the centralized evaluateElement function
+    const rows = rowStrings.map((rowString) => {
+      const cleanRow = rowString.replace(/^\[|\]$/g, '');
+      const elements = cleanRow.split(',').map((el) => el.trim());
+      
+      // Use evaluateElement from evaluator.js for consistent preprocessing
+      return elements.map((element) => evaluateElement(element, angleMode));
+    });
+
+    // Validate it's a proper 2D array
+    if (rows.length === 0 || rows[0].length === 0) {
+      throw new Error('Matrix cannot be empty');
+    }
+
+    const colCount = rows[0].length;
+    const hasInconsistentColumns = rows.some((row) => row.length !== colCount);
+    
+    if (hasInconsistentColumns) {
+      throw new Error('All rows must have the same number of columns');
+    }
+
+    return math.matrix(rows);
   } catch (error) {
     throw new Error(`Invalid matrix format: ${error.message}`);
   }

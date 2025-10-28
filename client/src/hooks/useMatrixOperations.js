@@ -1,8 +1,27 @@
+/*
+ * useMatrixOperations
+ *
+ * Purpose:
+ * Custom React hook to manage all matrix-related operations in the calculator.
+ * Supports matrix addition, subtraction, multiplication, determinant, and transpose.
+ * Provides validation, error handling, and integrates with input, history, and result management.
+ *
+ * Parameters:
+ * - input (string): current calculator input string.
+ * - setInput (function): updates the calculator input.
+ * - pushHistory (function): logs the operation and result to history.
+ * - setLastAnswer (function): stores the latest computed answer.
+ * - angleMode (string): current angle mode ('deg' or 'rad') for evaluating matrix elements.
+ *
+ * Return value:
+ * An object with matrix operation state and handlers for performing, clearing, and finalizing matrix computations.
+ */
+
 import { useState } from 'react';
 import { toast } from 'react-toastify';
 import { parseMatrix, performMatrixOperation, formatMatrix } from '../utils/matrixOperations';
 
-const useMatrixOperations = (input, setInput, pushHistory, setLastAnswer) => {
+const useMatrixOperations = (input, setInput, pushHistory, setLastAnswer, angleMode = 'rad') => {
   const [matrixMode, setMatrixMode] = useState(false);
   const [matrixOperation, setMatrixOperation] = useState(null);
   const [firstMatrix, setFirstMatrix] = useState(null);
@@ -23,7 +42,7 @@ const useMatrixOperations = (input, setInput, pushHistory, setLastAnswer) => {
           return;
         }
 
-        const secondMatrix = parseMatrix(currentInput);
+        const secondMatrix = parseMatrix(currentInput, angleMode);
         const size1 = firstMatrix.matrix.size();
         const size2 = secondMatrix.size();
 
@@ -59,7 +78,7 @@ const useMatrixOperations = (input, setInput, pushHistory, setLastAnswer) => {
           return;
         }
 
-        const matrix = parseMatrix(currentInput);
+        const matrix = parseMatrix(currentInput, angleMode);
 
         if (operation === 'Det') {
           const size = matrix.size();
@@ -84,7 +103,7 @@ const useMatrixOperations = (input, setInput, pushHistory, setLastAnswer) => {
           return;
         }
 
-        const matrix = parseMatrix(currentInput);
+        const matrix = parseMatrix(currentInput, angleMode);
         setFirstMatrix({ matrix, input: currentInput });
         setMatrixOperation(operation);
         setInput('');
@@ -95,7 +114,7 @@ const useMatrixOperations = (input, setInput, pushHistory, setLastAnswer) => {
           return;
         }
 
-        const secondMatrix = parseMatrix(currentInput);
+        const secondMatrix = parseMatrix(currentInput, angleMode);
         const size1 = firstMatrix.matrix.size();
         const size2 = secondMatrix.size();
 
