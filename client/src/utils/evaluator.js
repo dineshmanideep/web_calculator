@@ -207,23 +207,23 @@ export const evaluateExpression = (expr, angleMode) => {
 export const evaluateElement = (element, angleMode = 'rad') => {
   try {
     const trimmed = element.trim();
-    
+
     // Preprocess the element
     const processed = preprocessExpression(trimmed, angleMode);
-    
+
     // Evaluate using mathjs
     const result = math.evaluate(processed);
-    
+
     // Return the numeric value
     if (typeof result === 'number') {
       return result;
     }
-    
+
     // Handle complex numbers - return real part for matrix elements
     if (result && typeof result === 'object' && result.re !== undefined) {
       return result.re;
     }
-    
+
     throw new Error(`Element "${element}" did not evaluate to a number`);
   } catch (error) {
     throw new Error(`Could not evaluate "${element}": ${error.message}`);
@@ -248,10 +248,10 @@ export const evaluateForPlot = (expr, angleMode = 'rad') => {
   try {
     // Preprocess expression (without toast on error)
     const processed = preprocessExpression(expr, angleMode);
-    
+
     // Evaluate
     const result = math.evaluate(processed);
-    
+
     // Extract numeric value
     let numValue;
     if (typeof result === 'number') {
@@ -261,12 +261,12 @@ export const evaluateForPlot = (expr, angleMode = 'rad') => {
     } else {
       return null;
     }
-    
+
     // Return null for invalid values (NaN, Infinity)
     if (!Number.isFinite(numValue)) {
       return null;
     }
-    
+
     return numValue;
   } catch (error) {
     // Silently return null on any error during plotting

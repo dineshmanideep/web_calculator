@@ -27,15 +27,15 @@ export const parseMatrix = (str, angleMode = 'rad') => {
     }
 
     const rowsString = rowsMatch[1];
-    
+
     // Split by ],[ to get individual rows
     const rowStrings = rowsString.split(/\],\s*\[/);
-    
+
     // Parse and evaluate each element using the centralized evaluateElement function
     const rows = rowStrings.map((rowString) => {
       const cleanRow = rowString.replace(/^\[|\]$/g, '');
       const elements = cleanRow.split(',').map((el) => el.trim());
-      
+
       // Use evaluateElement from evaluator.js for consistent preprocessing
       return elements.map((element) => evaluateElement(element, angleMode));
     });
@@ -47,7 +47,7 @@ export const parseMatrix = (str, angleMode = 'rad') => {
 
     const colCount = rows[0].length;
     const hasInconsistentColumns = rows.some((row) => row.length !== colCount);
-    
+
     if (hasInconsistentColumns) {
       throw new Error('All rows must have the same number of columns');
     }

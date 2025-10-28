@@ -67,15 +67,16 @@ export default function Signup() {
     }
   };
 
-   const validatePassword = (password) => {
-    const minLength = password.length >= 8;
-    const hasLower = /[a-z]/.test(password);
-    const hasUpper = /[A-Z]/.test(password);
-    const hasNumber = /\d/.test(password);
-    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-    return { minLength, hasLower, hasUpper, hasNumber, hasSpecial };
+  const validatePassword = (pwd) => {
+    const minLength = pwd.length >= 8;
+    const hasLower = /[a-z]/.test(pwd);
+    const hasUpper = /[A-Z]/.test(pwd);
+    const hasNumber = /\d/.test(pwd);
+    const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(pwd);
+    return {
+      minLength, hasLower, hasUpper, hasNumber, hasSpecial,
+    };
   };
-
 
   // Step 3: complete signup
   const handleCompleteSignup = async (e) => {
@@ -107,7 +108,6 @@ export default function Signup() {
       setCompletingSignup(false);
     }
   };
-
 
   return (
     <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center px-4">
@@ -157,11 +157,12 @@ export default function Signup() {
           <p className="text-gray-400 text-sm text-center mb-6">Enter your email to get started</p>
 
           <div className="mb-6">
-            <label className="block text-gray-400 text-sm mb-2">Email Address</label>
+            <label htmlFor="signup-email" className="block text-gray-400 text-sm mb-2">Email Address</label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
               <input
                 type="email"
+                id="signup-email"
                 placeholder="Enter your email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -192,9 +193,10 @@ export default function Signup() {
           </p>
 
           <div className="mb-6">
-            <label className="block text-gray-400 text-sm mb-2">Verification Code</label>
+            <label htmlFor="signup-otp" className="block text-gray-400 text-sm mb-2">Verification Code</label>
             <input
               type="text"
+              id="signup-otp"
               placeholder="Enter 6-digit OTP"
               value={otp}
               onChange={(e) => setOtp(e.target.value)}
@@ -233,11 +235,12 @@ export default function Signup() {
 
           <div className="space-y-4 mb-6">
             <div>
-              <label className="block text-gray-400 text-sm mb-2">Full Name</label>
+              <label htmlFor="signup-fullname" className="block text-gray-400 text-sm mb-2">Full Name</label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   type="text"
+                  id="signup-fullname"
                   placeholder="Enter your full name"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
@@ -249,11 +252,12 @@ export default function Signup() {
             </div>
 
             <div>
-              <label className="block text-gray-400 text-sm mb-2">Username</label>
+              <label htmlFor="signup-username" className="block text-gray-400 text-sm mb-2">Username</label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   type="text"
+                  id="signup-username"
                   placeholder="Choose a username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
@@ -265,11 +269,12 @@ export default function Signup() {
             </div>
 
             <div>
-              <label className="block text-gray-400 text-sm mb-2">Password</label>
+              <label htmlFor="signup-password" className="block text-gray-400 text-sm mb-2">Password</label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   type="password"
+                  id="signup-password"
                   placeholder="Create a password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -281,11 +286,12 @@ export default function Signup() {
             </div>
 
             <div>
-              <label className="block text-gray-400 text-sm mb-2">Confirm Password</label>
+              <label htmlFor="signup-confirm-password" className="block text-gray-400 text-sm mb-2">Confirm Password</label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                   type="password"
+                  id="signup-confirm-password"
                   placeholder="Confirm your password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
@@ -296,14 +302,14 @@ export default function Signup() {
               </div>
             </div>
             <div className="bg-gray-700 text-gray-300 text-sm p-4 rounded-lg border border-gray-600 mt-4">
-                <p className="font-semibold mb-1 text-purple-400">Password must contain:</p>
-                <ul className="list-disc ml-5 space-y-1">
-                  <li>At least 8 characters</li>
-                  <li>At least one lowercase letter</li>
-                  <li>At least one uppercase letter</li>
-                  <li>At least one number</li>
-                  <li>At least one special character (!@#$%^&amp;*)</li>
-                </ul>
+              <p className="font-semibold mb-1 text-purple-400">Password must contain:</p>
+              <ul className="list-disc ml-5 space-y-1">
+                <li>At least 8 characters</li>
+                <li>At least one lowercase letter</li>
+                <li>At least one uppercase letter</li>
+                <li>At least one number</li>
+                <li>At least one special character (!@#$%^&amp;*)</li>
+              </ul>
             </div>
 
           </div>

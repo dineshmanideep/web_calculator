@@ -14,7 +14,7 @@
  * and CSV export functionality for audit logs.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
@@ -57,20 +57,9 @@ const Admin = ({ user, onSignOut }) => {
 
   const [availableActions, setAvailableActions] = useState([]);
 
-  useEffect(() => {
-    // Check if user is admin
-    if (!user?.isAdmin) {
-      toast.error('Unauthorized: Admin access required');
-      navigate('/calculator');
-      return;
-    }
+  // Defer effect until after functions are declared
 
-    fetchAuditLogs();
-    fetchStats();
-    fetchAvailableActions();
-  }, [filters, user, navigate]);
-
-  const fetchAuditLogs = async () => {
+  const fetchAuditLogs = useCallback(async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams();
@@ -97,9 +86,9 @@ const Admin = ({ user, onSignOut }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters, navigate]);
 
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     try {
       const { data } = await axios.get(`${API_URL}/admin/stats`, {
         withCredentials: true,
@@ -108,9 +97,9 @@ const Admin = ({ user, onSignOut }) => {
     } catch (error) {
       console.error('Error fetching stats:', error);
     }
-  };
+  }, []);
 
-  const fetchAvailableActions = async () => {
+  const fetchAvailableActions = useCallback(async () => {
     try {
       const { data } = await axios.get(`${API_URL}/admin/actions`, {
         withCredentials: true,
@@ -119,7 +108,20 @@ const Admin = ({ user, onSignOut }) => {
     } catch (error) {
       console.error('Error fetching actions:', error);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    // Check if user is admin
+    if (!user?.isAdmin) {
+      toast.error('Unauthorized: Admin access required');
+      navigate('/calculator');
+      return;
+    }
+
+    fetchAuditLogs();
+    fetchStats();
+    fetchAvailableActions();
+  }, [filters, user, navigate, fetchAuditLogs, fetchStats, fetchAvailableActions]);
 
   const handleFilterChange = (key, value) => {
     setFilters((prev) => ({
@@ -307,11 +309,12 @@ const Admin = ({ user, onSignOut }) => {
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {/* Search */}
             <div>
-              <label className="block text-sm text-gray-400 mb-1">Search</label>
+              <label htmlFor="admin-search" className="block text-sm text-gray-400 mb-1">Search</label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
+                  id="admin-search"
                   value={filters.search}
                   onChange={(e) => handleFilterChange('search', e.target.value)}
                   placeholder="User, email, details..."
@@ -322,8 +325,9 @@ const Admin = ({ user, onSignOut }) => {
 
             {/* Action Filter */}
             <div>
-              <label className="block text-sm text-gray-400 mb-1">Action</label>
+              <label htmlFor="admin-action" className="block text-sm text-gray-400 mb-1">Action</label>
               <select
+                id="admin-action"
                 value={filters.action}
                 onChange={(e) => handleFilterChange('action', e.target.value)}
                 className="w-full px-3 py-2 bg-gray-700 rounded text-white text-sm"
@@ -337,8 +341,9 @@ const Admin = ({ user, onSignOut }) => {
 
             {/* Status Filter */}
             <div>
-              <label className="block text-sm text-gray-400 mb-1">Status</label>
+              <label htmlFor="admin-status" className="block text-sm text-gray-400 mb-1">Status</label>
               <select
+                id="admin-status"
                 value={filters.status}
                 onChange={(e) => handleFilterChange('status', e.target.value)}
                 className="w-full px-3 py-2 bg-gray-700 rounded text-white text-sm"
@@ -352,9 +357,10 @@ const Admin = ({ user, onSignOut }) => {
 
             {/* Start Date */}
             <div>
-              <label className="block text-sm text-gray-400 mb-1">Start Date</label>
+              <label htmlFor="admin-start-date" className="block text-sm text-gray-400 mb-1">Start Date</label>
               <input
                 type="datetime-local"
+                id="admin-start-date"
                 value={filters.startDate}
                 onChange={(e) => handleFilterChange('startDate', e.target.value)}
                 className="w-full px-3 py-2 bg-gray-700 rounded text-white text-sm"
@@ -363,9 +369,10 @@ const Admin = ({ user, onSignOut }) => {
 
             {/* End Date */}
             <div>
-              <label className="block text-sm text-gray-400 mb-1">End Date</label>
+              <label htmlFor="admin-end-date" className="block text-sm text-gray-400 mb-1">End Date</label>
               <input
                 type="datetime-local"
+                id="admin-end-date"
                 value={filters.endDate}
                 onChange={(e) => handleFilterChange('endDate', e.target.value)}
                 className="w-full px-3 py-2 bg-gray-700 rounded text-white text-sm"

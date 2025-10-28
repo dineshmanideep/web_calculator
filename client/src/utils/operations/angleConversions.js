@@ -1,4 +1,5 @@
 import { toast } from 'react-toastify';
+import * as math from 'mathjs';
 
 export const angleConversions = {
   // Angle conversions
@@ -8,7 +9,7 @@ export const angleConversions = {
         toast.error('deg2rad: Input must be a number');
         throw new Error('Invalid input to deg2rad');
       }
-      return typeof deg === 'number' ? deg * Math.PI / 180 : math.evaluate(`${deg} * pi / 180`);
+      return typeof deg === 'number' ? (deg * Math.PI) / 180 : math.evaluate(`${deg} * pi / 180`);
     } catch (error) {
       toast.error('Degree to radian conversion failed');
       throw error;
@@ -21,7 +22,7 @@ export const angleConversions = {
         toast.error('rad2deg: Input must be a number');
         throw new Error('Invalid input to rad2deg');
       }
-      return typeof rad === 'number' ? rad * 180 / Math.PI : math.evaluate(`${rad} * 180 / pi`);
+      return typeof rad === 'number' ? (rad * 180) / Math.PI : math.evaluate(`${rad} * 180 / pi`);
     } catch (error) {
       toast.error('Radian to degree conversion failed');
       throw error;

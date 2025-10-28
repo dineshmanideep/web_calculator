@@ -70,9 +70,10 @@ export default function Login({ setAuthenticated, setUser }) {
         <h2 className="text-white text-2xl mb-6 text-center font-semibold">Sign In</h2>
 
         <div className="mb-4">
-          <label className="block text-gray-400 text-sm mb-2">Email or Username</label>
+          <label htmlFor="login-identity" className="block text-gray-400 text-sm mb-2">Email or Username</label>
           <input
             type="text"
+            id="login-identity"
             placeholder="Enter your email or username"
             value={emailOrUsername}
             onChange={(e) => setEmailOrUsername(e.target.value)}
@@ -82,9 +83,10 @@ export default function Login({ setAuthenticated, setUser }) {
         </div>
 
         <div className="mb-6">
-          <label className="block text-gray-400 text-sm mb-2">Password</label>
+          <label htmlFor="login-password" className="block text-gray-400 text-sm mb-2">Password</label>
           <input
             type="password"
+            id="login-password"
             placeholder="Enter your password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -114,7 +116,7 @@ export default function Login({ setAuthenticated, setUser }) {
 
       {/* Signup Link */}
       <p className="text-gray-400 mt-6 text-center">
-        Don't have an account?
+        Don&apos;t have an account?
         {' '}
         <Link to="/signup" className="text-purple-400 hover:text-purple-300 font-semibold transition-colors">
           Sign Up

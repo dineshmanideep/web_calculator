@@ -113,7 +113,7 @@ const CalculatorInfoBox = ({ show, onClose }) => {
           <li>
             <code>e</code>
             {' '}
-            ≈ 2.71828 (Euler's number)
+            ≈ 2.71828 (Euler&apos;s number)
           </li>
           <li>
             <code>i</code>

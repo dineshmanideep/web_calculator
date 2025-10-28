@@ -42,7 +42,7 @@ const PlotArea = ({
 }) => {
   const [plotData, setPlotData] = useState(null);
   const [xRange, setXRange] = useState([-10, 10]);
-  const [isPlotting, setIsPlotting] = useState(false);
+  const [, setIsPlotting] = useState(false);
   const [plotMode, setPlotMode] = useState('function'); // 'function' or 'complex'
 
   const resizing = useRef({ type: null });
@@ -58,16 +58,7 @@ const PlotArea = ({
         toast.info(`Switched to ${newMode === 'complex' ? 'Complex' : 'Function'} mode`);
       }
     }
-  }, [complexMode]);
-
-  // Listen for plot trigger from parent
-  React.useEffect(() => {
-    if (onPlotTrigger && calculatorInput) {
-      handlePlotFunction(calculatorInput);
-    }
-  }, [onPlotTrigger]);
-
-  // Generate plot data based on current x-range for real functions
+  }, [complexMode, plotMode]);
   const generatePlotData = useCallback((func, xMin, xMax) => {
     try {
       const expr = preprocessExpression(func, angleMode);
@@ -82,10 +73,10 @@ const PlotArea = ({
         try {
           // Replace x with actual value
           const exprWithX = expr.replace(/x/g, `(${x})`);
-          
+
           // Evaluate directly without toasts
           const result = math.evaluate(exprWithX);
-          
+
           // Extract numeric value
           let y;
           if (typeof result === 'number') {
@@ -96,7 +87,7 @@ const PlotArea = ({
             // Skip non-numeric results
             y = null;
           }
-          
+
           // Only add finite values (skip NaN and Infinity)
           if (y !== null && Number.isFinite(y)) {
             xs.push(x);
@@ -194,6 +185,15 @@ const PlotArea = ({
       setIsPlotting(false);
     }
   }, [calculatorInput, xRange, generatePlotData, generateComplexPlot, plotMode]);
+
+  // Listen for plot trigger from parent
+  React.useEffect(() => {
+    if (onPlotTrigger && calculatorInput) {
+      handlePlotFunction(calculatorInput);
+    }
+  }, [onPlotTrigger, calculatorInput, handlePlotFunction]);
+
+  // Generate plot data based on current x-range for real functions
 
   // Handle zoom/pan events from Plotly (only for function mode)
   const handleRelayout = useCallback((event) => {
@@ -458,7 +458,7 @@ const PlotArea = ({
                 : 'Enter a function of x (e.g., sin(x), x^2, tan(x))'}
             </p>
             <p className="text-gray-600 text-xs">
-              Type in calculator input and click "📊 Plot Graph"
+              Type in calculator input and click &quot;📊 Plot Graph&quot;
             </p>
           </div>
         )}
@@ -469,16 +469,28 @@ const PlotArea = ({
         className="absolute top-0 right-0 h-full w-2 cursor-ew-resize"
         style={{ zIndex: 20 }}
         onMouseDown={(e) => startResize('width', e)}
+        role="button"
+        tabIndex={0}
+        aria-label="Resize width"
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') startResize('width', e); }}
       />
       <div
         className="absolute bottom-0 left-0 w-full h-2 cursor-ns-resize"
         style={{ zIndex: 20 }}
         onMouseDown={(e) => startResize('height', e)}
+        role="button"
+        tabIndex={0}
+        aria-label="Resize height"
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') startResize('height', e); }}
       />
       <div
         className="absolute bottom-0 right-0 w-3 h-3 cursor-nwse-resize bg-gray-500 rounded"
         style={{ zIndex: 30 }}
         onMouseDown={(e) => startResize('corner', e)}
+        role="button"
+        tabIndex={0}
+        aria-label="Resize corner"
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') startResize('corner', e); }}
       />
     </div>
   );

@@ -27,13 +27,15 @@ export default function ResetPassword() {
   const API = import.meta.env.VITE_API_URL;
   const navigate = useNavigate();
 
-     const validatePassword = (password) => {
+  const validatePassword = (password) => {
     const minLength = password.length >= 8;
     const hasLower = /[a-z]/.test(password);
     const hasUpper = /[A-Z]/.test(password);
     const hasNumber = /\d/.test(password);
     const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-    return { minLength, hasLower, hasUpper, hasNumber, hasSpecial };
+    return {
+      minLength, hasLower, hasUpper, hasNumber, hasSpecial,
+    };
   };
 
   const handleSubmit = async (e) => {
@@ -87,15 +89,15 @@ export default function ResetPassword() {
           Reset Password
         </button>
         <div className="bg-gray-700 text-gray-300 text-sm p-4 rounded-lg border border-gray-600 mt-4">
-                <p className="font-semibold mb-1 text-purple-400">Password must contain:</p>
-                <ul className="list-disc ml-5 space-y-1">
-                  <li>At least 8 characters</li>
-                  <li>At least one lowercase letter</li>
-                  <li>At least one uppercase letter</li>
-                  <li>At least one number</li>
-                  <li>At least one special character (!@#$%^&amp;*)</li>
-                </ul>
-            </div>
+          <p className="font-semibold mb-1 text-purple-400">Password must contain:</p>
+          <ul className="list-disc ml-5 space-y-1">
+            <li>At least 8 characters</li>
+            <li>At least one lowercase letter</li>
+            <li>At least one uppercase letter</li>
+            <li>At least one number</li>
+            <li>At least one special character (!@#$%^&amp;*)</li>
+          </ul>
+        </div>
       </form>
     </div>
   );

@@ -1,4 +1,5 @@
 import { toast } from 'react-toastify';
+import * as math from 'mathjs';
 
 export const basicOperations = {
 

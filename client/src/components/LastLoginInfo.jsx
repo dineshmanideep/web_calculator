@@ -86,7 +86,7 @@ export default function LastLoginInfo() {
                 🎉 Welcome to Web Calculator!
               </h3>
               <p className="text-green-50 text-sm">
-                This is your first time logging in. We're excited to have you here!
+                This is your first time logging in. We&apos;re excited to have you here!
               </p>
             </div>
             <button
