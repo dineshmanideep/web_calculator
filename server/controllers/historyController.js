@@ -9,7 +9,7 @@
  * History entries are limited to the last 25 items per user
  */
 
-import User from '../models/User.js';
+import User from "../models/User.js";
 
 /**
  * Get user calculation history
@@ -21,10 +21,10 @@ import User from '../models/User.js';
  */
 export const getHistory = async (req, res) => {
   try {
-    const user = await User.findById(req.session.user.id, 'history');
+    const user = await User.findById(req.session.user.id, "history");
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: "User not found" });
     }
 
     // Return history in reverse chronological order
@@ -32,7 +32,7 @@ export const getHistory = async (req, res) => {
     return res.json({ history });
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ message: 'Server error' });
+    return res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -49,7 +49,7 @@ export const addHistory = async (req, res) => {
     const { expr, result } = req.body;
 
     if (!expr || result === undefined) {
-      return res.status(400).json({ message: 'Missing expr or result' });
+      return res.status(400).json({ message: "Missing expr or result" });
     }
 
     const newEntry = {
@@ -69,18 +69,18 @@ export const addHistory = async (req, res) => {
           },
         },
       },
-      { new: true, select: 'history' }
+      { new: true, select: "history" },
     );
 
     if (!updatedUser) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: "User not found" });
     }
 
     // Return fresh history reversed
     return res.json({ history: updatedUser.history.slice().reverse() });
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ message: 'Server error' });
+    return res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -96,16 +96,16 @@ export const clearHistory = async (req, res) => {
     const user = await User.findByIdAndUpdate(
       req.session.user.id,
       { $set: { history: [] } },
-      { new: true }
+      { new: true },
     );
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: "User not found" });
     }
 
-    return res.json({ message: 'History cleared' });
+    return res.json({ message: "History cleared" });
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ message: 'Server error' });
+    return res.status(500).json({ message: "Server error" });
   }
 };
