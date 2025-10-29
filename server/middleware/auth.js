@@ -6,9 +6,8 @@
 export const isAuthenticated = (req, res, next) => {
   if (req.session && req.session.user) {
     return next();
-  } else {
-    return res.status(401).json({ message: "Unauthorized: No active session" });
   }
+  return res.status(401).json({ message: "Unauthorized: No active session" });
 };
 
 /**
@@ -18,24 +17,28 @@ export const isAuthenticated = (req, res, next) => {
 export const isAdmin = async (req, res, next) => {
   try {
     if (!req.session || !req.session.user) {
-      return res.status(401).json({ message: "Unauthorized: No active session" });
+      return res
+        .status(401)
+        .json({ message: "Unauthorized: No active session" });
     }
 
     // Import User model to check admin status
-    const User = (await import('../models/User.js')).default;
+    const User = (await import("../models/User.js")).default;
     const user = await User.findById(req.session.user.id);
-    
+
     if (!user) {
       return res.status(401).json({ message: "User not found" });
     }
 
     if (!user.isAdmin) {
-      return res.status(403).json({ message: "Forbidden: Admin access required" });
+      return res
+        .status(403)
+        .json({ message: "Forbidden: Admin access required" });
     }
 
     next();
   } catch (error) {
-    console.error('Admin check error:', error);
+    console.error("Admin check error:", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 };

@@ -8,9 +8,9 @@
  * - Get available action types
  */
 
-import AuditLog from '../models/AuditLog.js';
-import User from '../models/User.js';
-import { logAction } from '../middleware/auditLogger.js';
+import AuditLog from "../models/AuditLog.js";
+import User from "../models/User.js";
+import { logAction } from "../middleware/auditLogger.js";
 
 /**
  * Get audit logs with filtering and pagination
@@ -22,9 +22,9 @@ import { logAction } from '../middleware/auditLogger.js';
 export const getAuditLogs = async (req, res) => {
   try {
     // Log admin access
-    await logAction('ADMIN_ACCESS', req, {
-      details: 'Accessed audit logs',
-      status: 'SUCCESS',
+    await logAction("ADMIN_ACCESS", req, {
+      details: "Accessed audit logs",
+      status: "SUCCESS",
     });
 
     const {
@@ -66,9 +66,9 @@ export const getAuditLogs = async (req, res) => {
     // Search in username, email, or details
     if (search) {
       filter.$or = [
-        { username: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } },
-        { details: { $regex: search, $options: 'i' } },
+        { username: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } },
+        { details: { $regex: search, $options: "i" } },
       ];
     }
 
@@ -93,16 +93,16 @@ export const getAuditLogs = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error fetching audit logs:', error);
+    console.error("Error fetching audit logs:", error);
 
     // Log the failed access attempt
-    await logAction('ADMIN_ACCESS', req, {
-      details: 'Failed to fetch audit logs',
-      status: 'ERROR',
+    await logAction("ADMIN_ACCESS", req, {
+      details: "Failed to fetch audit logs",
+      status: "ERROR",
       errorMessage: error.message,
     });
 
-    return res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -128,22 +128,20 @@ export const getStats = async (req, res) => {
       }
     }
 
-    const [totalLogs, actionStats, statusStats, recentActivity] = await Promise.all([
-      AuditLog.countDocuments(dateFilter),
-      AuditLog.aggregate([
-        { $match: dateFilter },
-        { $group: { _id: '$action', count: { $sum: 1 } } },
-        { $sort: { count: -1 } },
-      ]),
-      AuditLog.aggregate([
-        { $match: dateFilter },
-        { $group: { _id: '$status', count: { $sum: 1 } } },
-      ]),
-      AuditLog.find(dateFilter)
-        .sort({ timestamp: -1 })
-        .limit(10)
-        .lean(),
-    ]);
+    const [totalLogs, actionStats, statusStats, recentActivity] =
+      await Promise.all([
+        AuditLog.countDocuments(dateFilter),
+        AuditLog.aggregate([
+          { $match: dateFilter },
+          { $group: { _id: "$action", count: { $sum: 1 } } },
+          { $sort: { count: -1 } },
+        ]),
+        AuditLog.aggregate([
+          { $match: dateFilter },
+          { $group: { _id: "$status", count: { $sum: 1 } } },
+        ]),
+        AuditLog.find(dateFilter).sort({ timestamp: -1 }).limit(10).lean(),
+      ]);
 
     return res.status(200).json({
       totalLogs,
@@ -152,8 +150,8 @@ export const getStats = async (req, res) => {
       recentActivity,
     });
   } catch (error) {
-    console.error('Error fetching stats:', error);
-    return res.status(500).json({ message: 'Internal server error' });
+    console.error("Error fetching stats:", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -167,14 +165,14 @@ export const getStats = async (req, res) => {
 export const getUsers = async (req, res) => {
   try {
     const users = await User.find({})
-      .select('-passwordHash -signupOtp -resetOtp')
+      .select("-passwordHash -signupOtp -resetOtp")
       .sort({ createdAt: -1 })
       .lean();
 
     return res.status(200).json({ users });
   } catch (error) {
-    console.error('Error fetching users:', error);
-    return res.status(500).json({ message: 'Internal server error' });
+    console.error("Error fetching users:", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -189,23 +187,23 @@ export const getUsers = async (req, res) => {
 export const getActions = async (req, res) => {
   try {
     const actions = [
-      'LOGIN_SUCCESS',
-      'LOGIN_FAILED',
-      'LOGOUT',
-      'SIGNUP',
-      'SIGNUP_VERIFY',
-      'PASSWORD_RESET_REQUEST',
-      'PASSWORD_RESET_SUCCESS',
-      'CALCULATION',
-      'HISTORY_SAVE',
-      'HISTORY_CLEAR',
-      'ADMIN_ACCESS',
-      'UNAUTHORIZED_ACCESS',
+      "LOGIN_SUCCESS",
+      "LOGIN_FAILED",
+      "LOGOUT",
+      "SIGNUP",
+      "SIGNUP_VERIFY",
+      "PASSWORD_RESET_REQUEST",
+      "PASSWORD_RESET_SUCCESS",
+      "CALCULATION",
+      "HISTORY_SAVE",
+      "HISTORY_CLEAR",
+      "ADMIN_ACCESS",
+      "UNAUTHORIZED_ACCESS",
     ];
 
     return res.status(200).json({ actions });
   } catch (error) {
-    console.error('Error fetching actions:', error);
-    return res.status(500).json({ message: 'Internal server error' });
+    console.error("Error fetching actions:", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };

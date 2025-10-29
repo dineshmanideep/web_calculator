@@ -102,7 +102,7 @@ function CalculatorContent({ user, onSignOut }) {
 
   // Render
   return (
-    <div className="h-screen bg-gray-900 relative">
+    <div className="min-h-screen bg-gray-900 relative">
       {/* Profile top-right */}
       <div className="absolute top-2 right-2">
         <div className="relative">

@@ -1,10 +1,10 @@
-import nodemailer from 'nodemailer';
-import dotenv from 'dotenv';
+import nodemailer from "nodemailer";
+import dotenv from "dotenv";
 
 dotenv.config();
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  service: "gmail",
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
@@ -28,7 +28,7 @@ export async function sendMail({ to, subject, text, from }) {
     const mailFrom = from || process.env.FROM_EMAIL || process.env.SMTP_USER;
 
     if (!to || !subject || !text) {
-      throw new Error('Missing required mail fields');
+      throw new Error("Missing required mail fields");
     }
 
     const info = await transporter.sendMail({
@@ -39,12 +39,12 @@ export async function sendMail({ to, subject, text, from }) {
     });
 
     // eslint-disable-next-line no-console
-    console.log('Email sent:', info.messageId);
+    console.log("Email sent:", info.messageId);
 
     return info;
   } catch (err) {
     // eslint-disable-next-line no-console
-    console.error('Error sending email:', err);
+    console.error("Error sending email:", err);
 
     throw err;
   }

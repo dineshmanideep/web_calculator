@@ -7,11 +7,9 @@
  * - Session validation
  */
 
-import bcrypt from 'bcrypt';
-import User from '../models/User.js';
-import { logAction } from '../middleware/auditLogger.js';
-
-const SALT_ROUNDS = 10;
+import bcrypt from "bcrypt";
+import User from "../models/User.js";
+import { logAction } from "../middleware/auditLogger.js";
 
 /**
  * Login user with email/username and password
@@ -24,7 +22,7 @@ export const login = async (req, res) => {
   const { emailOrUsername, password } = req.body;
 
   if (!emailOrUsername || !password) {
-    return res.status(400).json({ message: 'Missing fields' });
+    return res.status(400).json({ message: "Missing fields" });
   }
 
   try {
@@ -33,30 +31,30 @@ export const login = async (req, res) => {
     });
 
     if (!user) {
-      await logAction('LOGIN_FAILED', req, {
+      await logAction("LOGIN_FAILED", req, {
         email: emailOrUsername,
         username: emailOrUsername,
-        details: 'User not found',
+        details: "User not found",
         input: emailOrUsername,
-        result: 'Failed: User not found',
-        status: 'FAILED',
-        errorMessage: 'Invalid credentials',
+        result: "Failed: User not found",
+        status: "FAILED",
+        errorMessage: "Invalid credentials",
       });
-      return res.status(400).json({ message: 'Invalid credentials' });
+      return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    const ok = await bcrypt.compare(password, user.passwordHash || '');
+    const ok = await bcrypt.compare(password, user.passwordHash || "");
     if (!ok) {
-      await logAction('LOGIN_FAILED', req, {
+      await logAction("LOGIN_FAILED", req, {
         email: user.email,
         username: user.username,
-        details: 'Incorrect password',
+        details: "Incorrect password",
         input: emailOrUsername,
-        result: 'Failed: Incorrect password',
-        status: 'FAILED',
-        errorMessage: 'Invalid credentials',
+        result: "Failed: Incorrect password",
+        status: "FAILED",
+        errorMessage: "Invalid credentials",
       });
-      return res.status(400).json({ message: 'Invalid credentials' });
+      return res.status(400).json({ message: "Invalid credentials" });
     }
 
     // Store previous login/logout info before updating
@@ -76,17 +74,17 @@ export const login = async (req, res) => {
       isAdmin: user.isAdmin,
     };
 
-    await logAction('LOGIN_SUCCESS', req, {
+    await logAction("LOGIN_SUCCESS", req, {
       email: user.email,
       username: user.username,
-      details: 'User logged in successfully',
+      details: "User logged in successfully",
       input: emailOrUsername,
-      result: 'Login successful',
-      status: 'SUCCESS',
+      result: "Login successful",
+      status: "SUCCESS",
     });
 
     return res.status(200).json({
-      message: 'Login successful',
+      message: "Login successful",
       user: {
         id: user._id,
         email: user.email,
@@ -103,15 +101,15 @@ export const login = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    await logAction('LOGIN_FAILED', req, {
+    await logAction("LOGIN_FAILED", req, {
       email: emailOrUsername,
-      details: 'Login error',
+      details: "Login error",
       input: emailOrUsername,
       result: `Error: ${error.message}`,
-      status: 'ERROR',
+      status: "ERROR",
       errorMessage: error.message,
     });
-    return res.status(500).json({ message: 'Internal server error' });
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -134,37 +132,37 @@ export const logout = async (req, res) => {
         lastLogout: new Date(),
       });
     } catch (error) {
-      console.error('Error updating logout time:', error);
+      console.error("Error updating logout time:", error);
     }
   }
 
   req.session.destroy(async (err) => {
     if (err) {
-      await logAction('LOGOUT', req, {
+      await logAction("LOGOUT", req, {
         userId,
         email: userEmail,
         username,
-        details: 'Logout failed',
+        details: "Logout failed",
         input: userEmail,
         result: `Failed: ${err.message}`,
-        status: 'ERROR',
+        status: "ERROR",
         errorMessage: err.message,
       });
-      return res.status(500).json({ message: 'Could not log out.' });
+      return res.status(500).json({ message: "Could not log out." });
     }
 
-    await logAction('LOGOUT', req, {
+    await logAction("LOGOUT", req, {
       userId,
       email: userEmail,
       username,
-      details: 'User logged out successfully',
+      details: "User logged out successfully",
       input: userEmail,
-      result: 'Success',
-      status: 'SUCCESS',
+      result: "Success",
+      status: "SUCCESS",
     });
 
-    res.clearCookie('connect.sid');
-    return res.status(200).json({ message: 'Logged out successfully' });
+    res.clearCookie("connect.sid");
+    return res.status(200).json({ message: "Logged out successfully" });
   });
 };
 

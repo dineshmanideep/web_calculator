@@ -74,8 +74,24 @@ const PlotArea = ({
           // Replace x with actual value
           const exprWithX = expr.replace(/x/g, `(${x})`);
 
-          // Evaluate directly without toasts
-          const result = math.evaluate(exprWithX);
+          // Evaluate with silent overrides to avoid domain toasts (e.g., log of negative)
+          const silentLog = (vx, base) => {
+            const val = Number(vx);
+            if (!Number.isFinite(val) || val <= 0) return NaN;
+            if (base !== undefined) {
+              const b = Number(base);
+              if (!Number.isFinite(b) || b <= 0 || b === 1) return NaN;
+              return Math.log(val) / Math.log(b);
+            }
+            return Math.log10(val);
+          };
+          const silentLn = (vx) => {
+            const val = Number(vx);
+            if (!Number.isFinite(val) || val <= 0) return NaN;
+            return Math.log(val);
+          };
+
+          const result = math.evaluate(exprWithX, { log: silentLog, ln: silentLn });
 
           // Extract numeric value
           let y;
@@ -155,6 +171,30 @@ const PlotArea = ({
       return;
     }
 
+    // Basic syntax validation for plotting
+    const validateForPlot = (expr) => {
+      // Must contain x in function mode
+      if (!expr.includes('x')) {
+        toast.warn('Function must contain variable "x"');
+        return false;
+      }
+      const openParens = (expr.match(/\(/g) || []).length;
+      const closeParens = (expr.match(/\)/g) || []).length;
+      if (openParens !== closeParens) {
+        toast.error('Syntax Error: Mismatched parentheses');
+        return false;
+      }
+      if (expr.includes('()')) {
+        toast.error('Syntax Error: Empty parentheses');
+        return false;
+      }
+      if (/[+\-*/%^]{2,}/.test(expr.replace(/\*\*/g, ''))) {
+        toast.error('Syntax Error: Consecutive operators');
+        return false;
+      }
+      return true;
+    };
+
     setIsPlotting(true);
 
     try {
@@ -166,9 +206,8 @@ const PlotArea = ({
           toast.success(`Complex number plotted: ${data.real.toFixed(3)} + ${data.imag.toFixed(3)}i`);
         }
       } else {
-        // Function mode - needs 'x'
-        if (!expressionToPlot.includes('x')) {
-          toast.warn('Function must contain variable "x"');
+        // Function mode - validate expression
+        if (!validateForPlot(expressionToPlot)) {
           setIsPlotting(false);
           return;
         }
@@ -466,7 +505,7 @@ const PlotArea = ({
 
       {/* Resize Handles */}
       <div
-        className="absolute top-0 right-0 h-full w-2 cursor-ew-resize"
+        className="absolute top-0 right-0 h-full w-2 cursor-ew-resize bg-gray-500 bg-opacity-40 hover:bg-opacity-70"
         style={{ zIndex: 20 }}
         onMouseDown={(e) => startResize('width', e)}
         role="button"
@@ -475,7 +514,7 @@ const PlotArea = ({
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') startResize('width', e); }}
       />
       <div
-        className="absolute bottom-0 left-0 w-full h-2 cursor-ns-resize"
+        className="absolute bottom-0 left-0 w-full h-2 cursor-ns-resize bg-gray-500 bg-opacity-40 hover:bg-opacity-70"
         style={{ zIndex: 20 }}
         onMouseDown={(e) => startResize('height', e)}
         role="button"
