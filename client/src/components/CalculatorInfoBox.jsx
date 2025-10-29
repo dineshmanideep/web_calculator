@@ -60,6 +60,142 @@ const CalculatorInfoBox = ({ show, onClose }) => {
           </li>
         </ul>
 
+        <h2 className="font-bold text-base mb-2 text-yellow-300">DL Mode Operations & Parameters</h2>
+        <ul className="list-disc ml-5 mb-3 text-sm">
+          <li>
+            <b>Conv1D Output Length (convOut1D):</b>
+            {' '}
+            lOut = floor((lIn + 2*p - d*(k-1) - 1)/s) + 1
+            <div className="ml-4 mt-1">
+              <code>lIn</code> input length,
+              {' '}
+              <code>k</code> kernel size,
+              {' '}
+              <code>s</code> stride (≠ 0),
+              {' '}
+              <code>p</code> padding per side,
+              {' '}
+              <code>d</code> dilation (≥ 1)
+            </div>
+          </li>
+          <li>
+            <b>Transposed Conv1D Output Length (transOut1D):</b>
+            {' '}
+            lOut = (lIn - 1)*s - 2*p + d*(k-1) + oPad + 1
+            <div className="ml-4 mt-1">
+              <code>oPad</code>
+              {' '}
+              output padding (0..s-1), others like Conv1D
+            </div>
+          </li>
+          <li>
+            <b>SAME Padding per side (padSame1D):</b>
+            {' '}
+            computes <code>p</code> so output ≈ ceil(lIn/s)
+            <div className="ml-4 mt-1">
+              <code>lIn, k, s, d</code>
+              ; large kernels relative to input are rejected
+            </div>
+          </li>
+          <li>
+            <b>Padding for desired output (padDiff1D):</b>
+            {' '}
+            returns <code>p</code> to reach a specific <code>lOut</code>
+            <div className="ml-4 mt-1">
+              <code>desiredLOut</code>
+              {' '}
+              must be feasible w.r.t <code>lIn, k, s, d</code>
+            </div>
+          </li>
+          <li>
+            <b>Pool1D Output Length (poolOut1D):</b>
+            {' '}
+            lOut = floor((lIn + 2*p - k)/s) + 1
+            <div className="ml-4 mt-1">
+              <code>k</code>
+              {' '}
+              must not exceed padded input; <code>s</code> ≠ 0
+            </div>
+          </li>
+          <li>
+            <b>Conv1D Parameters (convParams1D):</b>
+            {' '}
+            weights + bias
+            <div className="ml-4 mt-1">
+              <code>cIn, cOut, k, groups, biasFlag</code>
+              ;
+              {' '}
+              <code>cIn</code>
+              {' '}
+              and
+              {' '}
+              <code>cOut</code>
+              {' '}
+              divisible by
+              {' '}
+              <code>groups</code>
+              , groups ≥ 1
+            </div>
+          </li>
+          <li>
+            <b>Transposed Conv1D Parameters (transParams1D):</b>
+            {' '}
+            same formula as Conv1D params
+            <div className="ml-4 mt-1">
+              <code>cIn, cOut, k, groups, biasFlag</code>
+            </div>
+          </li>
+          <li>
+            <b>Conv2D Parameters (convParams2D):</b>
+            {' '}
+            weights + bias
+            <div className="ml-4 mt-1">
+              <code>cIn, cOut, kH, kW, groups, biasFlag</code>
+              ;
+              {' '}
+              channel divisibility and groups constraints apply
+            </div>
+          </li>
+          <li>
+            <b>Transposed Conv2D Parameters (transParams2D):</b>
+            {' '}
+            same as Conv2D params
+            <div className="ml-4 mt-1">
+              <code>cIn, cOut, kH, kW, groups, biasFlag</code>
+            </div>
+          </li>
+          <li className="text-yellow-300">
+            <b>Notes:</b>
+            {' '}
+            <code>s</code> ≠ 0; <code>d</code> ≥ 1; <code>oPad</code> in [0, s-1]; inputs must be finite integers and within safe limits;
+            grouped convs require <code>cIn</code> and <code>cOut</code> divisible by <code>groups</code>; effective kernel ≤ padded input
+          </li>
+        </ul>
+
+        <h3 className="font-semibold mb-1">DL Modes overview</h3>
+        <ul className="list-disc ml-5 mb-3 text-sm">
+          <li>
+            <b>Convolution:</b>
+            {' '}
+            Use <code>convOut1D</code> for output size, <code>convParams1D</code>/<code>convParams2D</code> for parameter counts
+          </li>
+          <li>
+            <b>Transposed Convolution:</b>
+            {' '}
+            Use <code>transOut1D</code> for output size, <code>transParams1D</code>/<code>transParams2D</code> for parameters
+          </li>
+          <li>
+            <b>Pooling:</b>
+            {' '}
+            Use <code>poolOut1D</code> for max/avg pooling output size
+          </li>
+          <li>
+            <b>Padding:</b>
+            {' '}
+            Use <code>padSame1D</code> to keep size, <code>padDiff1D</code> to reach a specific size
+          </li>
+        </ul>
+
         <h2 className="font-bold text-base mb-2 text-yellow-300">Trigonometry</h2>
         <ul className="list-disc ml-5 mb-3 text-sm">
           <li>
@@ -301,6 +437,11 @@ const CalculatorInfoBox = ({ show, onClose }) => {
             {' '}
             in plot area to visualize
           </li>
+          <li>
+            <b>Resize plot:</b>
+            {' '}
+            Drag the right edge, bottom edge, or corner handle to resize
+          </li>
           <li className="text-green-300">
             <b>Zoom out/in:</b>
             {' '}
@@ -317,6 +458,30 @@ const CalculatorInfoBox = ({ show, onClose }) => {
             More data points generated when zooming
           </li>
           <li>Supports real and complex functions (plots real part)</li>
+        </ul>
+
+        <h2 className="font-bold text-base mb-2 text-yellow-300">DL Mode (Sequential Parameters)</h2>
+        <ul className="list-disc ml-5 mb-3 text-sm">
+          <li>
+            <b>Enter parameters in main textbox:</b>
+            {' '}
+            The placeholder will guide you (e.g., "Enter L_in")
+          </li>
+          <li>
+            <b>Use = to confirm each parameter:</b>
+            {' '}
+            Press '=' to accept current value and move to the next parameter
+          </li>
+          <li>
+            <b>Cancel:</b>
+            {' '}
+            Press 'C' to cancel the current DL operation at any time
+          </li>
+          <li>
+            <b>Starting a new DL operation:</b>
+            {' '}
+            Always begins from the first required parameter
+          </li>
         </ul>
 
         <h2 className="font-bold text-base mb-2 text-yellow-300">Special Features</h2>

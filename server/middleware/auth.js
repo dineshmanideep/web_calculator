@@ -3,11 +3,37 @@
  * If the session exists, it proceeds to the next middleware.
  * Otherwise, it returns a 401 Unauthorized error.
  */
-export const isAuthenticated = (req, res, next) => {
-  if (req.session && req.session.user) {
+export const isAuthenticated = async (req, res, next) => {
+  try {
+    if (!req.session || !req.session.user) {
+      return res.status(401).json({ message: "Unauthorized: No active session" });
+    }
+
+    // Check if account is suspended
+    const User = (await import("../models/User.js")).default;
+    const user = await User.findById(req.session.user.id);
+
+    if (!user) {
+      return res.status(401).json({ message: "User not found" });
+    }
+
+    if (user.isSuspended) {
+      // Clear the session for suspended users
+      req.session.destroy();
+      return res.status(403).json({ 
+        message: "Account suspended. Please contact administrator.",
+        suspended: true
+      });
+    }
+
+    // Attach user to request for later use
+    req.user = { id: user._id.toString(), email: user.email, username: user.username };
+
     return next();
+  } catch (error) {
+    console.error("Authentication error:", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
-  return res.status(401).json({ message: "Unauthorized: No active session" });
 };
 
 /**

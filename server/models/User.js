@@ -13,6 +13,8 @@ const userSchema = new mongoose.Schema(
     fullName: { type: String },
     passwordHash: { type: String, required: true },
     isAdmin: { type: Boolean, default: false }, // Admin role flag
+    isSuspended: { type: Boolean, default: false }, // Account suspension flag
+    suspendedAt: { type: Date }, // When the account was suspended
     signupOtp: {
       code: String,
       expiresAt: Date,
@@ -24,6 +26,7 @@ const userSchema = new mongoose.Schema(
     lastLogin: { type: Date }, // Track last login time
     lastLogout: { type: Date }, // Track last logout time
     history: [historySchema], // Add this line
+    isEmailVerified: { type: Boolean, default: false }, // Email verification status
   },
   { timestamps: true },
 );

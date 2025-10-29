@@ -13,14 +13,6 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// Trust proxy when behind reverse proxy (Heroku, Nginx, etc.)
-if (
-  process.env.NODE_ENV === "production" ||
-  process.env.TRUST_PROXY === "true"
-) {
-  app.set("trust proxy", 1);
-}
-
 // CORS Configuration
 const allowedOrigins = process.env.ALLOWED_ORIGINS
   ? process.env.ALLOWED_ORIGINS.split(",")
@@ -29,9 +21,6 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
 app.use(
   cors({
     origin(origin, callback) {
-      // Allow requests with no origin (mobile apps, curl, etc.)
-      if (!origin) return callback(null, true);
-
       if (allowedOrigins.indexOf(origin) !== -1) {
         callback(null, true);
       } else {
@@ -48,7 +37,7 @@ app.use(
 app.use(express.json());
 
 // Rate Limiting Configuration
-const windowMs = process.env.RATE_LIMIT_WINDOW_MS || 15 * 60 * 1000; // 15 minutes
+const windowMs = process.env.RATE_LIMIT_WINDOW_MS || 15 * 60 * 1000; 
 const maxRequests = process.env.RATE_LIMIT_MAX_REQUESTS || 100;
 
 const limiter = rateLimit({
@@ -82,15 +71,15 @@ app.use(
     store: MongoStore.create({
       mongoUrl: process.env.MONGO_URI,
       collectionName: "sessions",
-      touchAfter: 24 * 3600, // Update session once per 24 hours unless changed
+      touchAfter: 24 * 3600, 
     }),
     cookie: {
-      maxAge: 30 * 60 * 1000, // 30 minutes
+      maxAge: 30 * 60 * 1000, 
       httpOnly: true,
       secure:
         process.env.NODE_ENV === "production" ||
         process.env.COOKIE_SECURE === "true",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // 'none' for cross-origin in production
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", 
       domain:
         process.env.NODE_ENV === "production"
           ? process.env.COOKIE_DOMAIN

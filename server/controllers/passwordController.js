@@ -108,42 +108,6 @@ export const forgotPassword = async (req, res) => {
 };
 
 /**
- * Verify reset OTP
- *
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @returns {Promise<void>}
- */
-export const verifyOtpReset = async (req, res) => {
-  const { userId, otp } = req.body;
-
-  if (!userId || !otp) {
-    return res.status(400).json({ message: "userId and otp required" });
-  }
-
-  try {
-    const user = await User.findById(userId);
-
-    if (!user || !user.resetOtp) {
-      return res.status(400).json({ message: "Invalid request" });
-    }
-
-    if (user.resetOtp.expiresAt < new Date()) {
-      return res.status(400).json({ message: "OTP expired" });
-    }
-
-    if (user.resetOtp.code !== otp) {
-      return res.status(400).json({ message: "Invalid OTP" });
-    }
-
-    return res.json({ message: "OTP verified" });
-  } catch (error) {
-    console.error("Verify OTP error:", error);
-    return res.status(500).json({ message: "Internal server error" });
-  }
-};
-
-/**
  * Reset password with OTP
  *
  * @param {Object} req - Express request object
@@ -154,7 +118,7 @@ export const resetPassword = async (req, res) => {
   const { userId, otp, newPassword } = req.body;
 
   if (!userId || !otp || !newPassword) {
-    await logAction("PASSWORD_RESET_SUCCESS", req, {
+    await logAction("PASSWORD_RESET", req, {
       email: "Unknown",
       username: "Anonymous",
       details: "Missing required fields",
@@ -170,7 +134,7 @@ export const resetPassword = async (req, res) => {
     const user = await User.findById(userId);
 
     if (!user || !user.resetOtp) {
-      await logAction("PASSWORD_RESET_SUCCESS", req, {
+      await logAction("PASSWORD_RESET", req, {
         email: user?.email || "Unknown",
         username: user?.username || "Anonymous",
         details: "Invalid reset request",
@@ -183,7 +147,7 @@ export const resetPassword = async (req, res) => {
     }
 
     if (user.resetOtp.expiresAt < new Date()) {
-      await logAction("PASSWORD_RESET_SUCCESS", req, {
+      await logAction("PASSWORD_RESET", req, {
         userId: user._id,
         email: user.email,
         username: user.username,
@@ -197,7 +161,7 @@ export const resetPassword = async (req, res) => {
     }
 
     if (user.resetOtp.code !== otp) {
-      await logAction("PASSWORD_RESET_SUCCESS", req, {
+      await logAction("PASSWORD_RESET", req, {
         userId: user._id,
         email: user.email,
         username: user.username,
@@ -214,7 +178,7 @@ export const resetPassword = async (req, res) => {
     user.resetOtp = undefined;
     await user.save();
 
-    await logAction("PASSWORD_RESET_SUCCESS", req, {
+    await logAction("PASSWORD_RESET", req, {
       userId: user._id,
       email: user.email,
       username: user.username,

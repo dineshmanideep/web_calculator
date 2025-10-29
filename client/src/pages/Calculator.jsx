@@ -102,7 +102,7 @@ function CalculatorContent({ user, onSignOut }) {
 
   // Render
   return (
-    <div className="h-screen bg-gray-900 relative">
+    <div className="h-screen bg-gray-900 relative ">
       {/* Profile top-right */}
       <div className="absolute top-2 right-2">
         <div className="relative">
@@ -144,19 +144,21 @@ function CalculatorContent({ user, onSignOut }) {
                 Sign Out
               </button>
               <div className="flex gap-2 p-2">
-                <label htmlFor="angle-mode-select" className="text-white text-sm">Mode:</label>
-                <select
-                  id="angle-mode-select"
-                  value={angleMode}
-                  onChange={(e) => {
-                    setAngleMode(e.target.value);
-                    toast.info(`Angle mode set to ${e.target.value === 'rad' ? 'Radians' : 'Degrees'}`);
-                  }}
-                  className="bg-gray-600 text-white p-1 rounded"
-                >
-                  <option value="rad">Radians</option>
-                  <option value="deg">Degrees</option>
-                </select>
+                <label htmlFor="angle-mode-select" className="text-white text-sm">
+                  Mode:
+                  <select
+                    id="angle-mode-select"
+                    value={angleMode}
+                    onChange={(e) => {
+                      setAngleMode(e.target.value);
+                      toast.info(`Angle mode set to ${e.target.value === 'rad' ? 'Radians' : 'Degrees'}`);
+                    }}
+                    className="bg-gray-600 text-white p-1 rounded"
+                  >
+                    <option value="rad">Radians</option>
+                    <option value="deg">Degrees</option>
+                  </select>
+                </label>
               </div>
             </div>
           )}
@@ -164,7 +166,8 @@ function CalculatorContent({ user, onSignOut }) {
       </div>
 
       {/* Main calculator area centered */}
-      <div className="flex flex-1 justify-center items-start pt-16 gap-6 px-2">
+      {/**/}
+      <div className="flex justify-center items-start pt-16 gap-6 px-2">
         {/* Calculator column */}
         <div className="flex flex-col items-center gap-4 max-w-2xl w-full">
           {/* Last Login Info Banner */}

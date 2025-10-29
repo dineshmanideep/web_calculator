@@ -75,7 +75,6 @@ export function CalculatorProvider({ children, user }) {
   // UI states
   const [showInfo, setShowInfo] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
-  const [showMatrixModal, setShowMatrixModal] = useState(false);
 
   // Use angle mode hook
   const { angleMode, setAngleMode } = useAngleMode();
@@ -292,8 +291,6 @@ export function CalculatorProvider({ children, user }) {
     setShowInfo,
     showProfileDropdown,
     setShowProfileDropdown,
-    showMatrixModal,
-    setShowMatrixModal,
 
     // History
     history,
@@ -338,7 +335,6 @@ export function CalculatorProvider({ children, user }) {
     dlSchema,
     showInfo,
     showProfileDropdown,
-    showMatrixModal,
     history,
     lastAnswer,
     matrixOperation,
@@ -357,7 +353,6 @@ export function CalculatorProvider({ children, user }) {
     setMatrixMode,
     setShowInfo,
     setShowProfileDropdown,
-    setShowMatrixModal,
     setLastAnswer,
     pushHistory,
     handleHistoryClick,

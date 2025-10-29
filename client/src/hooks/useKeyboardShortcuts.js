@@ -47,7 +47,7 @@ function useKeyboardShortcuts(inputRef, showMatrixModal, handleEquals, setInput)
 
       // Handle single character input
       if (e.key.length === 1) {
-        const allowed = '0123456789+-*/().%^![], ';
+        const allowed = '0123456789+-*/().^![], ';
         if (allowed.includes(e.key) || /[a-zA-Z]/.test(e.key)) {
           setInput((s) => s + e.key);
           e.preventDefault();

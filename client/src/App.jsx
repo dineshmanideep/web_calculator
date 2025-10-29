@@ -19,7 +19,8 @@ import {
   BrowserRouter, Routes, Route, Navigate,
 } from 'react-router-dom';
 import axios from 'axios';
-import { ToastContainer } from 'react-toastify';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import Landing from './pages/Landing.jsx';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
@@ -31,6 +32,9 @@ import ResetPassword from './pages/ResetPassword';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
+// Configure axios defaults for credentials
+axios.defaults.withCredentials = true;
+
 function App() {
   const [authenticated, setAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
@@ -38,18 +42,51 @@ function App() {
 
   const handleSignOut = async () => {
     try {
-      await axios.post(`${API_URL}/auth/logout`, { withCredentials: true });
+      await axios.post(`${API_URL}/auth/logout`);
       setAuthenticated(false);
       setUser(null);
     } catch (error) {
       console.error('Sign out failed:', error);
+      // Even if logout API fails, clear local state
+      setAuthenticated(false);
+      setUser(null);
     }
   };
+
+  // Setup axios interceptor for handling session expiry
+  useEffect(() => {
+    const interceptor = axios.interceptors.response.use(
+      (response) => response, // Pass through successful responses
+      (error) => {
+        // Check if error is 401 (Unauthorized - session expired)
+        if (error.response?.status === 401) {
+          const currentPath = window.location.pathname;
+          
+          // Only handle session expiry if user was authenticated
+          // Avoid handling 401s from login page itself
+          if (authenticated && currentPath !== '/login') {
+            console.log('Session expired - logging out user');
+            setAuthenticated(false);
+            setUser(null);
+            
+            // Show a toast notification
+            toast.error('Session expired. Please login again.');
+          }
+        }
+        return Promise.reject(error);
+      },
+    );
+
+    // Cleanup interceptor on unmount
+    return () => {
+      axios.interceptors.response.eject(interceptor);
+    };
+  }, [authenticated]);
 
   useEffect(() => {
     const checkSession = async () => {
       try {
-        const { data } = await axios.get(`${API_URL}/auth/check-session`, { withCredentials: true });
+        const { data } = await axios.get(`${API_URL}/auth/check-session`);
         if (data.authenticated) {
           setAuthenticated(true);
           setUser(data.user);
@@ -64,6 +101,7 @@ function App() {
       }
     };
     checkSession();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (loading) {

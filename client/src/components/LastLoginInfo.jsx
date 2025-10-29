@@ -83,7 +83,7 @@ export default function LastLoginInfo() {
             </div>
             <div className="flex-1">
               <h3 className="text-white font-bold text-lg mb-1">
-                🎉 Welcome to Web Calculator!
+                Welcome to Web Calculator!
               </h3>
               <p className="text-green-50 text-sm">
                 This is your first time logging in. We&apos;re excited to have you here!
@@ -107,7 +107,7 @@ export default function LastLoginInfo() {
             </div>
             <div className="flex-1">
               <h3 className="text-white font-bold text-lg mb-2">
-                Welcome back! 👋
+                Welcome back!
               </h3>
 
               <div className="space-y-2">

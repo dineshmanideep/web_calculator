@@ -15,7 +15,6 @@ import { isAuthenticated } from "../middleware/auth.js";
 import { login, logout, checkSession } from "../controllers/authController.js";
 import {
   forgotPassword,
-  verifyOtpReset,
   resetPassword,
 } from "../controllers/passwordController.js";
 import {
@@ -38,7 +37,6 @@ router.get("/check-session", checkSession);
 
 // ==================== Password Reset Routes ====================
 router.post("/forgot-password", forgotPassword);
-router.post("/verify-otp-reset", verifyOtpReset);
 router.post("/reset-password", resetPassword);
 
 // ==================== Signup Routes ====================

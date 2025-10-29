@@ -17,6 +17,9 @@ import {
   getStats,
   getUsers,
   getActions,
+  getAllUsers,
+  toggleAdminRole,
+  toggleUserSuspension,
 } from "../controllers/adminController.js";
 
 const router = express.Router();
@@ -26,5 +29,10 @@ router.get("/audit-logs", isAuthenticated, isAdmin, getAuditLogs);
 router.get("/stats", isAuthenticated, isAdmin, getStats);
 router.get("/users", isAuthenticated, isAdmin, getUsers);
 router.get("/actions", isAuthenticated, isAdmin, getActions);
+
+// User management routes
+router.get("/all-users", isAuthenticated, isAdmin, getAllUsers);
+router.put("/users/:userId/toggle-admin", isAuthenticated, isAdmin, toggleAdminRole);
+router.put("/users/:userId/toggle-suspension", isAuthenticated, isAdmin, toggleUserSuspension);
 
 export default router;

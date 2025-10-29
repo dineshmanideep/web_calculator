@@ -60,7 +60,6 @@ function CalculatorInput() {
     showInfo,
     setShowInfo,
     showMatrixModal,
-    // DL parameter collection
     dlActiveOp,
     dlParamIndex,
     dlParams,
