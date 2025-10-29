@@ -1,36 +1,17 @@
-/*
- * MatrixStatusDisplay
- *
- * Purpose:
- * Displays the current matrix operation status (first matrix and operation)
- * when matrix mode is active.
- *
- * Parameters:
- * - matrixMode (bool): indicates matrix mode is active
- * - firstMatrix (object): holds the first matrix input
- * - matrixOperation (string): name of the matrix operation
- *
- * Return value:
- * JSX element displaying matrix status, or null if not in matrix mode.
- */
-
 import React from 'react';
 
 function MatrixStatusDisplay({ matrixMode, firstMatrix, matrixOperation }) {
-  // Only show if in matrix mode and has a first matrix
   if (!matrixMode || !firstMatrix) {
     return null;
   }
 
   return (
-    <div className="bg-blue-900 p-2 rounded">
-      <div className="text-white text-xs mb-1">First Matrix:</div>
-      <div className="text-yellow-300 text-sm font-mono">{firstMatrix.input}</div>
+    <div className="bg-gradient-to-r from-blue-900/30 to-cyan-900/30 backdrop-blur-xl p-3 rounded-2xl border border-blue-500/30 shadow-lg">
+      <div className="text-cyan-300 text-xs font-medium mb-1">First Matrix:</div>
+      <div className="text-yellow-300 text-sm font-mono break-all">{firstMatrix.input}</div>
       {matrixOperation && (
-        <div className="text-white text-xs mt-1">
-          Operation:
-          {' '}
-          <span className="text-green-400">{matrixOperation}</span>
+        <div className="text-cyan-300 text-xs mt-2">
+          Operation: <span className="text-green-400 font-semibold">{matrixOperation}</span>
         </div>
       )}
     </div>

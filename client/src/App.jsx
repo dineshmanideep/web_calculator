@@ -36,7 +36,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 axios.defaults.withCredentials = true;
 
 function App() {
-  const [authenticated, setAuthenticated] = useState(false);
+  const [authenticated, setAuthenticated] = useState(true);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 

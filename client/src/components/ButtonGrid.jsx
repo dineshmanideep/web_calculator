@@ -1,29 +1,3 @@
-/*
- * ButtonGrid
- *
- * Purpose:
- * Renders all calculator buttons dynamically based on the active mode.
- * Groups buttons into functional categories (trig, matrix, calculus, DL, constants, base keypad)
- * and applies distinct styling for each.
- *
- * Features:
- * - Supports multiple modes (inverse, complex, DL, calculus, matrix)
- * - Dynamically switches between standard and inverse trigonometric buttons
- * - Consistent grid layout and color-coded button groups
- * - Delegates all button click logic to parent via handleClick
- *
- * Parameters:
- * - inverseMode (boolean): Toggles between standard and inverse trig functions
- * - complexMode (boolean): Enables complex number operation buttons
- * - DLMode (boolean): Enables machine learning operation buttons
- * - calculusMode (boolean): Enables calculus operation buttons
- * - matrixMode (boolean): Enables matrix operation buttons
- * - handleClick (function): Handles button press logic
- *
- * Return value:
- * A collection of button grids rendered conditionally based on modes.
- */
-
 import React from 'react';
 import {
   COMPLEX_BUTTONS,
@@ -49,16 +23,17 @@ function ButtonGrid({
   const AdvFxnButtons = inverseMode ? INVERSE_BUTTONS : STANDARD_BUTTONS;
   return (
     <>
-      {/* Trig buttons - always show */}
+      {/* Trig buttons */}
       <div className="grid grid-cols-4 gap-2">
         {AdvFxnButtons.map((b) => (
           <button
             key={b}
             onClick={() => handleClick(b)}
-            className="p-2 bg-orange-600 hover:bg-orange-500 rounded text-white text-sm"
+            className="group relative px-3 py-3 bg-gradient-to-br from-orange-600/80 to-red-600/80 hover:from-orange-500 hover:to-red-500 rounded-xl text-white text-sm font-medium transition-all duration-200 shadow-lg hover:shadow-orange-500/50 hover:scale-105 border border-white/10"
             type="button"
           >
-            {b}
+            <div className="absolute inset-0 bg-gradient-to-br from-orange-600 to-red-600 rounded-xl blur opacity-0 group-hover:opacity-50 transition-opacity"></div>
+            <span className="relative">{b}</span>
           </button>
         ))}
       </div>
@@ -70,10 +45,11 @@ function ButtonGrid({
             <button
               key={b}
               onClick={() => handleClick(b)}
-              className="p-2 bg-pink-700 hover:bg-pink-600 rounded text-white text-sm"
+              className="group relative px-3 py-3 bg-gradient-to-br from-pink-700/80 to-rose-700/80 hover:from-pink-600 hover:to-rose-600 rounded-xl text-white text-sm font-medium transition-all duration-200 shadow-lg hover:shadow-pink-500/50 hover:scale-105 border border-white/10"
               type="button"
             >
-              {b}
+              <div className="absolute inset-0 bg-gradient-to-br from-pink-700 to-rose-700 rounded-xl blur opacity-0 group-hover:opacity-50 transition-opacity"></div>
+              <span className="relative">{b}</span>
             </button>
           ))}
         </div>
@@ -86,10 +62,11 @@ function ButtonGrid({
             <button
               key={b}
               onClick={() => handleClick(b)}
-              className="p-2 bg-indigo-700 hover:bg-indigo-600 rounded text-white text-sm"
+              className="group relative px-3 py-3 bg-gradient-to-br from-indigo-700/80 to-blue-700/80 hover:from-indigo-600 hover:to-blue-600 rounded-xl text-white text-sm font-medium transition-all duration-200 shadow-lg hover:shadow-indigo-500/50 hover:scale-105 border border-white/10"
               type="button"
             >
-              {b}
+              <div className="absolute inset-0 bg-gradient-to-br from-indigo-700 to-blue-700 rounded-xl blur opacity-0 group-hover:opacity-50 transition-opacity"></div>
+              <span className="relative">{b}</span>
             </button>
           ))}
         </div>
@@ -102,10 +79,11 @@ function ButtonGrid({
             <button
               key={b}
               onClick={() => handleClick(b)}
-              className="p-2 bg-green-700 hover:bg-green-600 rounded text-white text-sm"
+              className="group relative px-3 py-3 bg-gradient-to-br from-green-700/80 to-emerald-700/80 hover:from-green-600 hover:to-emerald-600 rounded-xl text-white text-sm font-medium transition-all duration-200 shadow-lg hover:shadow-green-500/50 hover:scale-105 border border-white/10"
               type="button"
             >
-              {b}
+              <div className="absolute inset-0 bg-gradient-to-br from-green-700 to-emerald-700 rounded-xl blur opacity-0 group-hover:opacity-50 transition-opacity"></div>
+              <span className="relative">{b}</span>
             </button>
           ))}
         </div>
@@ -118,10 +96,11 @@ function ButtonGrid({
             <button
               key={b}
               onClick={() => handleClick(b)}
-              className="p-2 bg-indigo-700 hover:bg-indigo-600 rounded text-white text-sm font-medium transition-colors shadow-md"
+              className="group relative px-3 py-3 bg-gradient-to-br from-blue-700/80 to-cyan-700/80 hover:from-blue-600 hover:to-cyan-600 rounded-xl text-white text-sm font-medium transition-all duration-200 shadow-lg hover:shadow-blue-500/50 hover:scale-105 border border-white/10"
               type="button"
             >
-              {b}
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-700 to-cyan-700 rounded-xl blur opacity-0 group-hover:opacity-50 transition-opacity"></div>
+              <span className="relative">{b}</span>
             </button>
           ))}
         </div>
@@ -134,46 +113,54 @@ function ButtonGrid({
             <button
               key={b}
               onClick={() => handleClick(b)}
-              className="p-2 bg-purple-700 hover:bg-purple-600 rounded text-white text-sm font-medium transition-colors shadow-md"
+              className="group relative px-3 py-3 bg-gradient-to-br from-purple-700/80 to-fuchsia-700/80 hover:from-purple-600 hover:to-fuchsia-600 rounded-xl text-white text-sm font-medium transition-all duration-200 shadow-lg hover:shadow-purple-500/50 hover:scale-105 border border-white/10"
               type="button"
             >
-              {b}
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-700 to-fuchsia-700 rounded-xl blur opacity-0 group-hover:opacity-50 transition-opacity"></div>
+              <span className="relative">{b}</span>
             </button>
           ))}
         </div>
       )}
 
-      {/* Constant buttons (π, e) */}
+      {/* Constant buttons */}
       <div className="grid grid-cols-2 gap-2">
         {CONSTANT_BUTTONS.map((b) => (
           <button
             key={b}
             onClick={() => handleClick(b)}
-            className="p-2 bg-yellow-700 hover:bg-yellow-600 rounded text-white text-sm"
+            className="group relative px-3 py-3 bg-gradient-to-br from-yellow-700/80 to-amber-700/80 hover:from-yellow-600 hover:to-amber-600 rounded-xl text-white text-sm font-medium transition-all duration-200 shadow-lg hover:shadow-yellow-500/50 hover:scale-105 border border-white/10"
             type="button"
           >
-            {b}
+            <div className="absolute inset-0 bg-gradient-to-br from-yellow-700 to-amber-700 rounded-xl blur opacity-0 group-hover:opacity-50 transition-opacity"></div>
+            <span className="relative">{b}</span>
           </button>
         ))}
       </div>
 
-      {/* Base keypad (numbers and operators) */}
+      {/* Base keypad */}
       <div className="grid grid-cols-4 gap-2 mt-2">
         {BASE_BUTTONS.map((btn) => (
           <button
             key={btn}
             onClick={() => handleClick(btn)}
-            className={`p-3 rounded font-medium text-white text-sm transition-all duration-150
-              ${
-                ['C', '←', 'Ans', '='].includes(btn)
-                  ? 'bg-teal-500 hover:bg-teal-400'
-                  : ['+', '-', '*', '/', '^', '%', '!', '(', ')', '[', ']', ','].includes(btn)
-                    ? 'bg-blue-700 hover:bg-blue-600'
-                    : 'bg-purple-700 hover:bg-purple-600'
-              }`}
+            className={`group relative px-4 py-4 rounded-xl font-semibold text-white transition-all duration-200 hover:scale-105 shadow-lg border border-white/10 ${
+              ['C', '←', 'Ans', '='].includes(btn)
+                ? 'bg-gradient-to-br from-teal-600/80 to-cyan-600/80 hover:from-teal-500 hover:to-cyan-500 hover:shadow-teal-500/50'
+                : ['+', '-', '*', '/', '^', '%', '!', '(', ')', '[', ']', ','].includes(btn)
+                  ? 'bg-gradient-to-br from-blue-700/80 to-indigo-700/80 hover:from-blue-600 hover:to-indigo-600 hover:shadow-blue-500/50'
+                  : 'bg-gradient-to-br from-purple-700/80 to-fuchsia-700/80 hover:from-purple-600 hover:to-fuchsia-600 hover:shadow-purple-500/50'
+            }`}
             type="button"
           >
-            {btn}
+            <div className={`absolute inset-0 rounded-xl blur opacity-0 group-hover:opacity-50 transition-opacity ${
+              ['C', '←', 'Ans', '='].includes(btn)
+                ? 'bg-gradient-to-br from-teal-600 to-cyan-600'
+                : ['+', '-', '*', '/', '^', '%', '!', '(', ')', '[', ']', ','].includes(btn)
+                  ? 'bg-gradient-to-br from-blue-700 to-indigo-700'
+                  : 'bg-gradient-to-br from-purple-700 to-fuchsia-700'
+            }`}></div>
+            <span className="relative">{btn}</span>
           </button>
         ))}
       </div>
@@ -181,4 +168,4 @@ function ButtonGrid({
   );
 }
 
-export default ButtonGrid;
+export default ButtonGrid

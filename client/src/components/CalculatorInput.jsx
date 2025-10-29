@@ -71,7 +71,6 @@ function CalculatorInput() {
 
   const handleEquals = useCallback(() => {
     if (!input || input.trim() === '') {
-      // During DL param collection, avoid toast; rely on placeholder prompt
       if (DLMode && dlActiveOp) {
         inputRef.current?.focus();
         return;
@@ -82,7 +81,6 @@ function CalculatorInput() {
     }
 
     try {
-      // If a DL operation is active, treat '=' as parameter accept/compute
       if (DLMode && dlActiveOp) {
         const opKey = dlActiveOp.key;
         const schema = dlSchema || [];
@@ -105,9 +103,7 @@ function CalculatorInput() {
         }
       }
 
-      // If in matrix mode and there's a pending operation, execute it
       if (matrixMode && firstMatrix && matrixOperation) {
-        // Trigger the matrix operation to complete with the current input as second matrix
         handleMatrixOperation('=');
         return;
       }
@@ -125,7 +121,6 @@ function CalculatorInput() {
 
   const handleClick = useCallback(
     (btn) => {
-      // Handle matrix operation buttons
       if (MATRIX_BUTTONS.includes(btn)) {
         handleMatrixOperation(btn);
         return;
@@ -133,13 +128,11 @@ function CalculatorInput() {
 
       if (btn === 'C') {
         setInput('');
-        // Cancel DL parameter collection if active
         if (DLMode && dlActiveOp) {
           cancelDLOperation();
           toast.info('DL operation canceled');
           return;
         }
-        // Clear matrix operation if in matrix mode
         if (matrixMode && handleMatrixClear) {
           handleMatrixClear();
         }
@@ -176,7 +169,6 @@ function CalculatorInput() {
         return;
       }
 
-      // Plot button - triggers plotting of current input
       if (btn === 'Plot') {
         if (!input || input.trim() === '') {
           toast.warn('Enter a function to plot (e.g., x^2, sin(x))');
@@ -187,14 +179,12 @@ function CalculatorInput() {
         return;
       }
 
-      // DL operations: start parameter collection for selected DL op
       if (DLMode && DL_BUTTONS.includes(btn)) {
         startDLOperation(btn, input);
         setInput('');
         return;
       }
 
-      // Auto-enable complex mode if using complex functions
       if (['i', 're(', 'im(', 'conj(', 'arg('].includes(btn) && !complexMode) {
         toast.info('Complex mode enabled');
         setComplexMode(true);
@@ -207,16 +197,14 @@ function CalculatorInput() {
       input, complexMode, matrixMode, handleMatrixClear, handleMatrixOperation, setComplexMode, startDLOperation, dlActiveOp, cancelDLOperation, triggerPlot],
   );
 
-  // Use keyboard shortcuts hook for cleaner code
   useKeyboardShortcuts(inputRef, showMatrixModal, handleEquals, setInput);
 
-  // Dynamic placeholder for DL parameter collection
   const inputPlaceholder = (DLMode && dlActiveOp)
     ? `Enter ${dlSchema?.[dlParamIndex] || 'parameter'}`
     : 'Enter expression';
 
   return (
-    <div className="bg-gray-800 p-4 rounded-lg shadow-md flex flex-col gap-3">
+    <div className="bg-slate-900/80 backdrop-blur-sm p-5 rounded-2xl shadow-2xl flex flex-col gap-3 border border-slate-700/50 max-w-lg mx-auto">
       {/* Mode Toggle Toolbar */}
       <ModeToolbar
         DLMode={DLMode}
@@ -233,7 +221,7 @@ function CalculatorInput() {
         handlePlot={handlePlot}
       />
 
-      {/* Matrix operation display - using MatrixStatusDisplay component */}
+      {/* Matrix operation display */}
       <MatrixStatusDisplay
         matrixMode={matrixMode}
         firstMatrix={firstMatrix}
@@ -241,18 +229,18 @@ function CalculatorInput() {
       />
 
       {/* Input bar */}
-      <div className="flex items-center relative">
+      <div className="flex items-center relative gap-2">
         <input
           ref={inputRef}
           type="text"
-          className="bg-gray-700 text-white p-3 rounded text-lg font-mono text-right shadow-inner flex-1"
+          className="bg-slate-800/90 backdrop-blur-sm text-white p-3 rounded-xl text-lg font-mono text-right shadow-inner flex-1 border border-slate-700/50 focus:border-purple-600/50 focus:outline-none transition-all placeholder:text-slate-500"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder={inputPlaceholder}
         />
         <button
           onClick={() => setShowInfo(true)}
-          className="DL-2 w-8 h-8 rounded-full bg-yellow-500 text-white font-bold text-lg flex items-center justify-center shadow hover:bg-yellow-600"
+          className="w-9 h-9 rounded-full bg-gradient-to-br from-yellow-600 to-orange-600 text-white font-bold text-base flex items-center justify-center shadow-lg hover:scale-110 transition-all"
           title="Calculator Help"
         >
           ?
@@ -272,11 +260,14 @@ function CalculatorInput() {
       />
 
       {/* Clear History Button */}
-      <div className="flex gap-2 mt-2">
+      <div className="flex gap-2 mt-1">
         <button
           onClick={clearHistory}
-          className="flex-1 p-2 bg-red-600 rounded text-white hover:bg-red-500"
+          className="flex-1 p-2.5 bg-gradient-to-r from-red-700 to-red-800 rounded-xl text-white text-sm font-medium hover:from-red-600 hover:to-red-700 transition-all shadow-lg flex items-center justify-center gap-2"
         >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
           Clear History
         </button>
       </div>
