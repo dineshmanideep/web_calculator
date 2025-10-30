@@ -6,7 +6,7 @@
  * using sessionStorage data, showing it only once per session.
  *
  * Parameters:
- * None (internally fetches from sessionStorage)
+ * - darkMode (boolean): toggles between dark and light theme styling
  *
  * Return value:
  * A styled info box with formatted last login/logout timestamps,
@@ -14,10 +14,10 @@
  */
 import { useEffect, useState } from 'react';
 import {
-  Info, X, LogIn, LogOut,
+  Info, X, LogIn, LogOut, Sparkles,
 } from 'lucide-react';
 
-export default function LastLoginInfo() {
+export default function LastLoginInfo({ darkMode }) {
   const [loginInfo, setLoginInfo] = useState(null);
   const [isVisible, setIsVisible] = useState(false);
 
@@ -76,92 +76,94 @@ export default function LastLoginInfo() {
     <div className="mb-4 animate-fade-in">
       {loginInfo.isFirstLogin ? (
         // First-time login message - NO login/logout info shown
-        <div className="bg-gradient-to-r from-green-600 to-emerald-600 rounded-lg shadow-lg border-2 border-green-400 p-4">
-          <div className="flex items-start gap-3">
-            <div className="bg-white bg-opacity-20 p-2 rounded-full">
-              <Info className="w-5 h-5 text-white" />
+        <div className="relative group">
+          <div className="absolute inset-0 bg-gradient-to-r from-green-600/30 to-emerald-600/30 rounded-2xl blur-xl"></div>
+          <div className={`relative ${darkMode ? 'bg-gradient-to-br from-slate-900/90 to-emerald-900/90 border-emerald-500/30' : 'bg-gradient-to-br from-white/90 to-emerald-50/90 border-emerald-400'} backdrop-blur-xl rounded-2xl shadow-2xl border p-5`}>
+            <div className="flex items-start gap-4">
+              <div className={`${darkMode ? 'bg-emerald-500/20' : 'bg-emerald-200'} p-3 rounded-xl flex-shrink-0`}>
+                <Sparkles className={`w-6 h-6 ${darkMode ? 'text-emerald-400' : 'text-emerald-600'}`} />
+              </div>
+              <div className="flex-1">
+                <h3 className={`${darkMode ? 'text-white' : 'text-slate-900'} font-bold text-lg mb-1 bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent`}>
+                  Welcome to Quantum Calculator!
+                </h3>
+                <p className={`${darkMode ? 'text-emerald-100' : 'text-emerald-700'} text-sm`}>
+                  This is your first time logging in. We're excited to have you here!
+                </p>
+              </div>
+              <button
+                onClick={() => setIsVisible(false)}
+                className={`${darkMode ? 'text-slate-300 hover:text-white' : 'text-slate-600 hover:text-slate-900'} transition-colors p-1`}
+                aria-label="Close"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
-            <div className="flex-1">
-              <h3 className="text-white font-bold text-lg mb-1">
-                Welcome to Web Calculator!
-              </h3>
-              <p className="text-green-50 text-sm">
-                This is your first time logging in. We&apos;re excited to have you here!
-              </p>
-            </div>
-            <button
-              onClick={() => setIsVisible(false)}
-              className="text-white hover:text-green-200 transition-colors"
-              aria-label="Close"
-            >
-              <X className="w-5 h-5" />
-            </button>
           </div>
         </div>
       ) : (
         // Returning user message - Show previous login/logout info
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-lg shadow-lg border-2 border-blue-400 p-4">
-          <div className="flex items-start gap-3">
-            <div className="bg-white bg-opacity-20 p-2 rounded-full">
-              <Info className="w-5 h-5 text-white" />
-            </div>
-            <div className="flex-1">
-              <h3 className="text-white font-bold text-lg mb-2">
-                Welcome back!
-              </h3>
-
-              <div className="space-y-2">
-                {/* Last Login - Only show if exists */}
-                {loginInfo.lastLogin && (
-                  <div className="bg-black bg-opacity-20 rounded p-2">
-                    <div className="flex items-center gap-2 text-blue-100 text-sm">
-                      <LogIn className="w-4 h-4" />
-                      <span className="font-semibold">Previous Login:</span>
-                    </div>
-                    <div className="mt-1 ml-6 text-blue-50 text-sm">
-                      {formatDateTime(loginInfo.lastLogin)}
-                      <span className="text-blue-200 ml-2">
-                        (
-                        {getTimeSince(loginInfo.lastLogin)}
-                        )
-                      </span>
-                    </div>
-                  </div>
-                )}
-
-                {/* Last Logout - Only show if exists */}
-                {loginInfo.lastLogout && (
-                  <div className="bg-black bg-opacity-20 rounded p-2">
-                    <div className="flex items-center gap-2 text-blue-100 text-sm">
-                      <LogOut className="w-4 h-4" />
-                      <span className="font-semibold">Last Logout:</span>
-                    </div>
-                    <div className="mt-1 ml-6 text-blue-50 text-sm">
-                      {formatDateTime(loginInfo.lastLogout)}
-                      <span className="text-blue-200 ml-2">
-                        (
-                        {getTimeSince(loginInfo.lastLogout)}
-                        )
-                      </span>
-                    </div>
-                  </div>
-                )}
-
-                {/* If no previous login/logout info exists (shouldn't happen, but handle it) */}
-                {!loginInfo.lastLogin && !loginInfo.lastLogout && (
-                  <p className="text-blue-100 text-sm">
-                    Welcome back! Good to see you again.
-                  </p>
-                )}
+        <div className="relative group">
+          <div className="absolute inset-0 bg-gradient-to-r from-violet-600/30 to-fuchsia-600/30 rounded-2xl blur-xl"></div>
+          <div className={`relative ${darkMode ? 'bg-gradient-to-br from-slate-900/90 to-indigo-900/90 border-violet-500/30' : 'bg-gradient-to-br from-white/90 to-violet-50/90 border-violet-400'} backdrop-blur-xl rounded-2xl shadow-2xl border p-5`}>
+            <div className="flex items-start gap-4">
+              <div className={`${darkMode ? 'bg-violet-500/20' : 'bg-violet-200'} p-3 rounded-xl flex-shrink-0`}>
+                <Info className={`w-6 h-6 ${darkMode ? 'text-violet-400' : 'text-violet-600'}`} />
               </div>
+              <div className="flex-1">
+                <h3 className={`${darkMode ? 'text-white' : 'text-slate-900'} font-bold text-lg mb-3 bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent`}>
+                  Welcome back!
+                </h3>
+
+                <div className="space-y-2">
+                  {/* Last Login - Only show if exists */}
+                  {loginInfo.lastLogin && (
+                    <div className={`${darkMode ? 'bg-slate-800/50' : 'bg-violet-100'} backdrop-blur-sm rounded-xl p-3 border ${darkMode ? 'border-white/10' : 'border-violet-200'}`}>
+                      <div className={`flex items-center gap-2 ${darkMode ? 'text-violet-300' : 'text-violet-700'} text-sm font-medium`}>
+                        <LogIn className="w-4 h-4" />
+                        <span>Previous Login:</span>
+                      </div>
+                      <div className={`mt-2 ml-6 ${darkMode ? 'text-slate-300' : 'text-slate-700'} text-sm`}>
+                        {formatDateTime(loginInfo.lastLogin)}
+                        <span className={`${darkMode ? 'text-violet-400' : 'text-violet-600'} ml-2 font-medium`}>
+                          ({getTimeSince(loginInfo.lastLogin)})
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Last Logout - Only show if exists */}
+                  {/* {loginInfo.lastLogout && (
+                    <div className={`${darkMode ? 'bg-slate-800/50' : 'bg-violet-100'} backdrop-blur-sm rounded-xl p-3 border ${darkMode ? 'border-white/10' : 'border-violet-200'}`}>
+                      <div className={`flex items-center gap-2 ${darkMode ? 'text-violet-300' : 'text-violet-700'} text-sm font-medium`}>
+                        <LogOut className="w-4 h-4" />
+                        <span>Last Logout:</span>
+                      </div>
+                      <div className={`mt-2 ml-6 ${darkMode ? 'text-slate-300' : 'text-slate-700'} text-sm`}>
+                        {formatDateTime(loginInfo.lastLogout)}
+                        <span className={`${darkMode ? 'text-violet-400' : 'text-violet-600'} ml-2 font-medium`}>
+                          ({getTimeSince(loginInfo.lastLogout)})
+                        </span>
+                      </div>
+                    </div>
+                  )} */}
+
+                  {/* If no previous login/logout info exists (shouldn't happen, but handle it) */}
+                  {!loginInfo.lastLogin && !loginInfo.lastLogout && (
+                    <p className={`${darkMode ? 'text-violet-200' : 'text-violet-700'} text-sm`}>
+                      Welcome back! Good to see you again.
+                    </p>
+                  )}
+                </div>
+              </div>
+              <button
+                onClick={() => setIsVisible(false)}
+                className={`${darkMode ? 'text-slate-300 hover:text-white' : 'text-slate-600 hover:text-slate-900'} transition-colors p-1`}
+                aria-label="Close"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
-            <button
-              onClick={() => setIsVisible(false)}
-              className="text-white hover:text-blue-200 transition-colors"
-              aria-label="Close"
-            >
-              <X className="w-5 h-5" />
-            </button>
           </div>
         </div>
       )}

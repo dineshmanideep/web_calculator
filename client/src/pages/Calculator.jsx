@@ -80,12 +80,7 @@ function CalculatorContent({ user, onSignOut }) {
 
   return (
     <div className={`min-h-screen ${darkMode ? 'bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-950' : 'bg-gradient-to-br from-slate-50 via-indigo-50 to-slate-100'} relative overflow-hidden transition-colors duration-300`}>
-      {/* Animated mesh gradient background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className={`absolute -top-1/2 -left-1/4 w-[800px] h-[800px] ${darkMode ? 'bg-gradient-to-br from-violet-600/20 via-fuchsia-500/20' : 'bg-gradient-to-br from-violet-400/10 via-fuchsia-300/10'} to-transparent rounded-full blur-3xl animate-pulse`}></div>
-        <div className={`absolute -bottom-1/2 -right-1/4 w-[800px] h-[800px] ${darkMode ? 'bg-gradient-to-tl from-cyan-500/20 via-blue-600/20' : 'bg-gradient-to-tl from-cyan-300/10 via-blue-400/10'} to-transparent rounded-full blur-3xl animate-pulse`} style={{ animationDelay: '2s' }}></div>
-        <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] ${darkMode ? 'bg-gradient-to-r from-purple-500/10 via-pink-500/10' : 'bg-gradient-to-r from-purple-300/5 via-pink-300/5'} to-transparent rounded-full blur-3xl animate-pulse`} style={{ animationDelay: '4s' }}></div>
-      </div>
+    
 
       {/* Top Navigation Bar */}
       <nav className={`relative z-20 ${darkMode ? 'bg-gradient-to-r from-slate-900/95 via-indigo-950/95 to-slate-900/95 border-white/10' : 'bg-gradient-to-r from-white/95 via-indigo-50/95 to-white/95 border-slate-200'} backdrop-blur-xl border-b`}>
@@ -94,7 +89,6 @@ function CalculatorContent({ user, onSignOut }) {
             {/* Logo and Brand */}
             <div className="flex items-center gap-3">
               <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-xl blur opacity-75"></div>
                 <div className="relative bg-gradient-to-br from-violet-600 to-fuchsia-600 p-2 rounded-xl">
                   <CalcIcon className="w-6 h-6 text-white" />
                 </div>
@@ -129,14 +123,13 @@ function CalculatorContent({ user, onSignOut }) {
                   className={`group flex items-center gap-3 px-4 py-2 rounded-xl ${darkMode ? 'bg-slate-800/50 hover:bg-slate-800 border-white/10 hover:border-violet-500/50' : 'bg-white hover:bg-slate-50 border-slate-300 hover:border-violet-400'} border transition-all duration-300`}
                 >
                   <div className="relative">
-                    <div className="absolute inset-0 bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-full blur opacity-60 group-hover:opacity-100 transition-opacity"></div>
                     <div className="relative w-8 h-8 bg-gradient-to-br from-violet-500 to-fuchsia-600 rounded-full flex items-center justify-center font-bold text-white text-sm shadow-inner">
                       {user?.username?.[0]?.toUpperCase() || 'U'}
                     </div>
                   </div>
                   <div className="text-left">
                     <p className={`text-sm font-semibold ${darkMode ? 'text-white' : 'text-slate-900'}`}>{user?.username || 'User'}</p>
-                    <p className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>Member</p>
+                    <p className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>{user?.isAdmin ? 'Admin' : 'Member'}</p>
                   </div>
                   <svg className={`w-4 h-4 ${darkMode ? 'text-slate-400 group-hover:text-violet-400' : 'text-slate-600 group-hover:text-violet-600'} transition-colors`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -176,8 +169,8 @@ function CalculatorContent({ user, onSignOut }) {
                             angleMode === 'rad'
                               ? 'bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white shadow-lg'
                               : darkMode
-                              ? 'bg-slate-800/50 text-slate-400 hover:bg-slate-800'
-                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                ? 'bg-slate-800/50 text-slate-400 hover:bg-slate-800'
+                                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                           }`}
                         >
                           Radians
@@ -191,8 +184,8 @@ function CalculatorContent({ user, onSignOut }) {
                             angleMode === 'deg'
                               ? 'bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white shadow-lg'
                               : darkMode
-                              ? 'bg-slate-800/50 text-slate-400 hover:bg-slate-800'
-                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                ? 'bg-slate-800/50 text-slate-400 hover:bg-slate-800'
+                                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                           }`}
                         >
                           Degrees
@@ -269,7 +262,7 @@ function CalculatorContent({ user, onSignOut }) {
                 }}
                 angleMode={angleMode}
                 calculatorInput={input}
-                complexMode={false}
+                isComplexMode={false}
                 onPlotTrigger={plotTrigger}
                 darkMode={darkMode}
               />
@@ -288,7 +281,7 @@ function CalculatorContent({ user, onSignOut }) {
                 }}
                 angleMode={angleMode}
                 calculatorInput={input}
-                complexMode
+                isComplexMode={complexMode}
                 onPlotTrigger={plotTrigger}
                 darkMode={darkMode}
               />
@@ -298,7 +291,6 @@ function CalculatorContent({ user, onSignOut }) {
             <div className={`${darkMode ? 'bg-gradient-to-br from-slate-900/80 to-indigo-900/80 border-white/10' : 'bg-gradient-to-br from-white/80 to-indigo-50/80 border-slate-200'} backdrop-blur-2xl rounded-2xl p-5 shadow-2xl border w-80`}>
               <div className="flex items-center gap-3 mb-4">
                 <div className="relative">
-                  <div className="absolute inset-0 bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-lg blur opacity-60"></div>
                   <div className="relative w-8 h-8 bg-gradient-to-br from-violet-600 to-fuchsia-600 rounded-lg flex items-center justify-center">
                     <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -346,6 +338,15 @@ function CalculatorContent({ user, onSignOut }) {
 }
 
 export default function Calculator({ user, onSignOut }) {
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-950 flex items-center justify-center">
+        <div className="bg-slate-900/80 backdrop-blur-xl border border-white/10 rounded-2xl p-8">
+          <p className="text-white text-lg">Session expired. Redirecting...</p>
+        </div>
+      </div>
+    );
+  }
   return (
     <CalculatorProvider user={user}>
       <CalculatorContent user={user} onSignOut={onSignOut} />

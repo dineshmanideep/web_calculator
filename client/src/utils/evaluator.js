@@ -92,6 +92,8 @@ const handleEvaluationError = (error) => {
     'Division by zero',
     'sqrt',
     'log',
+    'logarithm',
+    'ln',
     'factorial',
     'nCr',
     'nPr',
@@ -102,7 +104,7 @@ const handleEvaluationError = (error) => {
     'acos',
     'NaN',
     'Infinity',
-  ].some((keyword) => message.includes(keyword));
+  ].some((keyword) => message.toLowerCase().includes(keyword.toLowerCase()));
 
   if (!skipToast) {
     if (message.includes('Undefined symbol')) {

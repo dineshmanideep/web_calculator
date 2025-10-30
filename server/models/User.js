@@ -25,6 +25,7 @@ const userSchema = new mongoose.Schema(
     },
     lastLogin: { type: Date }, // Track last login time
     lastLogout: { type: Date }, // Track last logout time
+    lastActivity: { type: Date }, // Track last API activity time
     history: [historySchema], // Add this line
     isEmailVerified: { type: Boolean, default: false }, // Email verification status
   },

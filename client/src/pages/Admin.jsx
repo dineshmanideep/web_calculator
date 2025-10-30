@@ -299,486 +299,525 @@ const Admin = ({ user, onSignOut }) => {
     return 'text-gray-400 bg-gray-800/30';
   };
 
-  return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      {/* Header */}
-      <div className="bg-gray-800 border-b border-gray-700 sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => navigate('/calculator')}
-                className="flex items-center gap-2 px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded transition-colors"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Back to Calculator
-              </button>
-              <h1 className="text-2xl font-bold">Admin Dashboard</h1>
-            </div>
+return (
+  <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-950 text-white relative overflow-hidden">
+    {/* Animated background */}
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div className="absolute -top-1/2 -left-1/4 w-[800px] h-[800px] bg-gradient-to-br from-violet-600/20 via-fuchsia-500/20 to-transparent rounded-full blur-3xl animate-pulse"></div>
+      <div className="absolute -bottom-1/2 -right-1/4 w-[800px] h-[800px] bg-gradient-to-tl from-cyan-500/20 via-blue-600/20 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+    </div>
+
+    {/* Header */}
+    <div className="relative z-20 bg-gradient-to-r from-slate-900/95 via-indigo-950/95 to-slate-900/95 backdrop-blur-xl border-b border-white/10 sticky top-0">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate('/calculator')}
+              className="flex items-center gap-2 px-4 py-2 bg-slate-800/50 hover:bg-slate-800 rounded-xl transition-all duration-300 border border-white/10 hover:border-violet-500/50 shadow-lg hover:shadow-violet-500/25"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span className="font-medium">Back to Calculator</span>
+            </button>
             <div className="flex items-center gap-3">
-              <span className="text-gray-400">
-                Welcome,
-                {user?.fullName || user?.username}
-              </span>
-              <button
-                onClick={handleRefresh}
-                className="p-2 bg-gray-700 hover:bg-gray-600 rounded transition-colors"
-                title="Refresh"
-              >
-                <RefreshCw className="w-5 h-5" />
-              </button>
-              <button
-                onClick={onSignOut}
-                className="px-4 py-2 bg-red-600 hover:bg-red-500 rounded transition-colors"
-              >
-                Sign Out
-              </button>
-            </div>
-          </div>
-
-          {/* Tab Navigation */}
-          <div className="flex gap-2 mt-4 border-b border-gray-700">
-            <button
-              onClick={() => setActiveTab('logs')}
-              className={`flex items-center gap-2 px-4 py-2 border-b-2 transition-colors ${
-                activeTab === 'logs'
-                  ? 'border-purple-500 text-purple-400'
-                  : 'border-transparent text-gray-400 hover:text-gray-300'
-              }`}
-            >
-              <Activity className="w-4 h-4" />
-              Audit Logs
-            </button>
-            <button
-              onClick={() => setActiveTab('users')}
-              className={`flex items-center gap-2 px-4 py-2 border-b-2 transition-colors ${
-                activeTab === 'users'
-                  ? 'border-purple-500 text-purple-400'
-                  : 'border-transparent text-gray-400 hover:text-gray-300'
-              }`}
-            >
-              <Users className="w-4 h-4" />
-              User Management
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Logs Tab Content */}
-      {activeTab === 'logs' && (
-        <>
-      {stats && (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-              <div className="bg-gray-800 p-4 rounded-lg border border-gray-700">
-                <div className="flex items-center gap-3">
-                  <Activity className="w-8 h-8 text-purple-400" />
-                  <div>
-                    <p className="text-gray-400 text-sm">Total Logs</p>
-                    <p className="text-2xl font-bold">{stats.totalLogs}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-gray-800 p-4 rounded-lg border border-gray-700">
-                <div className="flex items-center gap-3">
-                  <CheckCircle className="w-8 h-8 text-green-400" />
-                  <div>
-                    <p className="text-gray-400 text-sm">Successful</p>
-                    <p className="text-2xl font-bold">
-                      {stats.statusStats.find((s) => s._id === 'SUCCESS')?.count || 0}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-gray-800 p-4 rounded-lg border border-gray-700">
-                <div className="flex items-center gap-3">
-                  <XCircle className="w-8 h-8 text-red-400" />
-                  <div>
-                    <p className="text-gray-400 text-sm">Failed</p>
-                    <p className="text-2xl font-bold">
-                      {stats.statusStats.find((s) => s._id === 'FAILED')?.count || 0}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-gray-800 p-4 rounded-lg border border-gray-700">
-                <div className="flex items-center gap-3">
-                  <AlertCircle className="w-8 h-8 text-yellow-400" />
-                  <div>
-                    <p className="text-gray-400 text-sm">Errors</p>
-                    <p className="text-2xl font-bold">
-                      {stats.statusStats.find((s) => s._id === 'ERROR')?.count || 0}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-      )}
-
-      {/* Filters */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
-        <div className="bg-gray-800 p-4 rounded-lg border border-gray-700">
-          <div className="flex items-center gap-2 mb-4">
-            <Filter className="w-5 h-5 text-gray-400" />
-            <h2 className="text-lg font-semibold">Filters</h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            {/* Search */}
-            <div>
-              <label htmlFor="admin-search" className="block text-sm text-gray-400 mb-1">Search</label>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <input
-                  type="text"
-                  id="admin-search"
-                  value={filters.search}
-                  onChange={(e) => handleFilterChange('search', e.target.value)}
-                  placeholder="User, email, details..."
-                  className="w-full pl-10 pr-3 py-2 bg-gray-700 rounded text-white text-sm"
-                />
+                <div className="absolute inset-0 bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-xl blur opacity-75"></div>
+                <div className="relative bg-gradient-to-br from-violet-600 to-fuchsia-600 p-2 rounded-xl shadow-xl">
+                  <Shield className="w-6 h-6 text-white" />
+                </div>
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold bg-gradient-to-r from-violet-400 via-fuchsia-400 to-cyan-400 bg-clip-text text-transparent">
+                  Admin Dashboard
+                </h1>
+                <p className="text-xs text-slate-400">System Management & Monitoring</p>
               </div>
             </div>
-
-            {/* Action Filter */}
-            <div>
-              <label htmlFor="admin-action" className="block text-sm text-gray-400 mb-1">Action</label>
-              <select
-                id="admin-action"
-                value={filters.action}
-                onChange={(e) => handleFilterChange('action', e.target.value)}
-                className="w-full px-3 py-2 bg-gray-700 rounded text-white text-sm"
-              >
-                <option value="">All Actions</option>
-                {availableActions.map((action) => (
-                  <option key={action} value={action}>{action}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Status Filter */}
-            <div>
-              <label htmlFor="admin-status" className="block text-sm text-gray-400 mb-1">Status</label>
-              <select
-                id="admin-status"
-                value={filters.status}
-                onChange={(e) => handleFilterChange('status', e.target.value)}
-                className="w-full px-3 py-2 bg-gray-700 rounded text-white text-sm"
-              >
-                <option value="">All Status</option>
-                <option value="SUCCESS">Success</option>
-                <option value="FAILED">Failed</option>
-                <option value="ERROR">Error</option>
-              </select>
-            </div>
-
-            {/* Start Date */}
-            <div>
-              <label htmlFor="admin-start-date" className="block text-sm text-gray-400 mb-1">Start Date</label>
-              <input
-                type="datetime-local"
-                id="admin-start-date"
-                value={filters.startDate}
-                onChange={(e) => handleFilterChange('startDate', e.target.value)}
-                className="w-full px-3 py-2 bg-gray-700 rounded text-white text-sm"
-              />
-            </div>
-
-            {/* End Date */}
-            <div>
-              <label htmlFor="admin-end-date" className="block text-sm text-gray-400 mb-1">End Date</label>
-              <input
-                type="datetime-local"
-                id="admin-end-date"
-                value={filters.endDate}
-                onChange={(e) => handleFilterChange('endDate', e.target.value)}
-                className="w-full px-3 py-2 bg-gray-700 rounded text-white text-sm"
-              />
-            </div>
           </div>
-
-          <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-700">
+          <div className="flex items-center gap-3">
+            <span className="text-slate-300 font-medium">
+              Welcome, {user?.fullName || user?.username}
+            </span>
             <button
-              onClick={() => setFilters({
-                page: 1,
-                limit: 50,
-                action: '',
-                status: '',
-                search: '',
-                startDate: '',
-                endDate: '',
-              })}
-              className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded text-sm transition-colors"
+              onClick={handleRefresh}
+              className="p-2.5 bg-slate-800/50 hover:bg-slate-800 rounded-xl transition-all duration-300 border border-white/10 hover:border-violet-500/50"
+              title="Refresh"
             >
-              Clear Filters
+              <RefreshCw className="w-5 h-5" />
             </button>
-
             <button
-              onClick={handleExport}
-              className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-500 rounded text-sm transition-colors"
+              onClick={onSignOut}
+              className="px-4 py-2 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 rounded-xl transition-all duration-300 font-medium shadow-lg hover:shadow-red-500/50"
             >
-              <Download className="w-4 h-4" />
-              Export CSV
+              Sign Out
             </button>
           </div>
         </div>
-      </div>
 
-      {/* Audit Logs Table */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
-        <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
-          <div className="overflow-x-auto">
-            {loading ? (
-              <div className="flex justify-center items-center py-12">
-                <RefreshCw className="w-8 h-8 animate-spin text-purple-500" />
+        {/* Tab Navigation */}
+        <div className="flex gap-2 mt-6 border-b border-white/10">
+          <button
+            onClick={() => setActiveTab('logs')}
+            className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-all duration-300 font-medium ${
+              activeTab === 'logs'
+                ? 'border-violet-500 text-violet-400'
+                : 'border-transparent text-slate-400 hover:text-slate-300'
+            }`}
+          >
+            <Activity className="w-4 h-4" />
+            Audit Logs
+          </button>
+          <button
+            onClick={() => setActiveTab('users')}
+            className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-all duration-300 font-medium ${
+              activeTab === 'users'
+                ? 'border-violet-500 text-violet-400'
+                : 'border-transparent text-slate-400 hover:text-slate-300'
+            }`}
+          >
+            <Users className="w-4 h-4" />
+            User Management
+          </button>
+        </div>
+      </div>
+    </div>
+
+    {/* Logs Tab Content */}
+    {activeTab === 'logs' && (
+      <>
+        {stats && (
+          <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+              <div className="group relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-violet-600/20 to-fuchsia-600/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="relative bg-gradient-to-br from-slate-900/80 to-indigo-900/80 backdrop-blur-xl p-6 rounded-2xl border border-white/10 hover:border-violet-500/50 transition-all duration-300 shadow-xl">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-violet-500/20 rounded-xl">
+                      <Activity className="w-8 h-8 text-violet-400" />
+                    </div>
+                    <div>
+                      <p className="text-slate-400 text-sm font-medium">Total Logs</p>
+                      <p className="text-3xl font-bold bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">{stats.totalLogs}</p>
+                    </div>
+                  </div>
+                </div>
               </div>
-            ) : logs.length === 0 ? (
-              <div className="text-center py-12 text-gray-400">
-                <Activity className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>No audit logs found</p>
+
+              <div className="group relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-green-600/20 to-emerald-600/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="relative bg-gradient-to-br from-slate-900/80 to-indigo-900/80 backdrop-blur-xl p-6 rounded-2xl border border-white/10 hover:border-green-500/50 transition-all duration-300 shadow-xl">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-green-500/20 rounded-xl">
+                      <CheckCircle className="w-8 h-8 text-green-400" />
+                    </div>
+                    <div>
+                      <p className="text-slate-400 text-sm font-medium">Successful</p>
+                      <p className="text-3xl font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
+                        {stats.statusStats.find((s) => s._id === 'SUCCESS')?.count || 0}
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
-            ) : (
-              <table className="w-full">
-                <thead className="bg-gray-900 border-b border-gray-700">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">Timestamp</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">User</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">Device</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">Action</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">Status</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">Input</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">Result</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">IP Address</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-700">
-                  {logs.map((log, index) => (
-                    <tr key={log._id || index} className="hover:bg-gray-700/50 transition-colors">
-                      <td className="px-4 py-3 text-sm">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4 text-gray-400" />
-                          {new Date(log.timestamp).toLocaleString()}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        <div className="flex items-center gap-2">
-                          <User className="w-4 h-4 text-gray-400" />
-                          <div>
-                            <div className="font-medium">{log.username || 'Anonymous'}</div>
-                            {log.email && (
-                              <div className="text-xs text-gray-400">{log.email}</div>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        <div className="flex items-center gap-2">
-                          {log.deviceType === 'Mobile' && <Smartphone className="w-4 h-4 text-blue-400" />}
-                          {log.deviceType === 'Tablet' && <Tablet className="w-4 h-4 text-green-400" />}
-                          {log.deviceType === 'Desktop' && <Monitor className="w-4 h-4 text-purple-400" />}
-                          {!log.deviceType && <Monitor className="w-4 h-4 text-gray-400" />}
-                          <div>
-                            <div className="font-medium text-xs">{log.deviceType || 'Unknown'}</div>
-                            <div className="text-xs text-gray-400">
-                              {log.browser && log.os ? `${log.browser} • ${log.os}` : log.browser || log.os || 'Unknown'}
+
+              <div className="group relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-red-600/20 to-rose-600/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="relative bg-gradient-to-br from-slate-900/80 to-indigo-900/80 backdrop-blur-xl p-6 rounded-2xl border border-white/10 hover:border-red-500/50 transition-all duration-300 shadow-xl">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-red-500/20 rounded-xl">
+                      <XCircle className="w-8 h-8 text-red-400" />
+                    </div>
+                    <div>
+                      <p className="text-slate-400 text-sm font-medium">Failed</p>
+                      <p className="text-3xl font-bold bg-gradient-to-r from-red-400 to-rose-400 bg-clip-text text-transparent">
+                        {stats.statusStats.find((s) => s._id === 'FAILED')?.count || 0}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="group relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-yellow-600/20 to-amber-600/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="relative bg-gradient-to-br from-slate-900/80 to-indigo-900/80 backdrop-blur-xl p-6 rounded-2xl border border-white/10 hover:border-yellow-500/50 transition-all duration-300 shadow-xl">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-yellow-500/20 rounded-xl">
+                      <AlertCircle className="w-8 h-8 text-yellow-400" />
+                    </div>
+                    <div>
+                      <p className="text-slate-400 text-sm font-medium">Errors</p>
+                      <p className="text-3xl font-bold bg-gradient-to-r from-yellow-400 to-amber-400 bg-clip-text text-transparent">
+                        {stats.statusStats.find((s) => s._id === 'ERROR')?.count || 0}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Filters */}
+        <div className="relative z-10 max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-violet-600/10 via-fuchsia-600/10 to-cyan-600/10 rounded-2xl blur-xl"></div>
+            <div className="relative bg-gradient-to-br from-slate-900/80 to-indigo-900/80 backdrop-blur-xl p-6 rounded-2xl border border-white/10 shadow-xl">
+              <div className="flex items-center gap-2 mb-6">
+                <div className="p-2 bg-violet-500/20 rounded-lg">
+                  <Filter className="w-5 h-5 text-violet-400" />
+                </div>
+                <h2 className="text-lg font-bold bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">Filters</h2>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                {/* Search */}
+                <div>
+                  <label htmlFor="admin-search" className="block text-sm text-slate-300 font-medium mb-2">Search</label>
+                  <div className="relative group">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-violet-400 transition-colors pointer-events-none" />
+                    <input
+                      type="text"
+                      id="admin-search"
+                      value={filters.search}
+                      onChange={(e) => handleFilterChange('search', e.target.value)}
+                      placeholder="User, email, details..."
+                      className="w-full pl-10 pr-3 py-2.5 rounded-xl bg-slate-800/50 backdrop-blur-xl text-white placeholder:text-slate-500 border border-white/10 focus:border-violet-500/50 focus:outline-none transition-all text-sm shadow-inner"
+                    />
+                  </div>
+                </div>
+
+                {/* Action Filter */}
+                <div>
+                  <label htmlFor="admin-action" className="block text-sm text-slate-300 font-medium mb-2">Action</label>
+                  <select
+                    id="admin-action"
+                    value={filters.action}
+                    onChange={(e) => handleFilterChange('action', e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-xl bg-slate-800/50 backdrop-blur-xl text-white border border-white/10 focus:border-violet-500/50 focus:outline-none transition-all text-sm shadow-inner"
+                  >
+                    <option value="">All Actions</option>
+                    {availableActions.map((action) => (
+                      <option key={action} value={action}>{action}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Status Filter */}
+                <div>
+                  <label htmlFor="admin-status" className="block text-sm text-slate-300 font-medium mb-2">Status</label>
+                  <select
+                    id="admin-status"
+                    value={filters.status}
+                    onChange={(e) => handleFilterChange('status', e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-xl bg-slate-800/50 backdrop-blur-xl text-white border border-white/10 focus:border-violet-500/50 focus:outline-none transition-all text-sm shadow-inner"
+                  >
+                    <option value="">All Status</option>
+                    <option value="SUCCESS">Success</option>
+                    <option value="FAILED">Failed</option>
+                    <option value="ERROR">Error</option>
+                  </select>
+                </div>
+
+                {/* Start Date */}
+                <div>
+                  <label htmlFor="admin-start-date" className="block text-sm text-slate-300 font-medium mb-2">Start Date</label>
+                  <input
+                    type="datetime-local"
+                    id="admin-start-date"
+                    value={filters.startDate}
+                    onChange={(e) => handleFilterChange('startDate', e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-xl bg-slate-800/50 backdrop-blur-xl text-white border border-white/10 focus:border-violet-500/50 focus:outline-none transition-all text-sm shadow-inner"
+                  />
+                </div>
+
+                {/* End Date */}
+                <div>
+                  <label htmlFor="admin-end-date" className="block text-sm text-slate-300 font-medium mb-2">End Date</label>
+                  <input
+                    type="datetime-local"
+                    id="admin-end-date"
+                    value={filters.endDate}
+                    onChange={(e) => handleFilterChange('endDate', e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-xl bg-slate-800/50 backdrop-blur-xl text-white border border-white/10 focus:border-violet-500/50 focus:outline-none transition-all text-sm shadow-inner"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center mt-6 pt-6 border-t border-white/10">
+                <button
+                  onClick={() => setFilters({
+                    page: 1,
+                    limit: 50,
+                    action: '',
+                    status: '',
+                    search: '',
+                    startDate: '',
+                    endDate: '',
+                  })}
+                  className="px-5 py-2.5 bg-slate-800/50 hover:bg-slate-800 rounded-xl text-sm font-medium transition-all duration-300 border border-white/10 hover:border-slate-600"
+                >
+                  Clear Filters
+                </button>
+
+                <button
+                  onClick={handleExport}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 rounded-xl text-sm font-medium transition-all duration-300 shadow-lg hover:shadow-violet-500/50"
+                >
+                  <Download className="w-4 h-4" />
+                  Export CSV
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Audit Logs Table */}
+        <div className="relative z-10 max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-violet-600/10 via-fuchsia-600/10 to-cyan-600/10 rounded-2xl blur-xl"></div>
+            <div className="relative bg-gradient-to-br from-slate-900/80 to-indigo-900/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-xl">
+              <div className="overflow-x-auto">
+                {loading ? (
+                  <div className="flex justify-center items-center py-12">
+                    <RefreshCw className="w-8 h-8 animate-spin text-violet-500" />
+                  </div>
+                ) : logs.length === 0 ? (
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 rounded-2xl flex items-center justify-center">
+                      <Activity className="w-8 h-8 text-violet-400" />
+                    </div>
+                    <p className="text-slate-400">No audit logs found</p>
+                  </div>
+                ) : (
+                  <table className="w-full">
+                    <thead className="bg-slate-950/50 backdrop-blur-xl border-b border-white/10">
+                      <tr>
+                        <th className="px-4 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">Timestamp</th>
+                        <th className="px-4 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">User</th>
+                        <th className="px-4 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">Device</th>
+                        <th className="px-4 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">Action</th>
+                        <th className="px-4 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">Status</th>
+                        <th className="px-4 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">Input</th>
+                        <th className="px-4 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">Result</th>
+                        <th className="px-4 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">IP Address</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                      {logs.map((log, index) => (
+                        <tr key={log._id || index} className="hover:bg-slate-800/30 transition-colors">
+                          <td className="px-4 py-4 text-sm">
+                            <div className="flex items-center gap-2">
+                              <Calendar className="w-4 h-4 text-slate-400" />
+                              <span className="text-slate-300">{new Date(log.timestamp).toLocaleString()}</span>
                             </div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        <span className={`px-2 py-1 rounded text-xs font-medium ${getActionColor(log.action)}`}>
-                          {log.action}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        <div className="flex items-center gap-2">
-                          {getStatusIcon(log.status)}
-                          <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(log.status)}`}>
-                            {log.status}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        <div className="max-w-xs truncate text-gray-300" title={log.input}>
-                          {log.input || '-'}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-sm">
-                        <div className="max-w-xs truncate text-gray-300" title={log.result}>
-                          {log.result || log.errorMessage || '-'}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-400">
-                        {log.ipAddress || '-'}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
+                          </td>
+                          <td className="px-4 py-4 text-sm">
+                            <div className="flex items-center gap-2">
+                              <User className="w-4 h-4 text-slate-400" />
+                              <div>
+                                <div className="font-medium text-white">{log.username || 'Anonymous'}</div>
+                                {log.email && (
+                                  <div className="text-xs text-slate-400">{log.email}</div>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-4 text-sm">
+                            <div className="flex items-center gap-2">
+                              {log.deviceType === 'Mobile' && <Smartphone className="w-4 h-4 text-blue-400" />}
+                              {log.deviceType === 'Tablet' && <Tablet className="w-4 h-4 text-green-400" />}
+                              {log.deviceType === 'Desktop' && <Monitor className="w-4 h-4 text-violet-400" />}
+                              {!log.deviceType && <Monitor className="w-4 h-4 text-slate-400" />}
+                              <div>
+                                <div className="font-medium text-xs text-white">{log.deviceType || 'Unknown'}</div>
+                                <div className="text-xs text-slate-400">
+                                  {log.browser && log.os ? `${log.browser} • ${log.os}` : log.browser || log.os || 'Unknown'}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-4 text-sm">
+                            <span className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${getActionColor(log.action)}`}>
+                              {log.action}
+                            </span>
+                          </td>
+                          <td className="px-4 py-4 text-sm">
+                            <div className="flex items-center gap-2">
+                              {getStatusIcon(log.status)}
+                              <span className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${getStatusColor(log.status)}`}>
+                                {log.status}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-4 text-sm">
+                            <div className="max-w-xs truncate text-slate-300" title={log.input}>
+                              {log.input || '-'}
+                            </div>
+                          </td>
+                          <td className="px-4 py-4 text-sm">
+                            <div className="max-w-xs truncate text-slate-300" title={log.result}>
+                              {log.result || log.errorMessage || '-'}
+                            </div>
+                          </td>
+                          <td className="px-4 py-4 text-sm text-slate-400">
+                            {log.ipAddress || '-'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
 
-          {/* Pagination */}
-          {pagination.pages > 1 && (
-            <div className="bg-gray-900 px-4 py-3 border-t border-gray-700 flex items-center justify-between">
-              <div className="text-sm text-gray-400">
-                Showing
-                {' '}
-                {((pagination.page - 1) * pagination.limit) + 1}
-                {' '}
-                to
-                {' '}
-                {Math.min(pagination.page * pagination.limit, pagination.total)}
-                {' '}
-                of
-                {' '}
-                {pagination.total}
-                {' '}
-                results
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => handleFilterChange('page', pagination.page - 1)}
-                  disabled={pagination.page === 1}
-                  className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  Previous
-                </button>
-                <span className="px-3 py-1 bg-gray-800 rounded text-sm">
-                  Page
-                  {' '}
-                  {pagination.page}
-                  {' '}
-                  of
-                  {' '}
-                  {pagination.pages}
-                </span>
-                <button
-                  onClick={() => handleFilterChange('page', pagination.page + 1)}
-                  disabled={pagination.page === pagination.pages}
-                  className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  Next
-                </button>
-              </div>
+              {/* Pagination */}
+              {pagination.pages > 1 && (
+                <div className="bg-slate-950/50 backdrop-blur-xl px-6 py-4 border-t border-white/10 flex items-center justify-between">
+                  <div className="text-sm text-slate-400">
+                    Showing {((pagination.page - 1) * pagination.limit) + 1} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} results
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleFilterChange('page', pagination.page - 1)}
+                      disabled={pagination.page === 1}
+                      className="px-4 py-2 bg-slate-800/50 hover:bg-slate-800 rounded-xl text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 border border-white/10"
+                    >
+                      Previous
+                    </button>
+                    <span className="px-4 py-2 bg-slate-950/50 rounded-xl text-sm font-medium border border-white/10">
+                      Page {pagination.page} of {pagination.pages}
+                    </span>
+                    <button
+                      onClick={() => handleFilterChange('page', pagination.page + 1)}
+                      disabled={pagination.page === pagination.pages}
+                      className="px-4 py-2 bg-slate-800/50 hover:bg-slate-800 rounded-xl text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 border border-white/10"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
-      </div>
       </>
-      )}
+    )}
 
-      {/* User Management Tab Content */}
-      {activeTab === 'users' && (
-        <>
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            {/* User Search */}
-            <div className="bg-gray-800 p-4 rounded-lg border border-gray-700 mb-6">
+    {/* User Management Tab Content */}
+    {activeTab === 'users' && (
+      <>
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          {/* User Search */}
+          <div className="relative mb-6">
+            <div className="absolute inset-0 bg-gradient-to-r from-violet-600/10 via-fuchsia-600/10 to-cyan-600/10 rounded-2xl blur-xl"></div>
+            <div className="relative bg-gradient-to-br from-slate-900/80 to-indigo-900/80 backdrop-blur-xl p-6 rounded-2xl border border-white/10 shadow-xl">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4 flex-1">
-                  <div className="relative flex-1 max-w-md">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <div className="relative flex-1 max-w-md group">
+                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-violet-400 transition-colors pointer-events-none" />
                     <input
                       type="text"
                       value={usersFilters.search}
                       onChange={(e) => handleUsersFilterChange('search', e.target.value)}
                       placeholder="Search by username, email, or full name..."
-                      className="w-full pl-10 pr-3 py-2 bg-gray-700 rounded text-white text-sm"
+                      className="w-full pl-12 pr-4 py-3 rounded-xl bg-slate-800/50 backdrop-blur-xl text-white placeholder:text-slate-500 border border-white/10 focus:border-violet-500/50 focus:outline-none transition-all text-sm shadow-inner"
                     />
                   </div>
                   <button
                     onClick={() => setUsersFilters({ page: 1, limit: 20, search: '' })}
-                    className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded text-sm transition-colors"
+                    className="px-5 py-3 bg-slate-800/50 hover:bg-slate-800 rounded-xl text-sm font-medium transition-all duration-300 border border-white/10"
                   >
                     Clear
                   </button>
                 </div>
                 <button
                   onClick={fetchAllUsers}
-                  className="p-2 bg-gray-700 hover:bg-gray-600 rounded transition-colors ml-4"
+                  className="p-3 bg-slate-800/50 hover:bg-slate-800 rounded-xl transition-all duration-300 ml-4 border border-white/10 hover:border-violet-500/50"
                   title="Refresh users"
                 >
                   <RefreshCw className="w-5 h-5" />
                 </button>
               </div>
             </div>
+          </div>
 
-            {/* Users Table */}
-            <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
+          {/* Users Table */}
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-violet-600/10 via-fuchsia-600/10 to-cyan-600/10 rounded-2xl blur-xl"></div>
+            <div className="relative bg-gradient-to-br from-slate-900/80 to-indigo-900/80 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-xl">
               <div className="overflow-x-auto">
                 {usersLoading ? (
                   <div className="flex justify-center items-center py-12">
-                    <RefreshCw className="w-8 h-8 animate-spin text-purple-500" />
+                    <RefreshCw className="w-8 h-8 animate-spin text-violet-500" />
                   </div>
                 ) : allUsers.length === 0 ? (
-                  <div className="text-center py-12 text-gray-400">
-                    <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p>No users found</p>
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-violet-500/20 to-fuchsia-500/20 rounded-2xl flex items-center justify-center">
+                      <Users className="w-8 h-8 text-violet-400" />
+                    </div>
+                    <p className="text-slate-400">No users found</p>
                   </div>
                 ) : (
                   <table className="w-full">
-                    <thead className="bg-gray-900 border-b border-gray-700">
+                    <thead className="bg-slate-950/50 backdrop-blur-xl border-b border-white/10">
                       <tr>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">Username</th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">Email</th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">Full Name</th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">Role</th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">Status</th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">Last Login</th>
-                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase">Actions</th>
+                        <th className="px-4 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">Username</th>
+                        <th className="px-4 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">Email</th>
+                        <th className="px-4 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">Full Name</th>
+                        <th className="px-4 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">Role</th>
+                        <th className="px-4 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">Status</th>
+                        <th className="px-4 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">Last Login</th>
+                        <th className="px-4 py-4 text-left text-xs font-semibold text-slate-300 uppercase tracking-wider">Actions</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-700">
+                    <tbody className="divide-y divide-white/5">
                       {allUsers.map((u) => (
-                        <tr key={u._id} className="hover:bg-gray-700/50 transition-colors">
-                          <td className="px-4 py-3 text-sm">
+                        <tr key={u._id} className="hover:bg-slate-800/30 transition-colors">
+                          <td className="px-4 py-4 text-sm">
                             <div className="flex items-center gap-2">
-                              <User className="w-4 h-4 text-gray-400" />
-                              <span className="font-medium">{u.username}</span>
+                              <div className="p-2 bg-violet-500/20 rounded-lg">
+                                <User className="w-4 h-4 text-violet-400" />
+                              </div>
+                              <span className="font-medium text-white">{u.username}</span>
                             </div>
                           </td>
-                          <td className="px-4 py-3 text-sm text-gray-300">{u.email}</td>
-                          <td className="px-4 py-3 text-sm text-gray-300">{u.fullName || '-'}</td>
-                          <td className="px-4 py-3 text-sm">
+                          <td className="px-4 py-4 text-sm text-slate-300">{u.email}</td>
+                          <td className="px-4 py-4 text-sm text-slate-300">{u.fullName || '-'}</td>
+                          <td className="px-4 py-4 text-sm">
                             {u.isAdmin ? (
-                              <span className="flex items-center gap-1 px-2 py-1 bg-purple-900/30 text-purple-400 rounded text-xs font-medium w-fit">
+                              <span className="flex items-center gap-2 px-3 py-1.5 bg-violet-500/20 text-violet-400 rounded-lg text-xs font-semibold w-fit border border-violet-500/30">
                                 <Shield className="w-3 h-3" />
                                 Admin
                               </span>
                             ) : (
-                              <span className="px-2 py-1 bg-gray-700 text-gray-400 rounded text-xs font-medium">
+                              <span className="px-3 py-1.5 bg-slate-700/50 text-slate-400 rounded-lg text-xs font-semibold border border-white/10">
                                 User
                               </span>
                             )}
                           </td>
-                          <td className="px-4 py-3 text-sm">
+                          <td className="px-4 py-4 text-sm">
                             {u.isSuspended ? (
-                              <span className="flex items-center gap-1 px-2 py-1 bg-red-900/30 text-red-400 rounded text-xs font-medium w-fit">
+                              <span className="flex items-center gap-2 px-3 py-1.5 bg-red-500/20 text-red-400 rounded-lg text-xs font-semibold w-fit border border-red-500/30">
                                 <Ban className="w-3 h-3" />
                                 Suspended
                               </span>
                             ) : (
-                              <span className="px-2 py-1 bg-green-900/30 text-green-400 rounded text-xs font-medium">
+                              <span className="px-3 py-1.5 bg-green-500/20 text-green-400 rounded-lg text-xs font-semibold border border-green-500/30">
                                 Active
                               </span>
                             )}
                           </td>
-                          <td className="px-4 py-3 text-sm text-gray-400">
+                          <td className="px-4 py-4 text-sm text-slate-400">
                             {u.lastLogin ? new Date(u.lastLogin).toLocaleString() : 'Never'}
                           </td>
-                          <td className="px-4 py-3 text-sm">
+                          <td className="px-4 py-4 text-sm">
                             <div className="flex items-center gap-2">
                               <button
                                 onClick={() => handleToggleAdmin(u._id, u.isAdmin, u.username)}
                                 disabled={u._id === user?.id}
-                                className={`px-3 py-1 rounded text-xs font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                                className={`px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed border ${
                                   u.isAdmin
-                                    ? 'bg-red-900/30 text-red-400 hover:bg-red-900/50'
-                                    : 'bg-purple-900/30 text-purple-400 hover:bg-purple-900/50'
+                                    ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30 border-red-500/30'
+                                    : 'bg-violet-500/20 text-violet-400 hover:bg-violet-500/30 border-violet-500/30'
                                 }`}
                                 title={u._id === user?.id ? 'Cannot modify your own role' : ''}
                               >
@@ -787,10 +826,10 @@ const Admin = ({ user, onSignOut }) => {
                               <button
                                 onClick={() => handleToggleSuspension(u._id, u.isSuspended, u.username)}
                                 disabled={u._id === user?.id}
-                                className={`px-3 py-1 rounded text-xs font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                                className={`px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed border ${
                                   u.isSuspended
-                                    ? 'bg-green-900/30 text-green-400 hover:bg-green-900/50'
-                                    : 'bg-yellow-900/30 text-yellow-400 hover:bg-yellow-900/50'
+                                    ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30 border-green-500/30'
+                                    : 'bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30 border-yellow-500/30'
                                 }`}
                                 title={u._id === user?.id ? 'Cannot suspend yourself' : ''}
                               >
@@ -807,43 +846,25 @@ const Admin = ({ user, onSignOut }) => {
 
               {/* Pagination for Users */}
               {usersPagination.pages > 1 && (
-                <div className="bg-gray-900 px-4 py-3 border-t border-gray-700 flex items-center justify-between">
-                  <div className="text-sm text-gray-400">
-                    Showing
-                    {' '}
-                    {((usersPagination.page - 1) * usersPagination.limit) + 1}
-                    {' '}
-                    to
-                    {' '}
-                    {Math.min(usersPagination.page * usersPagination.limit, usersPagination.total)}
-                    {' '}
-                    of
-                    {' '}
-                    {usersPagination.total}
-                    {' '}
-                    users
+                <div className="bg-slate-950/50 backdrop-blur-xl px-6 py-4 border-t border-white/10 flex items-center justify-between">
+                  <div className="text-sm text-slate-400">
+                    Showing {((usersPagination.page - 1) * usersPagination.limit) + 1} to {Math.min(usersPagination.page * usersPagination.limit, usersPagination.total)} of {usersPagination.total} users
                   </div>
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleUsersFilterChange('page', usersPagination.page - 1)}
                       disabled={usersPagination.page === 1}
-                      className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="px-4 py-2 bg-slate-800/50 hover:bg-slate-800 rounded-xl text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 border border-white/10"
                     >
                       Previous
                     </button>
-                    <span className="px-3 py-1 bg-gray-800 rounded text-sm">
-                      Page
-                      {' '}
-                      {usersPagination.page}
-                      {' '}
-                      of
-                      {' '}
-                      {usersPagination.pages}
+                    <span className="px-4 py-2 bg-slate-950/50 rounded-xl text-sm font-medium border border-white/10">
+                      Page {usersPagination.page} of {usersPagination.pages}
                     </span>
                     <button
                       onClick={() => handleUsersFilterChange('page', usersPagination.page + 1)}
                       disabled={usersPagination.page === usersPagination.pages}
-                      className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="px-4 py-2 bg-slate-800/50 hover:bg-slate-800 rounded-xl text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 border border-white/10"
                     >
                       Next
                     </button>
@@ -852,10 +873,11 @@ const Admin = ({ user, onSignOut }) => {
               )}
             </div>
           </div>
-        </>
-      )}
-    </div>
-  );
+        </div>
+      </>
+    )}
+  </div>
+);
 };
 
 export default Admin;

@@ -204,7 +204,7 @@ function CalculatorInput() {
     : 'Enter expression';
 
   return (
-    <div className="bg-slate-900/80 backdrop-blur-sm p-5 rounded-2xl shadow-2xl flex flex-col gap-3 border border-slate-700/50 max-w-lg mx-auto">
+    <div className="bg-slate-900/80 backdrop-blur-sm p-5 rounded-2xl shadow-2xl flex flex-col gap-3 border border-slate-700/50 max-w-2lg mx-auto">
       {/* Mode Toggle Toolbar */}
       <ModeToolbar
         DLMode={DLMode}
@@ -258,6 +258,18 @@ function CalculatorInput() {
         plotMode={plotMode}
         handleClick={handleClick}
       />
+      {/* seperate plot button  */}
+      { (complexMode || plotMode) && (
+        <div className="flex gap-2 mt-1">
+          <button
+            onClick={()=>{handleClick('Plot')}}
+            className="flex-1 p-2.5 bg-gradient-to-r from-purple-700 to-fuchsia-700 rounded-xl text-white text-sm font-medium hover:from-purple-600 hover:to-fuchsia-600 transition-all shadow-lg flex items-center justify-center gap-2"
+          >
+            Plot
+          </button>
+        </div>
+      )}
+      
 
       {/* Clear History Button */}
       <div className="flex gap-2 mt-1">

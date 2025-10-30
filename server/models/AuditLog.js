@@ -24,6 +24,7 @@ const auditLogSchema = new mongoose.Schema(
         "HISTORY_CLEAR",
         "ADMIN_ACCESS",
         "UNAUTHORIZED_ACCESS",
+        "SESSION_EXPIRED"
       ],
     },
     details: { type: String }, // Additional information about the action
@@ -36,7 +37,7 @@ const auditLogSchema = new mongoose.Schema(
     os: { type: String }, // Windows, macOS, Linux, Android, iOS
     status: {
       type: String,
-      enum: ["SUCCESS", "FAILED", "ERROR"],
+      enum: ["SUCCESS", "FAILED", "ERROR", "INFO"],
       default: "SUCCESS",
     },
     errorMessage: { type: String }, // Store error details if any

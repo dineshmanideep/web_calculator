@@ -43,7 +43,7 @@ export const advancedMath = {
       }
       return Math.log10(val);
     } catch (error) {
-      if (!error.message.includes('log')) {
+      if (!error.message.toLowerCase().includes('log'.toLowerCase())) {
         toast.error('Logarithm calculation failed');
       }
       throw error;
@@ -54,16 +54,16 @@ export const advancedMath = {
     try {
       const val = Number(x);
       if (isNaN(val)) {
-        toast.error('ln: Input must be a number');
+        toast.error('ln : Input must be a number');
         throw new Error('Invalid input to ln');
       }
       if (val <= 0) {
-        toast.error('ln: Cannot take natural log of zero or negative number');
+        toast.error('ln : Cannot take natural log of zero or negative number');
         throw new Error('Natural log of non-positive number');
       }
       return Math.log(val);
     } catch (error) {
-      if (!error.message.includes('ln')) {
+      if (!error.message.toLowerCase().includes('ln'.toLowerCase())) {
         toast.error('Natural logarithm calculation failed');
       }
       throw error;

@@ -26,6 +26,10 @@ export const isAuthenticated = async (req, res, next) => {
       });
     }
 
+    // Update last activity time (for tracking session expiry)
+    user.lastActivity = new Date();
+    await user.save();
+
     // Attach user to request for later use
     req.user = { id: user._id.toString(), email: user.email, username: user.username };
 

@@ -45,7 +45,7 @@ export const MATRIX_BUTTONS = ['MatMul', 'MatAdd', 'MatSub', 'Det', 'Transpose']
  * Plot operation buttons
  * @constant {string[]}
  */
-export const PLOT_BUTTONS = ['Plot', 'x'];
+export const PLOT_BUTTONS = ['x'];
 
 /**
  * Base calculator buttons (numbers, basic operators, control)
@@ -56,7 +56,7 @@ export const BASE_BUTTONS = [
   '7', '8', '9', '/',
   '4', '5', '6', '*',
   '1', '2', '3', '-',
-  '0', '.', '+', '^', '%',
+  '0', '.', '+', '^',
   '(', ')', '!', ',', '[', ']',
 ];
 

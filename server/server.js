@@ -7,6 +7,7 @@ import MongoStore from "connect-mongo";
 import rateLimit from "express-rate-limit";
 import adminRoutes from "./routes/admin.js";
 import authRoutes from "./routes/auth.js";
+import { startSessionMonitor } from "./utils/sessionMonitor.js";
 
 dotenv.config();
 
@@ -21,6 +22,9 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
 app.use(
   cors({
     origin(origin, callback) {
+      // Allow requests with no origin (mobile apps, curl, Postman, etc.)
+      if (!origin) return callback(null, true);
+      
       if (allowedOrigins.indexOf(origin) !== -1) {
         callback(null, true);
       } else {
@@ -130,4 +134,7 @@ app.listen(PORT, () => {
   console.log(`✓ Server running on port ${PORT}`);
   console.log(`✓ Environment: ${process.env.NODE_ENV || "development"}`);
   console.log(`✓ CORS allowed origins: ${allowedOrigins.join(", ")}`);
+  
+  // Start the session monitor for tracking expired sessions
+  startSessionMonitor();
 });

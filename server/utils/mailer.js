@@ -1,3 +1,8 @@
+/**
+ * Author: P. Dinesh Manideep
+ * Description: Email utility module for sending mails using Nodemailer with Gmail service and environment-based configuration.
+ */
+
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 
@@ -24,7 +29,6 @@ const transporter = nodemailer.createTransport({
  */
 export async function sendMail({ to, subject, text, from }) {
   try {
-    // Use provided from or fallback to env or default
     const mailFrom = from || process.env.FROM_EMAIL || process.env.SMTP_USER;
 
     if (!to || !subject || !text) {
@@ -32,20 +36,16 @@ export async function sendMail({ to, subject, text, from }) {
     }
 
     const info = await transporter.sendMail({
-      from: mailFrom, // Added 'from' based on logic above and nodemailer requirement
+      from: mailFrom,
       to,
       subject,
       html: text,
     });
 
-    // eslint-disable-next-line no-console
     console.log("Email sent:", info.messageId);
-
     return info;
   } catch (err) {
-    // eslint-disable-next-line no-console
     console.error("Error sending email:", err);
-
     throw err;
   }
 }

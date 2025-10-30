@@ -36,7 +36,7 @@ const API_URL = import.meta.env.VITE_API_URL;
 axios.defaults.withCredentials = true;
 
 function App() {
-  const [authenticated, setAuthenticated] = useState(true);
+  const [authenticated, setAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -47,7 +47,6 @@ function App() {
       setUser(null);
     } catch (error) {
       console.error('Sign out failed:', error);
-      // Even if logout API fails, clear local state
       setAuthenticated(false);
       setUser(null);
     }
@@ -57,20 +56,32 @@ function App() {
   useEffect(() => {
     const interceptor = axios.interceptors.response.use(
       (response) => response, // Pass through successful responses
-      (error) => {
+      async (error) => {
         // Check if error is 401 (Unauthorized - session expired)
         if (error.response?.status === 401) {
           const currentPath = window.location.pathname;
-          
           // Only handle session expiry if user was authenticated
           // Avoid handling 401s from login page itself
           if (authenticated && currentPath !== '/login') {
-            console.log('Session expired - logging out user');
-            setAuthenticated(false);
-            setUser(null);
-            
-            // Show a toast notification
-            toast.error('Session expired. Please login again.');
+            console.log('Session expired - asking user to continue');
+            // Show a warning toast with action button
+            toast.warning(
+              <div>
+                <p className="font-semibold">Your session has expired</p>
+                <p className="text-sm mt-1">Would you like to continue? You&apos;ll need to login again.</p>
+              </div>,
+              {
+                autoClose: false, // Don&apos;t auto-dismiss
+                closeButton: true,
+                onClose: () => {
+                  // User dismissed the toast - redirect to login
+                  setAuthenticated(false);
+                  setUser(null);
+                },
+              },
+            );
+            // Don't logout immediately - let user dismiss the toast
+            // The API call will fail but user can see what happened
           }
         }
         return Promise.reject(error);

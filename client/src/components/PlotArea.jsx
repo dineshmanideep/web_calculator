@@ -38,7 +38,7 @@ const MIN_HEIGHT = 300;
 const MAX_HEIGHT = 700;
 
 const PlotArea = ({
-  plotWidth, setPlotWidth, plotHeight, setPlotHeight, setShowPlot, angleMode, calculatorInput, complexMode, onPlotTrigger,
+  plotWidth, setPlotWidth, plotHeight, setPlotHeight, setShowPlot, angleMode, calculatorInput, isComplexMode, onPlotTrigger,
 }) => {
   const [plotData, setPlotData] = useState(null);
   const [xRange, setXRange] = useState([-10, 10]);
@@ -49,8 +49,8 @@ const PlotArea = ({
 
   // Update plot mode based on complex mode from calculator
   React.useEffect(() => {
-    if (complexMode !== undefined) {
-      const newMode = complexMode ? 'complex' : 'function';
+    if (isComplexMode !== undefined) {
+      const newMode = isComplexMode ? 'complex' : 'function';
       if (newMode !== plotMode) {
         setPlotMode(newMode);
         // Clear the plot when switching modes
@@ -58,7 +58,7 @@ const PlotArea = ({
         toast.info(`Switched to ${newMode === 'complex' ? 'Complex' : 'Function'} mode`);
       }
     }
-  }, [complexMode, plotMode]);
+  }, [isComplexMode, plotMode]);
   const generatePlotData = useCallback((func, xMin, xMax) => {
     try {
       const expr = preprocessExpression(func, angleMode);
@@ -69,7 +69,13 @@ const PlotArea = ({
       const xs = [];
       const ys = [];
 
+      const hasLog = /log\(|ln\(/.test(expr);
+
       for (let x = xMin; x <= xMax; x += step) {
+        if (hasLog && x <= 0) {
+          // Skip points where log is not defined
+         continue;
+        }
         try {
           // Replace x with actual value
           const exprWithX = expr.replace(/x/g, `(${x})`);
@@ -81,8 +87,6 @@ const PlotArea = ({
           let y;
           if (typeof result === 'number') {
             y = result;
-          } else if (result && typeof result === 'object' && result.re !== undefined) {
-            y = result.re;
           } else {
             // Skip non-numeric results
             y = null;
@@ -184,14 +188,14 @@ const PlotArea = ({
     } finally {
       setIsPlotting(false);
     }
-  }, [calculatorInput, xRange, generatePlotData, generateComplexPlot, plotMode]);
+  }, [xRange, generatePlotData, generateComplexPlot, plotMode]);
 
   // Listen for plot trigger from parent
   React.useEffect(() => {
     if (onPlotTrigger && calculatorInput) {
       handlePlotFunction(calculatorInput);
     }
-  }, [onPlotTrigger, calculatorInput, handlePlotFunction]);
+  }, [onPlotTrigger]);
 
   // Generate plot data based on current x-range for real functions
 
@@ -397,7 +401,22 @@ const PlotArea = ({
               config={{
                 responsive: true,
                 displayModeBar: true,
+                modeBarButtonsToRemove: [
+                  'select2d',
+                  'lasso2d',
+                  'autoScale2d',
+                  'resetScale2d',
+                  'hoverClosestCartesian',
+                  'hoverCompareCartesian',
+                  'toggleSpikelines',
+                ],
+                modeBarButtonsToAdd: [],
                 displaylogo: false,
+                toImageButtonOptions: {
+                  format: 'png',
+                  filename: 'plot',
+                  scale: 2,
+                },
               }}
               useResizeHandler
               style={{ width: '100%', height: '100%' }}
@@ -439,8 +458,22 @@ const PlotArea = ({
               config={{
                 responsive: true,
                 displayModeBar: true,
-                modeBarButtonsToAdd: ['pan2d', 'zoom2d', 'zoomIn2d', 'zoomOut2d', 'autoScale2d', 'resetScale2d'],
+                modeBarButtonsToRemove: [
+                  'select2d',
+                  'lasso2d',
+                  'autoScale2d',
+                  'resetScale2d',
+                  'hoverClosestCartesian',
+                  'hoverCompareCartesian',
+                  'toggleSpikelines',
+                ],
+                modeBarButtonsToAdd: [],
                 displaylogo: false,
+                toImageButtonOptions: {
+                  format: 'png',
+                  filename: 'plot',
+                  scale: 2,
+                },
               }}
               onRelayout={handleRelayout}
               useResizeHandler
@@ -450,7 +483,7 @@ const PlotArea = ({
         ) : (
           <div className="text-center p-4">
             <p className="text-gray-400 text-lg mb-2">
-              {plotMode === 'complex' ? '🔢 Complex Mode' : '📈 Function Mode'}
+              {plotMode === 'complex' ? ' Complex Mode' : ' Function Mode'}
             </p>
             <p className="text-gray-500 text-sm mb-1">
               {plotMode === 'complex'
@@ -458,7 +491,7 @@ const PlotArea = ({
                 : 'Enter a function of x (e.g., sin(x), x^2, tan(x))'}
             </p>
             <p className="text-gray-600 text-xs">
-              Type in calculator input and click &quot;📊 Plot Graph&quot;
+              Type in calculator input and click &quot; Plot Graph&quot;
             </p>
           </div>
         )}
