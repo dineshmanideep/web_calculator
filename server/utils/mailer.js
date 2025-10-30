@@ -1,51 +1,32 @@
-/**
- * Author: P. Dinesh Manideep
- * Description: Email utility module for sending mails using Nodemailer with Gmail service and environment-based configuration.
- */
-
-import nodemailer from "nodemailer";
+import sgMail from '@sendgrid/mail';
 import dotenv from "dotenv";
-
 dotenv.config();
-
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
+// Initialize SendGrid with API key
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 /**
- * Sends an email using the configured transporter.
- *
- * @param {Object} options - The email options.
- * @param {string} options.to - Recipient email address.
- * @param {string} options.subject - Email subject.
- * @param {string} options.text - Email body (used as HTML).
- * @param {string} [options.from] - Sender email address.
- * @returns {Promise<Object>} The nodemailer info object.
- * @throws {Error} If required mail fields are missing or if sending fails.
+ * Send email using SendGrid Web API
  */
-export async function sendMail({ to, subject, text, from }) {
+export const sendMail = async ({to, subject, text}) => {
   try {
-    const mailFrom = from || process.env.FROM_EMAIL || process.env.SMTP_USER;
+    const msg = {
+      to: to,
+      from: {
+        email: process.env.SMTP_USER,
+        name: 'Scientific Calculator',
+      },
+      subject: subject,
+      text: text,
+    };
 
-    if (!to || !subject || !text) {
-      throw new Error("Missing required mail fields");
+    const response = await sgMail.send(msg);
+    console.log('Email sent successfully:', response[0].statusCode);
+    return response;
+  } catch (error) {
+    console.error('Email sending failed:', error);
+    if (error.response) {
+      console.error('Error details:', error.response.body);
     }
-
-    const info = await transporter.sendMail({
-      from: mailFrom,
-      to,
-      subject,
-      html: text,
-    });
-
-    console.log("Email sent:", info.messageId);
-    return info;
-  } catch (err) {
-    console.error("Error sending email:", err);
-    throw err;
+    throw error;
   }
-}
+};

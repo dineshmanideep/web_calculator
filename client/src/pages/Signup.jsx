@@ -137,9 +137,9 @@ export default function Signup() {
         </div>
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-violet-400 via-fuchsia-400 to-cyan-400 bg-clip-text text-transparent">
-            Quantum Calculator
+            Scientific Calculator
           </h1>
-          <p className="text-sm text-slate-400">Advanced Computing Platform</p>
+          
         </div>
       </div>
 

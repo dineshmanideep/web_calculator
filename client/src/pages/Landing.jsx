@@ -18,7 +18,7 @@ import { Link } from 'react-router-dom';
 import {
   Calculator as CalcIcon, Shield, Zap, TrendingUp, Activity, Sparkles,
 } from 'lucide-react';
-
+const USER_MANUAL_URL = import.meta.env.VITE_USER_MANUAL_URL;
 function Landing() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-950 text-white overflow-hidden transition-colors duration-300">
@@ -30,8 +30,8 @@ function Landing() {
 
       {/* Navigation */}
       <nav className="relative z-10 border-b border-white/10 bg-gradient-to-r from-slate-900/80 via-indigo-900/80 to-slate-900/80 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
+        <div className=" max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className=" flex justify-between items-center h-20">
             <div className="flex items-center gap-3">
               <div className="relative">
                 <div className="absolute inset-0 bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-xl blur opacity-75"></div>
@@ -41,9 +41,9 @@ function Landing() {
               </div>
               <div>
                 <h1 className="text-xl font-bold bg-gradient-to-r from-violet-400 via-fuchsia-400 to-cyan-400 bg-clip-text text-transparent">
-                  Web Calculator
+                  Scientific Calculator
                 </h1>
-                <p className="text-xs text-slate-400">Advanced Computing</p>
+                
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -51,7 +51,7 @@ function Landing() {
                 to="/login"
                 className="px-6 py-2.5 rounded-xl bg-slate-800/50 hover:bg-slate-800 border border-white/10 transition-all duration-300 font-medium"
               >
-                Login
+                Sign In
               </Link>
               <Link
                 to="/signup"
@@ -78,15 +78,13 @@ function Landing() {
             </div>
           </div>
           <h1 className="text-6xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-violet-400 via-fuchsia-400 to-cyan-400 bg-clip-text text-transparent leading-tight">
-            Advanced Web Calculator
+            Scientific Calculator
           </h1>
           <p className="text-xl md:text-2xl text-slate-300 mb-4 max-w-3xl mx-auto leading-relaxed">
             A powerful, feature-rich calculator supporting complex math, matrix operations,
-            calculus, machine learning functions, and beautiful graph plotting.
+            calculus and  graph plotting.
           </p>
-          <p className="text-lg text-slate-400 mb-12 max-w-2xl mx-auto">
-            Experience the future of mathematical computing
-          </p>
+          
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               to="/signup"
@@ -99,12 +97,19 @@ function Landing() {
                 Get Started Free
               </span>
             </Link>
-            <Link
-              to="/login"
-              className="px-8 py-4 text-lg rounded-2xl bg-slate-800/50 hover:bg-slate-800 border border-white/10 transition-all duration-300 font-semibold backdrop-blur-xl"
+            <a
+              href={USER_MANUAL_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group relative px-8 py-4 text-lg rounded-2xl font-semibold overflow-hidden bg-slate-800/50 hover:bg-slate-800 border border-white/10 transition-all duration-300 backdrop-blur-xl"
             >
-              Sign In
-            </Link>
+              <span className="relative text-white flex items-center gap-2 justify-center">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                User Manual
+              </span>
+            </a>
           </div>
         </div>
       </section>
@@ -114,11 +119,11 @@ function Landing() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-5xl font-bold mb-4 bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">
-              Powerful Features
+               Features
             </h2>
-            <p className="text-slate-400 text-lg">Everything you need for advanced mathematical computing</p>
+            
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Feature 1 */}
             <div className="group relative">
               <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-cyan-600 rounded-2xl blur opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
@@ -158,7 +163,7 @@ function Landing() {
                 </div>
                 <h3 className="text-xl font-semibold mb-3">Graph Plotting</h3>
                 <p className="text-slate-400 leading-relaxed">
-                  Visualize functions and complex numbers with interactive 2D and 3D
+                  Visualize functions and complex numbers with interactive 2D 
                   graph plotting capabilities.
                 </p>
               </div>
@@ -171,9 +176,8 @@ function Landing() {
                 <div className="w-14 h-14 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center mb-4 shadow-lg">
                   <Activity className="w-7 h-7 text-white" />
                 </div>
-                <h3 className="text-xl font-semibold mb-3">ML & Calculus</h3>
+                <h3 className="text-xl font-semibold mb-3"> Calculus & DL</h3>
                 <p className="text-slate-400 leading-relaxed">
-                  Machine learning functions including sigmoid, ReLU, softmax, and
                   calculus operations like derivatives and integrals.
                 </p>
               </div>
@@ -209,35 +213,8 @@ function Landing() {
               </div>
             </div>
 
-            {/* Feature 7 */}
-            <div className="group relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-yellow-600 to-orange-600 rounded-2xl blur opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
-              <div className="relative bg-gradient-to-br from-slate-900/90 to-indigo-900/90 backdrop-blur-xl p-6 rounded-2xl border border-white/10 hover:border-white/20 transition-all duration-300 h-full">
-                <div className="w-14 h-14 bg-gradient-to-br from-yellow-600 to-orange-600 rounded-xl flex items-center justify-center mb-4 shadow-lg">
-                  <Shield className="w-7 h-7 text-white" />
-                </div>
-                <h3 className="text-xl font-semibold mb-3">Secure & Private</h3>
-                <p className="text-slate-400 leading-relaxed">
-                  Your data is encrypted and secure. We prioritize your privacy with
-                  industry-standard security measures.
-                </p>
-              </div>
-            </div>
 
-            {/* Feature 8 */}
-            <div className="group relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl blur opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
-              <div className="relative bg-gradient-to-br from-slate-900/90 to-indigo-900/90 backdrop-blur-xl p-6 rounded-2xl border border-white/10 hover:border-white/20 transition-all duration-300 h-full">
-                <div className="w-14 h-14 bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl flex items-center justify-center mb-4 shadow-lg">
-                  <Zap className="w-7 h-7 text-white" />
-                </div>
-                <h3 className="text-xl font-semibold mb-3">Fast & Responsive</h3>
-                <p className="text-slate-400 leading-relaxed">
-                  Lightning-fast calculations with a responsive interface that works
-                  seamlessly on all devices.
-                </p>
-              </div>
-            </div>
+            
           </div>
         </div>
       </section>
@@ -251,9 +228,7 @@ function Landing() {
               <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">
                 Ready to Get Started?
               </h2>
-              <p className="text-xl text-slate-300 mb-8 leading-relaxed">
-                Join thousands of users who trust Web Calculator for their mathematical needs.
-              </p>
+              
               <Link
                 to="/signup"
                 className="group relative inline-block px-10 py-4 text-lg rounded-2xl font-semibold overflow-hidden"
@@ -270,7 +245,7 @@ function Landing() {
       {/* Footer */}
       <footer className="relative border-t border-white/10 bg-slate-900/50 backdrop-blur-xl py-8 px-4">
         <div className="max-w-7xl mx-auto text-center">
-          <p className="text-slate-400">&copy; 2025 Web Calculator. All rights reserved.</p>
+          <p className="text-slate-400">&copy; 2025 Scientific Calculator. All rights reserved.</p>
         </div>
       </footer>
     </div>

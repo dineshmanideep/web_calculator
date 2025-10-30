@@ -85,7 +85,7 @@ export default function LastLoginInfo({ darkMode }) {
               </div>
               <div className="flex-1">
                 <h3 className={`${darkMode ? 'text-white' : 'text-slate-900'} font-bold text-lg mb-1 bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent`}>
-                  Welcome to Quantum Calculator!
+                  Welcome to Scientific Calculator!
                 </h3>
                 <p className={`${darkMode ? 'text-emerald-100' : 'text-emerald-700'} text-sm`}>
                   This is your first time logging in. We're excited to have you here!

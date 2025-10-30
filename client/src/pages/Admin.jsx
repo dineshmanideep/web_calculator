@@ -309,7 +309,7 @@ return (
 
     {/* Header */}
     <div className="relative z-20 bg-gradient-to-r from-slate-900/95 via-indigo-950/95 to-slate-900/95 backdrop-blur-xl border-b border-white/10 sticky top-0">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-4">
             <button
@@ -330,7 +330,7 @@ return (
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-violet-400 via-fuchsia-400 to-cyan-400 bg-clip-text text-transparent">
                   Admin Dashboard
                 </h1>
-                <p className="text-xs text-slate-400">System Management & Monitoring</p>
+                
               </div>
             </div>
           </div>
@@ -386,7 +386,7 @@ return (
     {activeTab === 'logs' && (
       <>
         {stats && (
-          <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="relative z-10 max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
               <div className="group relative">
                 <div className="absolute inset-0 bg-gradient-to-r from-violet-600/20 to-fuchsia-600/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>

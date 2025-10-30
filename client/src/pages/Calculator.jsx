@@ -97,14 +97,14 @@ function CalculatorContent({ user, onSignOut }) {
                 <h1 className="text-lg font-bold bg-gradient-to-r from-violet-400 via-fuchsia-400 to-cyan-400 bg-clip-text text-transparent">
                   Scientific Calculator
                 </h1>
-                <p className={`text-xs ${darkMode ? 'text-slate-400' : 'text-slate-600'}`}>Advanced Mathematical Computing</p>
+               
               </div>
             </div>
 
             {/* Right side actions */}
             <div className="flex items-center gap-3">
               {/* Theme Toggle */}
-              <button
+              {/* <button
                 onClick={toggleTheme}
                 className={`p-2.5 rounded-xl ${darkMode ? 'bg-slate-800/50 hover:bg-slate-800 border-white/10' : 'bg-white hover:bg-slate-50 border-slate-300'} border transition-all duration-300`}
                 title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
@@ -114,7 +114,7 @@ function CalculatorContent({ user, onSignOut }) {
                 ) : (
                   <Moon className="w-5 h-5 text-indigo-600" />
                 )}
-              </button>
+              </button> */}
 
               {/* User Profile Dropdown */}
               <div className="relative">
