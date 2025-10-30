@@ -49,7 +49,7 @@ export default function ResetPassword() {
     }
 
     try {
-      await axios.post(`${API}/auth/reset-password`, { userId, otp, newPassword });
+      await axios.post(`${API}/auth/reset-password`, { userId, otp, newPassword }, { withCredentials: true });
       toast.success('Password reset successful. Please login.'); // REPLACED alert
       navigate('/');
     } catch (err) {

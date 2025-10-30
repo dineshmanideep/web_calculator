@@ -1,6 +1,9 @@
 import math from './math.lib';
 import { evaluateElement } from './evaluator';
 
+// Maximum allowed matrix dimensions (rows and columns)
+export const MAX_MATRIX_SIZE = 10;
+
 /**
  * Parse matrix string input like "[[1,2],[3,4]]" or "[[π,e],[sin(0),cos(0)]]" into a matrix
  * Evaluates mathematical expressions and constants before creating the matrix
@@ -50,6 +53,11 @@ export const parseMatrix = (str, angleMode = 'rad') => {
 
     if (hasInconsistentColumns) {
       throw new Error('All rows must have the same number of columns');
+    }
+
+    // Validate matrix size limits (10x10 maximum)
+    if (rows.length > MAX_MATRIX_SIZE || colCount > MAX_MATRIX_SIZE) {
+      throw new Error(`Matrix size exceeds maximum allowed dimensions of ${MAX_MATRIX_SIZE}×${MAX_MATRIX_SIZE}. Your matrix is ${rows.length}×${colCount}`);
     }
 
     return math.matrix(rows);

@@ -41,7 +41,7 @@ export default function Signup() {
     if (!email) return toast.error('Enter email');
     try {
       setSendingOtp(true);
-      await axios.post(`${API}/auth/signup-send-otp`, { email });
+      await axios.post(`${API}/auth/signup-send-otp`, { email }, { withCredentials: true });
       toast.success('OTP sent to your email');
       setStep(2);
     } catch (err) {
@@ -57,7 +57,7 @@ export default function Signup() {
     if (!otp) return toast.error('Enter OTP');
     try {
       setVerifyingOtp(true);
-      await axios.post(`${API}/auth/signup-verify-otp`, { email, otp });
+      await axios.post(`${API}/auth/signup-verify-otp`, { email, otp } , { withCredentials: true });
       toast.success('Email verified. Please complete your profile.');
       setStep(3);
     } catch (err) {
@@ -99,7 +99,7 @@ export default function Signup() {
         username,
         fullName,
         password,
-      });
+      } , { withCredentials: true });
       toast.success('Signup successful. Please login.');
       navigate('/login');
     } catch (err) {

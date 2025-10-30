@@ -15,7 +15,7 @@ export default function ForgotPassword() {
 
     try {
       setSendingOtp(true);
-      const res = await axios.post(`${API}/auth/forgot-password`, { email });
+      const res = await axios.post(`${API}/auth/forgot-password`, { email } , { withCredentials: true });
       toast.success('OTP sent to your email');
       navigate(`/reset-password?userId=${res.data.userId}`);
     } catch (err) {

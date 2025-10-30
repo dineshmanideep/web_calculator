@@ -2,7 +2,7 @@
  * TC-BB-BA-003: Boundary Analysis Test - Matrix Operations
  * 
  * This test verifies boundary conditions for matrix operations:
- * - Minimum/Maximum matrix dimensions (1x1 to 100x100)
+ * - Minimum/Maximum matrix dimensions (1x1 to 10x10)
  * - Empty matrices
  * - Single element matrices
  * - Square vs rectangular matrices boundaries

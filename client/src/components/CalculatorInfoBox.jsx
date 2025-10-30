@@ -539,6 +539,7 @@ const CalculatorInfoBox = ({ show, onClose }) => {
               returns
               <code>i</code>
             </li>
+            <li>Maximum matrix size: 10×10 dimensions</li>
             <li>Matrix dimensions must match for operations</li>
             <li>Angle mode affects trig functions globally</li>
             <li className="text-green-300">Plot area: Zoom/pan freely - infinite range!</li>

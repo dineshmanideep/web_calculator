@@ -47,6 +47,68 @@ const PlotArea = ({
 
   const resizing = useRef({ type: null });
 
+  /**
+   * Determine the valid domain for a function based on its type
+   * Returns [min, max] array for the x-range where function is defined
+   */
+  const getValidDomain = useCallback((funcExpression, xMin, xMax) => {
+    const func = funcExpression.toLowerCase();
+    
+    // Inverse trigonometric functions with restricted domains
+    if (func.includes('asin(') || func.includes('acos(')) {
+      // asin and acos: domain is [-1, 1]
+      return [-1, 1];
+    }
+    
+    if (func.includes('atan(')) {
+      // atan: all real numbers, but reasonable range for visualization
+      return [xMin, xMax];
+    }
+    
+    // Inverse hyperbolic functions
+    if (func.includes('acosh(')) {
+      // acosh: domain is [1, ∞), use [1, 10] for visualization
+      return [1, xMax];
+    }
+    
+    if (func.includes('atanh(')) {
+      // atanh: domain is (-1, 1), use slightly smaller range to avoid endpoints
+      return [-0.99, 0.99];
+    }
+    
+    if (func.includes('asinh(')) {
+      // asinh: all real numbers
+      return [xMin, xMax];
+    }
+    
+    // Logarithmic functions
+    if (func.includes('log(') || func.includes('ln(') || func.includes('log10(')) {
+      // log functions: domain is (0, ∞), use [0.01, 10] for visualization
+      return [0.01, xMax];
+    }
+    
+    // Square root
+    if (func.includes('sqrt(')) {
+      // sqrt: domain is [0, ∞)
+      return [0, xMax];
+    }
+    
+    // Reciprocal functions (1/x, cot, csc, sec)
+    if (func.includes('1/x') || func.includes('cot(') || func.includes('csc(') || func.includes('sec(')) {
+      // Avoid x=0, use two ranges: [-10, -0.1] and [0.1, 10]
+      return [xMin, xMax]; // Will skip x=0 in generation
+    }
+    
+    // Tangent function has asymptotes at ±π/2, ±3π/2, etc.
+    if (func.includes('tan(')) {
+      // Use a range that shows a few periods
+      return [-6.28, 6.28]; // approximately -2π to 2π
+    }
+    
+    // Default range for most functions
+    return [xMin, xMax];
+  }, []);
+
   // Update plot mode based on complex mode from calculator
   React.useEffect(() => {
     if (isComplexMode !== undefined) {
@@ -62,6 +124,35 @@ const PlotArea = ({
   const generatePlotData = useCallback((func, xMin, xMax) => {
     try {
       const expr = preprocessExpression(func, angleMode);
+      const funcLower = func.toLowerCase();
+      
+      // Check for inverse trig functions and adjust range
+      const hasAsin = funcLower.includes('asin(');
+      const hasAcos = funcLower.includes('acos(');
+      const hasAtanh = funcLower.includes('atanh(');
+      const hasAcosh = funcLower.includes('acosh(');
+      
+      // Enforce domain restrictions
+      if (hasAsin || hasAcos) {
+        // asin and acos only defined for [-1, 1]
+        xMin = Math.max(xMin, -1);
+        xMax = Math.min(xMax, 1);
+        toast.info('asin/acos domain restricted to [-1, 1]');
+      }
+      
+      if (hasAtanh) {
+        // atanh only defined for (-1, 1)
+        xMin = Math.max(xMin, -0.99);
+        xMax = Math.min(xMax, 0.99);
+        toast.info('atanh domain restricted to (-1, 1)');
+      }
+      
+      if (hasAcosh) {
+        // acosh only defined for [1, ∞)
+        xMin = Math.max(xMin, 1);
+        toast.info('acosh domain restricted to [1, ∞)');
+      }
+      
       const range = Math.abs(xMax - xMin);
       const numPoints = Math.min(Math.max(500, Math.floor(range * 20)), 5000);
       const step = range / numPoints;
@@ -70,12 +161,19 @@ const PlotArea = ({
       const ys = [];
 
       const hasLog = /log\(|ln\(/.test(expr);
+      const hasSqrt = /sqrt\(/.test(expr);
+      const hasTan = /tan\(/.test(expr);
 
       for (let x = xMin; x <= xMax; x += step) {
-        if (hasLog && x <= 0) {
-          // Skip points where log is not defined
-         continue;
+        // Skip invalid domains
+        if (hasLog && x <= 0) continue; // log undefined for x ≤ 0
+        if (hasSqrt && x < 0) continue; // sqrt undefined for x < 0
+        if (hasAsin || hasAcos) {
+          if (x < -1 || x > 1) continue; // asin/acos undefined outside [-1, 1]
         }
+        if (hasAtanh && (x <= -1 || x >= 1)) continue; // atanh undefined at ±1
+        if (hasAcosh && x < 1) continue; // acosh undefined for x < 1
+        
         try {
           // Replace x with actual value
           const exprWithX = expr.replace(/x/g, `(${x})`);
@@ -93,17 +191,22 @@ const PlotArea = ({
           }
 
           // Only add finite values (skip NaN and Infinity)
+          // Also skip discontinuities in tan function
           if (y !== null && Number.isFinite(y)) {
+            // For tangent, skip values near asymptotes (where |y| is very large)
+            if (hasTan && Math.abs(y) > 100) {
+              continue;
+            }
             xs.push(x);
             ys.push(y);
           }
         } catch {
-          // Silently skip points that cause errors (e.g., log(-1))
+          // Silently skip points that cause errors
         }
       }
 
       if (xs.length === 0) {
-        toast.error('No valid data points to plot. Check your function.');
+        toast.error('No valid data points to plot. Check your function and domain.');
         return null;
       }
 
@@ -177,7 +280,26 @@ const PlotArea = ({
           return;
         }
 
-        const data = generatePlotData(expressionToPlot, xRange[0], xRange[1]);
+        // Automatically determine the valid domain for the function
+        const validDomain = getValidDomain(expressionToPlot,xRange[0],xRange[1]);
+        const [domainMin, domainMax] = validDomain;
+        
+        // Use the valid domain, but respect user's zoom if they've changed it
+        let plotMin = xRange[0];
+        let plotMax = xRange[1];
+        
+        // If this is a new function (not a zoom/pan), reset to valid domain
+        if (!plotData || plotData.func !== expressionToPlot) {
+          plotMin = domainMin;
+          plotMax = domainMax;
+          setXRange([domainMin, domainMax]);
+        } else {
+          // User is zooming/panning, constrain to valid domain
+          plotMin = Math.max(plotMin, domainMin);
+          plotMax = Math.min(plotMax, domainMax);
+        }
+
+        const data = generatePlotData(expressionToPlot, plotMin, plotMax);
         if (data) {
           setPlotData({ mode: 'function', func: expressionToPlot, ...data });
           toast.success('Plot generated successfully');
@@ -188,7 +310,7 @@ const PlotArea = ({
     } finally {
       setIsPlotting(false);
     }
-  }, [xRange, generatePlotData, generateComplexPlot, plotMode]);
+  }, [xRange, generatePlotData, generateComplexPlot, plotMode, getValidDomain, calculatorInput, plotData]);
 
   // Listen for plot trigger from parent
   React.useEffect(() => {
@@ -204,8 +326,18 @@ const PlotArea = ({
     if (plotData?.mode !== 'function') return;
 
     if (event['xaxis.range[0]'] !== undefined && event['xaxis.range[1]'] !== undefined) {
-      const newXMin = event['xaxis.range[0]'];
-      const newXMax = event['xaxis.range[1]'];
+      let newXMin = event['xaxis.range[0]'];
+      let newXMax = event['xaxis.range[1]'];
+
+      // Constrain to valid domain for the current function
+      if (plotData && plotData.func) {
+        const validDomain = getValidDomain(plotData.func, newXMin, newXMax);
+        const [domainMin, domainMax] = validDomain;
+        
+        // Clamp the zoom/pan to valid domain
+        newXMin = Math.max(newXMin, domainMin);
+        newXMax = Math.min(newXMax, domainMax);
+      }
 
       // Check if range changed significantly
       const currentRange = xRange[1] - xRange[0];
@@ -224,7 +356,7 @@ const PlotArea = ({
         }
       }
     }
-  }, [xRange, plotData, generatePlotData]);
+  }, [xRange, plotData, generatePlotData, getValidDomain]);
 
   const onMouseMove = (e) => {
     if (resizing.current.type === 'width') {
