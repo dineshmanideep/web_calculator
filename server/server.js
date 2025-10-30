@@ -5,6 +5,7 @@ import cors from "cors";
 import session from "express-session";
 import MongoStore from "connect-mongo";
 import rateLimit from "express-rate-limit";
+import cookieParser from "cookie-parser";
 import adminRoutes from "./routes/admin.js";
 import authRoutes from "./routes/auth.js";
 import { startSessionMonitor } from "./utils/sessionMonitor.js";
@@ -13,6 +14,7 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 4000;
+app.use(cookieParser());
 
 // CORS Configuration
 const allowedOrigins = process.env.ALLOWED_ORIGINS
