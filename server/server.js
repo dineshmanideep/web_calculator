@@ -83,6 +83,7 @@ app.use(
       secure: process.env.NODE_ENV === "production", // Always true in production
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // "none" required for cross-origin
       // Don't set domain for cross-origin cookies - browser handles it automatically
+      domain: process.env.NODE_ENV === "production" ? '.vercel.app' : ".localhost",
     },
   }),
 );
