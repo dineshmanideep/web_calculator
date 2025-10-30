@@ -78,16 +78,11 @@ app.use(
       touchAfter: 24 * 3600, 
     }),
     cookie: {
-      maxAge: 30 * 60 * 1000, 
+      maxAge: 30 * 60 * 1000, // 30 minutes
       httpOnly: true,
-      secure:
-        process.env.NODE_ENV === "production" ||
-        process.env.COOKIE_SECURE === "true",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", 
-      domain:
-        process.env.NODE_ENV === "production"
-          ? process.env.COOKIE_DOMAIN
-          : undefined,
+      secure: process.env.NODE_ENV === "production", // Always true in production
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // "none" required for cross-origin
+      // Don't set domain for cross-origin cookies - browser handles it automatically
     },
   }),
 );
