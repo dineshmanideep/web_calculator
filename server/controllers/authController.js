@@ -1,4 +1,5 @@
 /**
+ * author: Dinesh Manideep
  * Authentication Controller
  *
  * Handles user authentication operations:
@@ -11,13 +12,7 @@ import bcrypt from "bcrypt";
 import User from "../models/User.js";
 import { logAction } from "../middleware/auditLogger.js";
 
-/**
- * Login user with email/username and password
- *
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @returns {Promise<void>}
- */
+//Login user with email/username and password
 export const login = async (req, res) => {
   const { emailOrUsername, password } = req.body;
 
@@ -113,13 +108,7 @@ export const login = async (req, res) => {
   }
 };
 
-/**
- * Logout user and destroy session
- *
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @returns {Promise<void>}
- */
+//Logout user and destroy session
 export const logout = async (req, res) => {
   const userId = req.session?.user?.id;
   const userEmail = req.session?.user?.email;
@@ -166,13 +155,7 @@ export const logout = async (req, res) => {
   });
 };
 
-/**
- * Check if session is valid
- *
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @returns {void}
- */
+//Check if session is valid
 export const checkSession = (req, res) => {
   if (req.session.user) {
     res.status(200).json({

@@ -1,4 +1,5 @@
 /**
+ * Author:Dinesh Manideep
  * Parse User-Agent string to extract device information
  */
 export const parseUserAgent = (userAgent) => {

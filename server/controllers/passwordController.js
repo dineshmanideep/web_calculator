@@ -1,4 +1,5 @@
 /**
+ * Author: Dinesh Manideep
  * Password Reset Controller
  *
  * Handles password reset operations:
@@ -15,11 +16,7 @@ import { logAction } from "../middleware/auditLogger.js";
 const SALT_ROUNDS = 10;
 const OTP_EXPIRES_MIN = 10;
 
-/**
- * Generate 6-digit OTP
- * @returns {string} OTP code
- * @private
- */
+//Generate 6-digit OTP
 const generateOtp = () => {
   return String(Math.floor(100000 + Math.random() * 900000));
 };
@@ -33,13 +30,7 @@ const getOtpExpiryDate = () => {
   return new Date(Date.now() + OTP_EXPIRES_MIN * 60 * 1000);
 };
 
-/**
- * Send password reset OTP to user email
- *
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @returns {Promise<void>}
- */
+//Send password reset OTP to user email
 export const forgotPassword = async (req, res) => {
   const { email } = req.body;
 
@@ -107,13 +98,7 @@ export const forgotPassword = async (req, res) => {
   }
 };
 
-/**
- * Reset password with OTP
- *
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @returns {Promise<void>}
- */
+//Reset password with OTP
 export const resetPassword = async (req, res) => {
   const { userId, otp, newPassword } = req.body;
 

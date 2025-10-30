@@ -1,10 +1,7 @@
 import AuditLog from "../models/AuditLog.js";
 import { parseUserAgent } from "../utils/deviceParser.js";
-
-
-/**
- * Helper function to manually log an action
- */
+//Author:Dinesh Manideep
+//Helper function to manually log an action
 export const logAction = async (action, req, additionalData = {}) => {
   try {
     const deviceInfo = parseUserAgent(req.headers?.["user-agent"]);

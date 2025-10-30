@@ -1,4 +1,5 @@
 /**
+ * Author: Dinesh Manideep
  * Session Monitor
  * 
  * Periodically checks for users whose sessions have expired

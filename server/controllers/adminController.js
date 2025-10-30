@@ -1,4 +1,5 @@
 /**
+ * Author:Dinesh Manideep
  * Admin Controller
  *
  * Handles administrative operations:
@@ -12,13 +13,7 @@ import AuditLog from "../models/AuditLog.js";
 import User from "../models/User.js";
 import { logAction } from "../middleware/auditLogger.js";
 
-/**
- * Get audit logs with filtering and pagination
- *
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @returns {Promise<void>}
- */
+//Get audit logs with filtering and pagination
 export const getAuditLogs = async (req, res) => {
   try {
     // Log admin access
@@ -106,13 +101,7 @@ export const getAuditLogs = async (req, res) => {
   }
 };
 
-/**
- * Get audit log statistics
- *
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @returns {Promise<void>}
- */
+//Get audit log statistics
 export const getStats = async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
@@ -155,13 +144,7 @@ export const getStats = async (req, res) => {
   }
 };
 
-/**
- * Get all users for admin management
- *
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @returns {Promise<void>}
- */
+//Get all users for admin management
 export const getUsers = async (req, res) => {
   try {
     const users = await User.find({})
@@ -176,13 +159,7 @@ export const getUsers = async (req, res) => {
   }
 };
 
-/**
- * Get list of all registered users with pagination and search
- *
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @returns {Promise<void>}
- */
+//Get list of all registered users with pagination and search
 export const getAllUsers = async (req, res) => {
   try {
     await logAction("ADMIN_ACCESS", req, {
@@ -234,13 +211,7 @@ export const getAllUsers = async (req, res) => {
   }
 };
 
-/**
- * Toggle admin role for a user
- *
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @returns {Promise<void>}
- */
+//Toggle admin role for a user
 export const toggleAdminRole = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -288,13 +259,7 @@ export const toggleAdminRole = async (req, res) => {
   }
 };
 
-/**
- * Suspend or unsuspend a user account
- *
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @returns {Promise<void>}
- */
+//Suspend or unsuspend a user account
 export const toggleUserSuspension = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -351,10 +316,6 @@ export const toggleUserSuspension = async (req, res) => {
 /**
  * Get list of all available action types
  * Used for filter dropdowns in admin interface
- *
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @returns {Promise<void>}
  */
 export const getActions = async (req, res) => {
   try {

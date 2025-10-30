@@ -1,4 +1,5 @@
 /**
+ * Author:Dinesh Manideep
  * Middleware to check if a user is authenticated by verifying the session.
  * If the session exists, it proceeds to the next middleware.
  * Otherwise, it returns a 401 Unauthorized error.

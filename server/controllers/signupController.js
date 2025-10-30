@@ -20,35 +20,20 @@ const OTP_EXPIRES_MIN = 10;
 /**
  * Temporary in-memory storage for signup OTPs
  * Structure: { [email]: { code, expiresAt, verified } }
- * @private
  */
 const tempSignupOtps = {};
 
-/**
- * Generate 6-digit OTP
- * @returns {string} OTP code
- * @private
- */
+//Generate 6-digit OTP
 const generateOtp = () => {
   return String(Math.floor(100000 + Math.random() * 900000));
 };
 
-/**
- * Get OTP expiry date
- * @returns {Date} Expiry date
- * @private
- */
+//Get OTP expiry date
 const getOtpExpiryDate = () => {
   return new Date(Date.now() + OTP_EXPIRES_MIN * 60 * 1000);
 };
 
-/**
- * Send signup OTP to email
- *
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @returns {Promise<void>}
- */
+//Send signup OTP to email
 export const sendSignupOtp = async (req, res) => {
   try {
     const { email } = req.body;
@@ -119,13 +104,7 @@ export const sendSignupOtp = async (req, res) => {
   }
 };
 
-/**
- * Verify signup OTP
- *
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @returns {Promise<void>}
- */
+//Verify signup OTP
 export const verifySignupOtp = async (req, res) => {
   try {
     const { email, otp } = req.body;
@@ -211,13 +190,7 @@ export const verifySignupOtp = async (req, res) => {
   }
 };
 
-/**
- * Complete signup after email verification
- *
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @returns {Promise<void>}
- */
+//Complete signup after email verification
 export const completeSignup = async (req, res) => {
   try {
     const { email, username, fullName, password } = req.body;

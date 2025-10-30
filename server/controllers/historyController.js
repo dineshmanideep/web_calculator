@@ -1,4 +1,5 @@
 /**
+ * Author: Dinesh Manideep
  * History Controller
  *
  * Handles calculator history operations:
@@ -14,10 +15,6 @@ import User from "../models/User.js";
 /**
  * Get user calculation history
  * Returns history in reverse chronological order
- *
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @returns {Promise<void>}
  */
 export const getHistory = async (req, res) => {
   try {
@@ -39,10 +36,6 @@ export const getHistory = async (req, res) => {
 /**
  * Add new history entry
  * Keeps only the last 25 entries per user
- *
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @returns {Promise<void>}
  */
 export const addHistory = async (req, res) => {
   try {
@@ -84,13 +77,7 @@ export const addHistory = async (req, res) => {
   }
 };
 
-/**
- * Clear user calculation history
- *
- * @param {Object} req - Express request object
- * @param {Object} res - Express response object
- * @returns {Promise<void>}
- */
+//Clear user calculation history
 export const clearHistory = async (req, res) => {
   try {
     const user = await User.findByIdAndUpdate(
