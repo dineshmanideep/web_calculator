@@ -1,33 +1,33 @@
 /**
  * Author:Dinesh Manideep
- * Middleware to check if a user is authenticated by verifying the session.
- * If the session exists, it proceeds to the next middleware.
+ * Middleware to check if a user is authenticated by verifying the userId from headers.
+ * If the userId exists and valid, it proceeds to the next middleware.
  * Otherwise, it returns a 401 Unauthorized error.
  */
 export const isAuthenticated = async (req, res, next) => {
   try {
-    if (!req.session || !req.session.user) {
-      return res.status(401).json({ message: "Unauthorized: No active session" });
+    const userId = req.headers['x-user-id'] || req.body.userId;
+    
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized: No user ID provided" });
     }
 
-    // Check if account is suspended
+    // Check if user exists and account status
     const User = (await import("../models/User.js")).default;
-    const user = await User.findById(req.session.user.id);
+    const user = await User.findById(userId);
 
     if (!user) {
       return res.status(401).json({ message: "User not found" });
     }
 
     if (user.isSuspended) {
-      // Clear the session for suspended users
-      req.session.destroy();
       return res.status(403).json({ 
         message: "Account suspended. Please contact administrator.",
         suspended: true
       });
     }
 
-    // Update last activity time (for tracking session expiry)
+    // Update last activity time
     user.lastActivity = new Date();
     await user.save();
 
@@ -47,15 +47,17 @@ export const isAuthenticated = async (req, res, next) => {
  */
 export const isAdmin = async (req, res, next) => {
   try {
-    if (!req.session || !req.session.user) {
+    const userId = req.headers['x-user-id'] || req.body.userId;
+    
+    if (!userId) {
       return res
         .status(401)
-        .json({ message: "Unauthorized: No active session" });
+        .json({ message: "Unauthorized: No user ID provided" });
     }
 
     // Import User model to check admin status
     const User = (await import("../models/User.js")).default;
-    const user = await User.findById(req.session.user.id);
+    const user = await User.findById(userId);
 
     if (!user) {
       return res.status(401).json({ message: "User not found" });

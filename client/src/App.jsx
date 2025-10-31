@@ -38,6 +38,20 @@ const API_URL = import.meta.env.VITE_API_URL;
 // Configure axios defaults for credentials
 axios.defaults.withCredentials = true;
 
+// Setup axios interceptor to add userId to all requests
+axios.interceptors.request.use((config) => {
+  const userData = localStorage.getItem('user');
+  if (userData) {
+    try {
+      const user = JSON.parse(userData);
+      config.headers['x-user-id'] = user.id;
+    } catch (error) {
+      console.error('Error parsing user data:', error);
+    }
+  }
+  return config;
+}, (error) => Promise.reject(error));
+
 function App() {
   const [authenticated, setAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
@@ -48,10 +62,12 @@ function App() {
       await axios.post(`${API_URL}/auth/logout`,{ withCredentials: true });
       setAuthenticated(false);
       setUser(null);
+      localStorage.removeItem('user'); // Remove from localStorage
     } catch (error) {
       console.error('Sign out failed:', error);
       setAuthenticated(false);
       setUser(null);
+      localStorage.removeItem('user'); // Remove from localStorage
     }
   };
 
@@ -100,16 +116,35 @@ function App() {
   useEffect(() => {
     const checkSession = async () => {
       try {
+        // Check if user data exists in localStorage
+        const userData = localStorage.getItem('user');
+        if (!userData) {
+          setAuthenticated(false);
+          setUser(null);
+          setLoading(false);
+          return;
+        }
+
+        const storedUser = JSON.parse(userData);
+        
+        // Verify with backend
         const { data } = await axios.get(`${API_URL}/auth/check-session`, { withCredentials: true });
         if (data.authenticated) {
           setAuthenticated(true);
           setUser(data.user);
+          // Update localStorage with fresh data
+          localStorage.setItem('user', JSON.stringify(data.user));
+        } else {
+          // Clear invalid data
+          localStorage.removeItem('user');
+          setAuthenticated(false);
+          setUser(null);
         }
       } catch (error) {
         console.error('Session check failed:', error);
+        localStorage.removeItem('user');
         setAuthenticated(false);
         setUser(null);
-        handleSignOut();
       } finally {
         setLoading(false);
       }

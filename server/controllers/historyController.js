@@ -18,7 +18,8 @@ import User from "../models/User.js";
  */
 export const getHistory = async (req, res) => {
   try {
-    const user = await User.findById(req.session.user.id, "history");
+    const userId = req.user.id; // From auth middleware
+    const user = await User.findById(userId, "history");
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -51,9 +52,11 @@ export const addHistory = async (req, res) => {
       createdAt: new Date(),
     };
 
+    const userId = req.user.id; // From auth middleware
+    
     // Find user and push new entry, keeping only the last 25 entries
     const updatedUser = await User.findByIdAndUpdate(
-      req.session.user.id,
+      userId,
       {
         $push: {
           history: {
@@ -77,11 +80,13 @@ export const addHistory = async (req, res) => {
   }
 };
 
-//Clear user calculation history
+// Clear user calculation history
 export const clearHistory = async (req, res) => {
   try {
+    const userId = req.user.id; // From auth middleware
+    
     const user = await User.findByIdAndUpdate(
-      req.session.user.id,
+      userId,
       { $set: { history: [] } },
       { new: true },
     );

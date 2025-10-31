@@ -34,6 +34,10 @@ export default function Login({ setAuthenticated, setUser }) {
     setLoading(true);
     try {
       const res = await axios.post(`${API}/auth/login`, { emailOrUsername, password }, { withCredentials: true });
+      
+      // Store user data in localStorage
+      localStorage.setItem('user', JSON.stringify(res.data.user));
+      
       setUser(res.data.user);
       setAuthenticated(true);
       toast.success('Login successful!');

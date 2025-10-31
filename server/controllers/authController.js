@@ -61,14 +61,6 @@ export const login = async (req, res) => {
     user.lastLogin = new Date();
     await user.save();
 
-    req.session.user = {
-      id: user._id,
-      email: user.email,
-      name: user.fullName,
-      username: user.username,
-      isAdmin: user.isAdmin,
-    };
-
     await logAction("LOGIN_SUCCESS", req, {
       email: user.email,
       username: user.username,
@@ -108,62 +100,80 @@ export const login = async (req, res) => {
   }
 };
 
-//Logout user and destroy session
+// Logout user
 export const logout = async (req, res) => {
-  const userId = req.session?.user?.id;
-  const userEmail = req.session?.user?.email;
-  const { username } = req.session?.user || {};
-
-  // Update lastLogout time in database
-  if (userId) {
-    try {
-      await User.findByIdAndUpdate(userId, {
-        lastLogout: new Date(),
-      });
-    } catch (error) {
-      console.error("Error updating logout time:", error);
-    }
+  const userId = req.headers["x-user-id"] || req.body.userId;
+  
+  if (!userId) {
+    return res.status(400).json({ message: "No user ID provided" });
   }
 
-  req.session.destroy(async (err) => {
-    if (err) {
+  try {
+    const user = await User.findById(userId);
+    
+    if (user) {
+      user.lastLogout = new Date();
+      await user.save();
+
       await logAction("LOGOUT", req, {
         userId,
-        email: userEmail,
-        username,
-        details: "Logout failed",
-        input: userEmail,
-        result: `Failed: ${err.message}`,
-        status: "ERROR",
-        errorMessage: err.message,
+        email: user.email,
+        username: user.username,
+        details: "User logged out successfully",
+        input: user.email,
+        result: "Success",
+        status: "SUCCESS",
       });
-      return res.status(500).json({ message: "Could not log out." });
     }
 
+    return res.status(200).json({ message: "Logged out successfully" });
+  } catch (error) {
+    console.error("Logout error:", error);
     await logAction("LOGOUT", req, {
       userId,
-      email: userEmail,
-      username,
-      details: "User logged out successfully",
-      input: userEmail,
-      result: "Success",
-      status: "SUCCESS",
+      details: "Logout failed",
+      result: `Failed: ${error.message}`,
+      status: "ERROR",
+      errorMessage: error.message,
     });
-
-    res.clearCookie("connect.sid");
-    return res.status(200).json({ message: "Logged out successfully" });
-  });
+    return res.status(500).json({ message: "Could not log out." });
+  }
 };
 
-//Check if session is valid
-export const checkSession = (req, res) => {
-  if (req.session.user) {
-    res.status(200).json({
-      authenticated: true,
-      user: req.session.user,
+// Check if user is authenticated
+export const checkSession = async (req, res) => {
+  const userId = req.headers["x-user-id"];
+  
+  if (!userId) {
+    return res.status(200).json({
+      authenticated: false,
+      user: null,
     });
-  } else {
-    res.status(200).json({
+  }
+
+  try {
+    const user = await User.findById(userId);
+    
+    if (!user) {
+      return res.status(200).json({
+        authenticated: false,
+        user: null,
+      });
+    }
+
+    return res.status(200).json({
+      authenticated: true,
+      user: {
+        id: user._id,
+        email: user.email,
+        username: user.username,
+        fullName: user.fullName,
+        isAdmin: user.isAdmin,
+      },
+    });
+  } catch (error) {
+    console.error("Check session error:", error);
+    return res.status(200).json({
       authenticated: false,
       user: null,
     });

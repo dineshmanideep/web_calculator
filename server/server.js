@@ -9,19 +9,14 @@ import express from "express";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import cors from "cors";
-import session from "express-session";
-import MongoStore from "connect-mongo";
 import rateLimit from "express-rate-limit";
-import cookieParser from "cookie-parser";
 import adminRoutes from "./routes/admin.js";
 import authRoutes from "./routes/auth.js";
-import { startSessionMonitor } from "./utils/sessionMonitor.js";
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 4000;
-app.use(cookieParser());
 
 // CORS Configuration
 const allowedOrigins = process.env.ALLOWED_ORIGINS
@@ -43,7 +38,7 @@ app.use(
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: ["Content-Type", "Authorization", "x-user-id"],
   }),
 );
 
@@ -74,27 +69,6 @@ mongoose
     console.error("✗ MongoDB connection error:", err);
     process.exit(1); // Exit if database connection fails
   });
-
-// Session Configuration
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false,
-    store: MongoStore.create({
-      mongoUrl: process.env.MONGO_URI,
-      collectionName: "sessions",
-      touchAfter: 24 * 3600, 
-    }),
-    cookie: {
-      maxAge: 30 * 60 * 1000, // 30 minutes
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // Always true in production
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // "none" required for cross-origin
-      // Don't set domain for cross-origin cookies - browser handles it automatically
-    },
-  }),
-);
 
 // mount routes
 app.use("/api/auth", authRoutes);
@@ -138,7 +112,4 @@ app.listen(PORT, () => {
   console.log(`✓ Server running on port ${PORT}`);
   console.log(`✓ Environment: ${process.env.NODE_ENV || "development"}`);
   console.log(`✓ CORS allowed origins: ${allowedOrigins.join(", ")}`);
-  
-  // Start the session monitor for tracking expired sessions
-  startSessionMonitor();
 });
