@@ -1,3 +1,10 @@
+/**
+ * Author: P. Dinesh Manideep
+ * Description: Implements advanced mathematical operations (sqrt, log, ln, factorial) 
+ * with input validation, error handling, and complex number support. Uses toast-based 
+ * feedback for invalid or edge-case inputs, ensuring safe and predictable behavior.
+ */
+
 import { toast } from 'react-toastify';
 import * as math from 'mathjs';
 

@@ -1,3 +1,10 @@
+/**
+ * Author: Dinesh Manideep
+ * Session Monitor
+ * 
+ * Periodically checks for users whose sessions have expired
+ * and logs them to the audit system
+ */
 import express from "express";
 import dotenv from "dotenv";
 import mongoose from "mongoose";

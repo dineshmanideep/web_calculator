@@ -1,3 +1,9 @@
+/**
+ * Author: P. Dinesh Manideep
+ * Description: Defines combinatorial operations such as nCr (combinations) and nPr (permutations) 
+ * with strict input validation, integer checks, and toast-based error handling.
+ */
+
 import { toast } from 'react-toastify';
 import * as math from 'mathjs';
 

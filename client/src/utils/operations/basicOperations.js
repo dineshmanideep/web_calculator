@@ -1,3 +1,9 @@
+/**
+ * Author: P. Dinesh Manideep
+ * Description: Implements core mathematical operations such as power and modulo 
+ * with detailed input validation, complex number support, and toast-based error handling.
+ */
+
 import { toast } from 'react-toastify';
 import * as math from 'mathjs';
 

@@ -1,6 +1,47 @@
 @import "tailwindcss";
 
-/* Fade-in animation for login info banner */
+/* ============================================
+   THEME TRANSITIONS
+   ============================================ */
+   
+* {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* ============================================
+   DARK MODE STYLES (Default)
+   ============================================ */
+   
+.dark {
+  --bg-primary: linear-gradient(to bottom right, rgb(2 6 23), rgb(49 46 129), rgb(2 6 23));
+  --bg-secondary: rgba(15, 23, 42, 0.9);
+  --bg-card: rgba(30, 41, 59, 0.8);
+  --text-primary: rgb(255, 255, 255);
+  --text-secondary: rgb(203, 213, 225);
+  --text-muted: rgb(148, 163, 184);
+  --border-default: rgba(255, 255, 255, 0.1);
+  --border-hover: rgba(139, 92, 246, 0.5);
+}
+
+/* ============================================
+   LIGHT MODE STYLES
+   ============================================ */
+   
+.light {
+  --bg-primary: linear-gradient(to bottom right, rgb(248 250 252), rgb(224 231 255), rgb(241 245 249));
+  --bg-secondary: rgba(255, 255, 255, 0.95);
+  --bg-card: rgba(255, 255, 255, 0.9);
+  --text-primary: rgb(15, 23, 42);
+  --text-secondary: rgb(51, 65, 85);
+  --text-muted: rgb(100, 116, 139);
+  --border-default: rgb(226, 232, 240);
+  --border-hover: rgba(139, 92, 246, 0.4);
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -14,4 +55,141 @@
 
 .animate-fade-in {
   animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+/* Smooth spin for sun icon */
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================
+   SCROLLBAR STYLING
+   ============================================ */
+
+/* Dark Mode Scrollbar */
+.dark ::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.5);
+  border-radius: 10px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, rgb(139, 92, 246), rgb(217, 70, 239));
+  border-radius: 10px;
+  border: 2px solid rgba(15, 23, 42, 0.5);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, rgb(124, 58, 237), rgb(192, 38, 211));
+}
+
+/* Light Mode Scrollbar */
+.light ::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+.light ::-webkit-scrollbar-track {
+  background: rgba(241, 245, 249, 0.8);
+  border-radius: 10px;
+}
+
+.light ::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, rgb(139, 92, 246), rgb(217, 70, 239));
+  border-radius: 10px;
+  border: 2px solid rgba(241, 245, 249, 0.8);
+}
+
+.light ::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, rgb(124, 58, 237), rgb(192, 38, 211));
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+.theme-bg-primary {
+  background: var(--bg-primary);
+}
+
+.theme-bg-secondary {
+  background: var(--bg-secondary);
+}
+
+.theme-bg-card {
+  background: var(--bg-card);
+}
+
+.theme-text-primary {
+  color: var(--text-primary);
+}
+
+.theme-text-secondary {
+  color: var(--text-secondary);
+}
+
+.theme-text-muted {
+  color: var(--text-muted);
+}
+
+.theme-border {
+  border-color: var(--border-default);
+}
+
+.theme-border-hover:hover {
+  border-color: var(--border-hover);
+}
+
+/* ============================================
+   BACKDROP BLUR FIX
+   ============================================ */
+
+.backdrop-blur-xl {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.backdrop-blur-2xl {
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+}
+
+/* ============================================
+   GLASS MORPHISM
+   ============================================ */
+
+.glass-dark {
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-light {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(226, 232, 240, 0.8);
 }

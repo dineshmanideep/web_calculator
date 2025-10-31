@@ -1,3 +1,9 @@
+/**
+ * Author: P. Dinesh Manideep
+ * Description: Extends the math.js instance by importing custom mathematical operations 
+ * including basic, trigonometric, angle conversions, advanced functions, combinatorics, 
+ * and numerical integration using the trapezoidal rule.
+ */
 import math from './math.config';
 import { basicOperations } from './operations/basicOperations';
 import { trigFunctions } from './operations/trigFunctions';
@@ -7,15 +13,6 @@ import { combinatorics } from './operations/combinatorics';
 
 /**
  * Numerical integration using trapezoidal rule
- *
- * @param {string} exprStr - Expression string to integrate
- * @param {number} a - Lower limit of integration
- * @param {number} b - Upper limit of integration
- * @param {number} [n=1000] - Number of subintervals (higher = more accurate)
- * @returns {number} Approximate value of definite integral
- *
- * @example
- * math.defInt("x^2", 0, 1, 1000) // ≈ 0.333
  */
 const defInt = (exprStr, a, b, n = 1000) => {
   const f = math.parse(exprStr).compile();
@@ -41,8 +38,4 @@ math.import({
   defInt,
 }, { override: true });
 
-/**
- * Extended math instance with all custom operations
- * @type {Object}
- */
 export default math;

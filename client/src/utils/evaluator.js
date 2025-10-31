@@ -1,18 +1,16 @@
+/**
+ * Author: P. Dinesh Manideep
+ * Description: Handles mathematical expression evaluation with preprocessing, 
+ * syntax validation, and error management using math.js. Includes safe evaluation 
+ * for elements and plotting, along with detailed toast-based feedback for user errors.
+ */
+
 import { toast } from 'react-toastify';
 import math from './math.lib';
 
 /**
  * Preprocess mathematical expression before evaluation
  * Handles angle mode conversions, special syntax, and function name transformations
- *
- * @param {string} expr - Mathematical expression to preprocess
- * @param {string} angleMode - Either 'deg' (degrees) or 'rad' (radians)
- * @returns {string} Preprocessed expression ready for evaluation
- * @throws {Error} If preprocessing fails
- *
- * @example
- * preprocess('sin(90)', 'deg') // 'sin(deg2rad(90))'
- * preprocess('∫(x^2, 0, 1)', 'rad') // 'defInt("x^2", 0, 1)'
  */
 export const preprocessExpression = (expr, angleMode) => {
   try {
@@ -50,10 +48,6 @@ export const preprocessExpression = (expr, angleMode) => {
 /**
  * Validate expression syntax before evaluation
  * Checks for common syntax errors like mismatched parentheses
- *
- * @param {string} expr - Expression to validate
- * @throws {Error} If syntax errors are detected
- * @private
  */
 const validateSyntax = (expr) => {
   // Check for mismatched parentheses
@@ -79,10 +73,6 @@ const validateSyntax = (expr) => {
 
 /**
  * Handle and format evaluation errors for user display
- *
- * @param {Error} error - Error object from evaluation
- * @throws {Error} Rethrows error after displaying toast
- * @private
  */
 const handleEvaluationError = (error) => {
   const { message } = error;
@@ -126,13 +116,9 @@ const handleEvaluationError = (error) => {
   throw error;
 };
 
-/**
- * Validate evaluation result for invalid numeric values
- *
- * @param {*} result - Result from math evaluation
- * @throws {Error} If result is NaN or Infinity
- * @private
- */
+
+// Validate evaluation result for invalid numeric values
+
 const validateResult = (result) => {
   if (typeof result === 'number') {
     if (Number.isNaN(result)) {
@@ -153,16 +139,6 @@ const validateResult = (result) => {
 /**
  * Evaluate mathematical expression with full error handling
  * Main entry point for expression evaluation in the calculator
- *
- * @param {string} expr - Mathematical expression to evaluate
- * @param {string} angleMode - Either 'deg' or 'rad'
- * @returns {number|Complex|Matrix} Evaluation result
- * @throws {Error} If expression is invalid or evaluation fails
- *
- * @example
- * evaluateExpression('2 + 2', 'rad') // 4
- * evaluateExpression('sin(90)', 'deg') // 1
- * evaluateExpression('sqrt(-1)', 'rad') // Complex(0, 1)
  */
 export const evaluateExpression = (expr, angleMode) => {
   // Validate input
@@ -194,17 +170,6 @@ export const evaluateExpression = (expr, angleMode) => {
 /**
  * Evaluate a single mathematical element (used for matrix elements, etc.)
  * Similar to evaluateExpression but without toasts and with simpler error handling
- *
- * @param {string} element - Mathematical element to evaluate (e.g., 'π', 'sin(90)', '2+3')
- * @param {string} angleMode - Either 'deg' or 'rad' (default: 'rad')
- * @returns {number} Evaluated numeric value
- * @throws {Error} If element cannot be evaluated
- *
- * @example
- * evaluateElement('π') // 3.14159...
- * evaluateElement('e') // 2.71828...
- * evaluateElement('sin(90)', 'deg') // 1
- * evaluateElement('2+3') // 5
  */
 export const evaluateElement = (element, angleMode = 'rad') => {
   try {
@@ -236,15 +201,6 @@ export const evaluateElement = (element, angleMode = 'rad') => {
  * Silent evaluation for plotting - evaluates without showing toast notifications
  * Returns null for invalid/undefined values instead of throwing errors
  * Used during plotting to prevent toast spam when evaluating many points
- *
- * @param {string} expr - Mathematical expression to evaluate
- * @param {string} angleMode - Either 'deg' or 'rad'
- * @returns {number|null} Numeric result or null if evaluation fails
- *
- * @example
- * evaluateForPlot('log(-5)', 'rad') // null (no toast shown)
- * evaluateForPlot('sin(0)', 'rad') // 0
- * evaluateForPlot('1/0', 'rad') // null (no toast shown)
  */
 export const evaluateForPlot = (expr, angleMode = 'rad') => {
   try {

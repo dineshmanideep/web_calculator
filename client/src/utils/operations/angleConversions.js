@@ -1,3 +1,9 @@
+/**
+ * Author: P. Dinesh Manideep
+ * Description: Provides utility functions for converting angles between degrees and radians 
+ * with input validation and error handling using toast notifications.
+ */
+
 import { toast } from 'react-toastify';
 import * as math from 'mathjs';
 

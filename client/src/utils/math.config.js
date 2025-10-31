@@ -1,22 +1,24 @@
+/**
+ * Author: P. Dinesh Manideep
+ * Description: Configures a custom math.js instance with enhanced division handling. 
+ * Prevents division by zero, provides descriptive error messages, and shows toast 
+ * notifications for math-related errors.
+ */
+
 import { create, all } from 'mathjs';
 import { toast } from 'react-toastify';
 
-/**
- * Create mathjs instance with custom configuration
- * @type {Object}
- */
+
+// Create mathjs instance with custom configuration
+ 
 const math = create(all, { number: 'number', precision: 15 });
 
-/**
- * Store original divide function before override
- * @private
- */
+
+ // Store original divide function before override
+
 const originalDivide = math.divide;
 
-/**
- * Override divide function to handle division by zero gracefully
- * Shows toast error and throws meaningful error message
- */
+// Override divide function to handle division by zero gracefully Shows toast error and throws meaningful error message
 math.import({
   divide(...args) {
     try {

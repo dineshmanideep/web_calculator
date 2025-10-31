@@ -1,3 +1,11 @@
+/**
+ * Author: P. Dinesh Manideep
+ * Description: Implements robust validation and computation utilities for convolutional, 
+ * transposed convolutional, and pooling layers. Includes safe numerical checks, grouped 
+ * channel validation, SAME padding logic, and parameter counting for both 1D and 2D 
+ * operations with toast-based error feedback.
+ */
+
 import { toast } from 'react-toastify';
 
 class ValidationError extends Error {

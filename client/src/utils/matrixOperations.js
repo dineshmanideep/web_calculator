@@ -1,3 +1,9 @@
+/**
+ * Author: P. Dinesh Manideep
+ * Description: Provides utility functions for matrix parsing, validation, and operations 
+ * such as addition, subtraction, multiplication, determinant, and transpose. 
+ * Uses math.js and a custom evaluator for expression evaluation.
+ */
 import math from './math.lib';
 import { evaluateElement } from './evaluator';
 
@@ -7,11 +13,6 @@ export const MAX_MATRIX_SIZE = 10;
 /**
  * Parse matrix string input like "[[1,2],[3,4]]" or "[[π,e],[sin(0),cos(0)]]" into a matrix
  * Evaluates mathematical expressions and constants before creating the matrix
- *
- * @param {string} str - Matrix string in format "[[a,b],[c,d]]"
- * @param {string} angleMode - Either 'deg' or 'rad' (default: 'rad')
- * @returns {Matrix} Parsed and evaluated matrix
- * @throws {Error} If matrix format is invalid or elements cannot be evaluated
  */
 export const parseMatrix = (str, angleMode = 'rad') => {
   try {

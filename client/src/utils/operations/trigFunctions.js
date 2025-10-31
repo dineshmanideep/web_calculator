@@ -1,3 +1,10 @@
+/**
+ * Author: P. Dinesh Manideep
+ * Description: Implements trigonometric and inverse trigonometric functions 
+ * (sin, cos, tan, asin, acos, atan) with input validation, domain checks, 
+ * and toast-based error handling for invalid or undefined values.
+ */
+
 import { toast } from 'react-toastify';
 
 export const trigFunctions = {

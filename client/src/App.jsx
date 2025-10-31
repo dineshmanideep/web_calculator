@@ -4,14 +4,15 @@
   Purpose:
   Define application routes and wire public, protected, and guest routes.
   Manages global authentication state and session management.
+  Wraps entire application with ThemeProvider for dark/light mode support.
 
   Routes:
   - Public: /, /login, /signup, /verify-otp, /forgot-password, /reset-password
   - Protected: /calculator (requires auth), /admin (requires auth + admin role)
   - Auto-redirects authenticated users away from login/signup pages
 
-  Parameters/Return:
-  Returns the top-level React Router <Routes> element for the app.
+  Author: Scientific Calculator Team
+  Date: October 31, 2025
 */
 
 import { useState, useEffect } from 'react';
@@ -21,6 +22,8 @@ import {
 import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { ThemeProvider } from './contexts/ThemeContext';
+import ThemeToggle from './components/ThemeToggle';
 import Landing from './pages/Landing.jsx';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
@@ -120,7 +123,7 @@ function App() {
   }
 
   return (
-    <>
+    <ThemeProvider>
       <ToastContainer
         position="top-right"
         autoClose={3000}
@@ -133,6 +136,7 @@ function App() {
         pauseOnHover
         theme="dark"
       />
+      <ThemeToggle />
       <BrowserRouter>
         <Routes>
           {/* Landing Page */}
@@ -180,7 +184,7 @@ function App() {
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </BrowserRouter>
-    </>
+    </ThemeProvider>
   );
 }
 
